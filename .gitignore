@@ -5,6 +5,9 @@
 .obsidian/backlink-in-document.json
 .obsidian/canvas-file-info.json
 
+# Credentials (NEVER commit)
+.env
+
 # OS
 .DS_Store
 .Trash-*

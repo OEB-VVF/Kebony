@@ -5,6 +5,10 @@
 
 ---
 
+## Quick Reference
+
+- [[00 - Quick Reference]] — Current test URL, useful links for day-to-day work
+
 ## Change Log
 
 **Start here** — every vault change is tracked in a single table.
