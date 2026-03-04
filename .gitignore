@@ -1,0 +1,11 @@
+# Obsidian - ignore workspace cache, keep config
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/graph.json
+.obsidian/backlink-in-document.json
+.obsidian/canvas-file-info.json
+
+# OS
+.DS_Store
+.Trash-*
+Thumbs.db

@@ -1,0 +1,150 @@
+## **1. Purpose of This Document**
+
+This document defines the structural manufacturing object model used to represent Kebony’s physical reality inside Odoo.
+
+It formalizes how:
+
+- Process Packs
+- Autoclave Loads
+- Dryer Loads
+
+are translated into Manufacturing Orders and traceability objects.
+
+It freezes the architectural doctrine to avoid future redesign, SKU explosion, or valuation distortion.
+
+---
+## **2. Core Principle**
+
+### **Dryer Load = Primary Manufacturing Object**
+
+At Kebony: 
+
+> The Dryer Load is the atomic planning, costing, and valuation unit.
+
+Therefore:
+
+- **1 Dryer Load = 1 Manufacturing Order (MO)**
+- Everything else is sub-structure
+- No nested MOs
+- No fake intermediate products
+- No GL explosion
+---
+## **3. Structural Hierarchy**
+
+The manufacturing hierarchy is defined as follows:
+
+### **Level 1 – Dryer Load (DL)**
+
+Represents:
+- Primary planning primitive
+- Capacity primitive (one DL blocks one dryer for full cycle)
+- Cost absorption object
+- FIFO boundary
+
+Example reference: **DL-26-0001**
+
+Attributes:
+- Planning family
+- Total volume (m³)
+- Total linear meters
+- Board count
+- Estimated/actual dates and duration
+- State: draft → planned → locked → done
+
+### **Level 2 – Autoclave Batch (AC)**
+
+Each DL contains exactly **two** autoclave batches (physical constraint).
+
+Represents:
+- Feeder unit for dryer
+- Family-compatible batch grouping
+- Scheduling sub-unit (start/finish times)
+
+Example reference: **DL-26-0001-AC1**
+
+### **Level 3 – Process Pack (PP)**
+
+Each AC contains typically **5–8 process packs**.
+
+Represents:
+- Homogeneous grouping of boards (same planning family)
+- Smallest physical unit moving through production
+- Created during entry stacking
+
+Attributes:
+- Planning family
+- Total volume
+- Total linear meters
+- Board count
+- Raw lots included
+- QC downgrade flag (if any)
+
+Process packs:
+
+- Do not create accounting entries
+- Do not exist as sellable products
+- Do not generate inventory layers
+- Exist purely as industrial metadata
+---
+## **4. Traceability Chain**
+
+The model enables complete reconstruction:
+
+Raw Lot
+
+→ Process Pack
+→ Autoclave Batch
+→ Dryer Load
+→ Finished Lot
+
+This supports:
+
+- FSC / PEFC audits    
+- Chemical impregnation trace
+- Machine occupancy history
+- Future MES reconciliation
+
+Without SKU multiplication.
+
+---
+## **5. Capacity & Bottleneck Integrity**
+
+This structure preserves:
+
+- Dryer as primary bottleneck    
+- Autoclave as feeder (but measurable)
+- Stacking as labor stage
+
+If autoclave becomes bottleneck in future:
+
+- AC batches are already modeled
+- Capacity analysis is already available
+- No redesign required    
+---
+## **6. Accounting Doctrine**
+
+Only Dryer Load MO creates:
+- WIP absorption
+- FIFO material consumption
+- Finished Goods valuation
+- 
+Autoclave and Process Packs are non-financial.
+
+This guarantees:
+- No valuation distortion
+- No GL fragmentation
+- No COGS complexity explosion
+
+---
+## **7. Strategic Outcome**
+
+This model:
+- Respects physical truth
+- Preserves FIFO integrity
+- Avoids SKU combinatorial explosion
+- Supports subcontracting layers
+- Is scalable to finishing treatments
+- Is MES-ready
+- Is audit-safe
+
+It becomes the foundation of a reusable “Wood Manufacturing Vertical”.
