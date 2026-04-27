@@ -1,7 +1,9 @@
 # Product Master Data
 
-> Version 2.0 — Strategic Architecture & Governance Reference
-> Module: All | Updated: 2026-02-26
+> Version 2.1 — Strategic Architecture & Governance Reference
+> Module: All | Updated: 2026-04-27
+>
+> **Changes since v2.0**: explicit `kebony_parent_id` dual-semantics callout (§5.6), `x_studio_master_item_code_1` (M2O) distinguished from `_master_item_code` (Char), AX decimeter encoding documented (§15.3), Imperial→Metric twin proposal rule (§3.6), yield-trim rule (§5.6), forward-looking architecture for the master-centric screen, description propagation model, and deferred country/language localization (§17).
 
 ---
 
@@ -65,6 +67,8 @@ Metric and imperial products are **separate templates** linked by a shared Maste
 | UoM | m (meter) | LF (linear foot) |
 | Company | Kebony Holding (BE) | Kebony Holding (BE) |
 
+**Relational link (added 2026-04)**: imperial SKUs are also linked to their metric twin via `kebony_parent_id` (Many2one → product.template). See §5.6 for the full specification. This enables the **imperial↔metric flow**: a US purchase order in imperial can be translated to a metric SO at the BE factory, produced in metric, delivered in metric, and converted back to imperial at US receipt — all driven by the parent link.
+
 ### 3.3 Treatment ≠ Variant
 
 Treatment (fire retardant, colour finish, brushing) is applied post-production and tracked at **lot level only**. Product identity remains purely dimensional. This prevents combinatorial SKU explosion: each cross-section exists in ~20 length variants across metric and imperial, and each could carry up to 4 treatments — meaning ~70 cross-sections × ~20 lengths × 4 treatments × 2 measurement systems = **~11,200 potential SKUs** reduced to the current ~490 by keeping treatment at lot level and length as a structural product axis rather than a variant.
@@ -83,7 +87,23 @@ Master Item (e.g. 1127)
 - **Metric-Imperial Master** (`x_studio_product_family_1 = True`): links metric and imperial twins under one code (e.g., `1127-M`)
 - **Sellable Product**: the actual stockable, sellable `product.template` (e.g., `1127-M-3.2`)
 
-### 3.5 Product Population
+### 3.5 Imperial → Metric Twin Proposal Rule
+
+Imperial SKUs are commercially sold in **standard foot lengths** (8, 10, 12, 14, 16 ft). For each Imperial SKU, the system proposes the **nearest Metric length** as its physical twin (the `kebony_parent_id` target):
+
+| Imperial | Equivalent in metres | Proposed Metric twin |
+|---|---|---|
+| `1127-I-8` | 2.438 m | `1127-M-2.4` or `1127-M-2.5` |
+| `1127-I-10` | 3.048 m | `1127-M-3.0` or `1127-M-3.2` |
+| `1127-I-12` | 3.658 m | `1127-M-3.6` or `1127-M-3.7` |
+| `1127-I-14` | 4.267 m | `1127-M-4.2` or `1127-M-4.3` |
+| `1127-I-16` | 4.877 m | `1127-M-4.8` or `1127-M-4.9` |
+
+The proposal is **flagged for business validation** (red/white inverted cell in the Phase A review Excel). Never auto-confirm — the choice between two adjacent metric lengths depends on customer expectations, packaging conventions, and stock availability.
+
+**Future master-form button**: "Generate Imperial twin lengths" — on a metric Master, generates the standard 8/10/12/14/16 ft Imperial children with the proposed twin pre-filled.
+
+### 3.6 Product Population
 
 | Segment | Metric | Imperial | Total |
 |---------|--------|----------|-------|
@@ -136,7 +156,8 @@ FT3_PER_M3 = 35.3146667
 | 2 | Description | `x_studio_description` | Char | Full commercial name |
 | 3 | Sales Description | `description_sale` | Text | Shown on quotations |
 | 4 | Purchase Description | `description_purchase` | Text | Shown on POs |
-| 5 | Master Item Code | `x_studio_master_item_code` | Char | Cross-section grouping: `1127` |
+| 5 | Master Item Code (text) | `x_studio_master_item_code` | Char | Cross-section grouping: `1127` |
+| 5b | **Master Item Code (link)** | `x_studio_master_item_code_1` | **Many2one → product.template** | **Relational link** to the Master Item template. Used by domains/filters and by chain navigation (e.g. autoclave MO override filters input lengths to same master via this field). Distinct from #5: the Char is the textual code, the M2O is the actual record link. |
 | 6 | Is Master Item? | `x_studio_is_master_item` | Boolean | `True` for grouping records |
 | 7 | Master Variant Code | `x_studio_master_variant_code_1` | Char | Dimension grouping: `1127-3.2` |
 | 8 | Is Master Variant? | `x_studio_is_master_variant` | Boolean | `True` for variant grouping |
@@ -232,13 +253,68 @@ Values — #59: `End-matched` · `End-cut` · `N.A.` | #60: `Horizontal` · `Ver
 
 ### 5.6 Supply Chain & Replenishment
 
-| # | Label | Technical Field | Type |
-|---|-------|----------------|------|
-| 64 | Rough Sawn Parent | `x_studio_rough_sawn_parent_id_3` | M2O |
-| 65 | Raw Material Origin | `x_studio_raw_material_origin_id_3` | M2O |
-| 66 | Supply Chain Rule | *(to be created)* | Selection |
+| # | Label | Technical Field | Type | Purpose |
+|---|-------|----------------|------|---------|
+| 64 | Rough Sawn Parent | `x_studio_rough_sawn_parent_id_3` | Char (master code) | Reporting only — stores the RS master code as text |
+| 65 | Raw Material Origin | `x_studio_raw_material_origin_id_3` | Char (master code) | Reporting only — stores the WW master code as text |
+| 66 | **Manufacturing Parent** | `kebony_parent_id` | **M2O to product.template** | **Production flow link — the actual parent this one is made FROM** |
+| 67 | Supply Chain Rule | *(to be created)* | Selection | Drives replenishment route and lead time (see §5.6.1) |
 
-#64 links finished product → raw material parent. #65 links to white wood origin. #66 drives replenishment route and lead time (see §5.6.1).
+**#64 and #65** are **legacy Studio char fields** that store parent MASTER codes (e.g. "1934", "2233"). They are good for reporting/grouping but do NOT enable flow traversal because they store text, not relational IDs.
+
+**#66 `kebony_parent_id` (added 2026-04)** is the proper **Many2one to product.template** that enables the full production chain. It links each SKU to the exact parent SKU at the same length. Introduced to unlock these flows:
+
+1. **Imperial → Metric conversion** (for US operations):
+   - `1127-I-11.48 → 1127-M-3.5` (imperial SKU → its metric twin)
+   - Enables: PO in US (imperial) → SO in BE (metric) → production in metric → delivery in metric → receipt converted back to imperial in US
+
+2. **Production chain traversal** (for MRP and reporting):
+   - Radiata: `2131-M-3.05 → 1935-M-3.05 → 1934-M-3.05` (FG → RS → WW, all at 3.05m)
+   - Scots Pine: `1127-M-3.5 → 1003-M-3.5` (FG → WW, no RS layer)
+
+**Population rules** (implemented in `tools/populate_parent_id.py`):
+- Imperial SKU → metric twin at equivalent length (uses `length_m` matching)
+- Metric SKU with RS populated → `{rs_master}-M-{length}` (Radiata/Clear chain)
+- Metric SKU with only WW populated → `{ww_master}-M-{length}` (Scots Pine/Character chain, no RS)
+- Metric RS SKU → `{ww_master}-M-{length}` (cascade from children's fields)
+- Masters (`is_master_item`, `is_master_variant`, `is_product_family_1`) → None (grouping placeholders, not part of the chain)
+- Pure WW SKUs (root of chain) → None
+
+**Edge cases handled**:
+- `x_studio_rough_sawn_parent_id_3 = 'N.A.'` (literal string) is filtered out
+- `x_studio_rough_sawn_parent_id_3 = '2523 / 2423'` (concatenation bug) is filtered out
+- Consignment variants (`(CON)`) follow the same rules as non-CON siblings
+
+#### 5.6.A — Dual Semantics of `kebony_parent_id` (CRITICAL)
+
+`kebony_parent_id` is a single field that **carries two different meanings depending on the SKU's measurement system**. This is intentional and must NOT be "fixed" by anyone reading it as a bug.
+
+| SKU Measurement System | `kebony_parent_id` points to | Meaning |
+|---|---|---|
+| **Metric** | Another **Metric** SKU (raw material at the same length) | **Vertical / BoM**: "what raw material I am made FROM" — the manufacturing parent consumed in production |
+| **Imperial** | The **Metric twin** SKU of the same physical product | **Horizontal / Bridge**: "what I really am, in the engineering metric reference" — the conversion link that drives US↔EU flow |
+
+**Why the design**: AX is metric-native; all BoM logic lives in metric. The US sells in imperial. By making the Imperial SKU's parent point to its Metric twin, the system can flip automatically: a US PO in feet → SO in metres → production in metres → delivery in metres → received and labelled in feet at the US warehouse — with no parallel BoM tree for imperial.
+
+**Rule for any code or screen that reads this field**: branch on `x_studio_measurement_system` before interpreting the parent. Treating both cases identically will produce silent corruption.
+
+#### 5.6.B — Yield Trim Rule (Scots Pine Character chain)
+
+The Scots Pine Character chain consumes raw white wood that is **10 cm longer** than the finished product (trim allowance):
+
+| Output (FG) | Input (raw WW) | Trim |
+|---|---|---|
+| `1127-M-2.9` | `1003-M-3.0` | −10 cm |
+| `1127-M-3.5` | `1003-M-3.6` | −10 cm |
+| `1127-M-3.9` | `1003-M-4.0` | −10 cm |
+
+The Phase A cleanup generator uses this rule to populate `kebony_parent_id` for SP Character. Radiata follows a different chain (FG → RS → WW with chemistry-driven yield, not a fixed trim).
+
+**Implication for autoclave MO override**: when the planner overrides the proposed input length, the trim is no longer guaranteed. The override is constrained to the same Master family (e.g. `1003-M-*`) but the user must know that picking `1003-M-3.9` to produce a `1127-M-3.5` increases trim waste.
+
+**Field definition**: `kebony_manufacturing/models/product_template.py`, added to the Studio product form via Odoo Studio (not via the kebony_manufacturing view file — that was deactivated to avoid conflict with existing Studio customizations).
+
+**Important**: Kebony uses **`product.template` exclusively**, never `product.product`, because UoM and packaging are merged at the template level. All parent_id scripts query and write templates only.
 
 #### 5.6.1 Supply Chain Rules
 
@@ -762,6 +838,32 @@ Key fields where the import column name differs from the vault doc's simplified 
 
 *Note: The Studio-generated field names with random suffixes (e.g., `_3oj_1jaj6o7st`) are permanent Odoo identifiers. Always use the exact technical name in code and imports.*
 
+### 15.3 AX Decimeter Length Encoding
+
+Source files exported from Axapta (legacy ERP) — including `RecipeFamily.xlsx` and the BoM/master-data feeds — encode lengths in **decimeters** as a `-NN` suffix on the SKU code. Divide by 10 to get metres.
+
+| In source file | Means |
+|---|---|
+| `1127 - 29` | SKU `1127-M-2.9` (2.9 m) |
+| `1003 - 30` | SKU `1003-M-3.0` (3.0 m) |
+| `1935 - 35` | SKU `1935-M-3.5` (3.5 m) |
+| `1934 - 36` | SKU `1934-M-3.6` (3.6 m) |
+
+**Rule for any import or migration script**: always divide the `-NN` suffix by 10 before mapping to `x_studio_length_m`. The resulting `default_code` should be `{master}-M-{length_m}` with one decimal (e.g. `3.5`, not `3.50`).
+
+This convention is metric-only. Imperial SKUs use foot integers (`1127-I-10` = 10 ft, no division).
+
+### 15.4 Phase A Cleanup (in progress, paused 2026-04-24)
+
+Active migration: rebuilding the product master to enforce the 3-level hierarchy and `kebony_parent_id` chain. State and artefacts:
+
+- Plan: `08 - Migration Playbook/Product Master Cleanup Plan.md`
+- Generator: `tools/product_master_generate.py` (review Excel, no Odoo writes)
+- Latest review Excel: `Product_Master_Cleanup_v0.1_draft.xlsx`
+- Phase B (write-to-Odoo applier) not yet started
+
+Outstanding business decisions tracked in the cleanup state memory: 5 unresolved Scots Pine SKUs, RS length model (FG-lengths vs standard-RS), `x_studio_length_1` vs `x_studio_length_m` reconciliation, Imperial UoM rename `ft` → `LF`.
+
 ---
 
 ## 16. Strategic Impact
@@ -775,6 +877,97 @@ This product master data architecture:
 5. **Enables analytical accounting** — product category and classification drive GL routing and analytic distribution
 6. **Ensures trade compliance** — HS codes, commodity codes, and country of origin are first-class fields with governance
 7. **Scales without SKU explosion** — treatment at lot level, no dimensional variants, three-level hierarchy keeps the catalogue manageable
+
+---
+
+## 17. Forward-Looking Architecture
+
+This section captures architectural intent that is **not yet implemented** but must inform any code, screen, or process change touching the product master. Discussed and validated 2026-04-27.
+
+### 17.1 Master-Centric Management Screen (planned)
+
+The current product form is SKU-centric: users edit one length variant at a time, on a screen polluted with 18+ duplicate-label Studio fields and no view of related lengths. This is unsustainable for a catalogue of ~490 records, especially when most attributes (cross-section, planning family, supplier, classification) are constant across all lengths of a Master.
+
+**Target**: a **master-centric form** where the daily working unit is the Master, not the SKU. Lengths surface as a list inside the Master, with bulk operations available.
+
+**Key sections (notebook tabs)**:
+
+| Tab | Content |
+|---|---|
+| General | Identity, classification, lifecycle, planning family |
+| Geometry | Cross-section dimensions (constant across lengths), volume ratio, density |
+| Supply Chain | Procurement, supplier, route, lead time, supply chain rule |
+| Sales | Pricelists, customer category, sales description, market portfolios |
+| Manufacturing | `kebony_parent_id` chain, BoM coefficients, yield, scrap |
+| Inventory | UoM, packaging, tracking, certifications |
+| Accounting | Category, valuation, GL routing |
+| Lengths | Length matrix (metric + imperial side by side), per-length stock, override fields |
+| Chain | Upstream parent Master, downstream consuming Masters (smart buttons) |
+
+**Length matrix (key UX win)**:
+
+| Length | Metric SKU | Metric On Hand | Imperial SKU | Imperial On Hand | Status |
+|---|---|---|---|---|---|
+| 3.0 m / 10 ft | `1127-M-3.0` | 142 lm | `1127-I-10` | 220 lf | Active |
+| 3.2 m / — | `1127-M-3.2` | 0 lm | (none) | — | Active |
+| 3.5 m / — | `1127-M-3.5` | 480 lm | (none) | — | Active |
+| — / 8 ft | (none) | — | `1127-I-8` | 80 lf | Active |
+
+**Master-level smart buttons**:
+- On-hand stock (sum across all length children)
+- Open MOs / SOs / POs
+- "Used as raw material in" (downstream Masters that consume me)
+- "Consumes" (upstream Master(s) I am made FROM)
+
+**Lifecycle states (Master level)**:
+
+| State | Allowed transitions | Sales / Production impact |
+|---|---|---|
+| Draft | → Active | Cannot sell, cannot produce |
+| Active | → Phasing-out, Archived | Full operations |
+| Phasing-out | → Archived | No new orders, fulfil existing |
+| Archived | (terminal) | Read-only |
+
+Activation gate: Draft → Active is **blocked** until required fields are populated (planning family, classification, `x_studio_volume_m3`, `kebony_parent_id` for non-raw masters, BoM template for FG/RS, accounting category with `property_stock_account_production_cost_id` set — see `project_product_master_config_checklist.md`).
+
+### 17.2 Description Propagation Model
+
+**Problem**: the current `x_studio_description` is per-SKU. A Master may have 12 length children. Updating the commercial description (e.g. species marketing name change) requires editing 12 records and is error-prone.
+
+**Target model**: a Master-level **description stem** + computed length-level **description full**.
+
+```
+Master record
+  └── description_stem  = "Kebony Scots Pine Character 22×100 mm"
+
+Length child SKU
+  └── description_full  = description_stem + " | " + length_label
+                        = "Kebony Scots Pine Character 22×100 mm | 3.5 m"
+```
+
+**Rules**:
+- `description_stem` lives on the Master and is the **single source of truth** for the prefix
+- `description_full` on each length SKU is **computed** — never directly edited
+- The "Propagate" button on the Master is no-op for description (always live via compute)
+- Per-length one-off override available via optional `description_override` field, blank by default
+- `length_label` = `"3.5 m"` for metric, `"10 ft"` for imperial — auto-generated from `x_studio_length_m` / `x_studio_length_1`
+
+**Migration plan**: when introduced, the existing per-SKU `x_studio_description` becomes a **read-only mirror** of `description_full` (or is retired entirely once all consumers have migrated).
+
+### 17.3 Description Localization (deferred)
+
+Beyond the stem + length composition, customers in different markets need descriptions in their **local language** with potentially **country-specific naming conventions** (species names, certification phrasing, dimension units in mm vs cm).
+
+**Deferred design** (not for current iteration — captured in `project_product_description_localization.md`):
+- New model `kebony.product.description.localization`: `master_id` × `country_id` × `lang_id` → `description_stem`
+- Resolution chain: country+lang → lang only → default master stem
+- The computed `description_full` on each length SKU resolves the right localization based on context (sale order partner, BoL destination, invoice country)
+
+**Implication for §17.2 design today**: keep the master-level `description_stem` as the *default* value. Do not paint into a corner by hard-coding it as the single source — leave a clean extension point for the localization child model.
+
+### 17.4 Studio Field Cleanup (pulled in by the master screen redesign)
+
+The product form currently shows ~18 duplicate-label Studio field pairs (e.g. two fields both labelled "Description", two labelled "Rough Sawn Parent ID"), generating Warning on every odoo.sh build. This redesign is the natural opportunity to migrate the keep-worthy Studio fields to native Python fields and retire the duplicates. Tracked in `project_studio_fields_cleanup.md`.
 
 ---
 

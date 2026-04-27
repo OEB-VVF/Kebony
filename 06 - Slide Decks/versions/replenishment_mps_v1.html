@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0">
+<title>Replenishment &amp; MPS — From Excel to Odoo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    body { background: none; padding: 0; gap: 0; }
+    .slide { box-shadow: none; border-radius: 0; margin: 0;
+             page-break-inside: avoid; page-break-after: always; }
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    gap: 30px;
+  }
+
+  .slide {
+    width: 1280px;
+    min-height: 720px;
+    max-height: 720px;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    padding: 38px 50px 36px;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+  }
+
+  .slide::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
+
+  .slide.title-slide {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .slide.title-slide::before { height: 8px; }
+  .slide.title-slide h1 {
+    font-size: 36px;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .slide.title-slide .subtitle {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 32px;
+  }
+  .slide.title-slide .meta {
+    font-size: 12px;
+    color: #999;
+    line-height: 1.8;
+  }
+
+  h1 { font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  h2 { font-size: 15px; font-weight: 600; color: #0f3460; margin-bottom: 10px; margin-top: 14px; }
+  h3 { font-size: 12px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+
+  .subtitle { font-size: 12px; color: #888; margin-bottom: 16px; }
+
+  .section-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1.2px; color: #0f3460; margin-bottom: 8px;
+    padding-bottom: 4px; border-bottom: 2px solid #0f3460; display: inline-block;
+  }
+  .section-label.red { color: #c62828; border-color: #c62828; }
+  .section-label.green { color: #2e7d32; border-color: #2e7d32; }
+  .section-label.orange { color: #e65100; border-color: #e65100; }
+
+  .flow-diagram {
+    background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 8px;
+    padding: 16px 20px; margin: 8px 0;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 10.5px; line-height: 1.55; color: #333; white-space: pre; overflow-x: auto;
+  }
+  .flow-diagram .label { color: #0f3460; font-weight: 700; }
+  .flow-diagram .highlight { color: #c62828; font-weight: 600; }
+  .flow-diagram .green { color: #2e7d32; font-weight: 600; }
+  .flow-diagram .blue { color: #0f3460; font-weight: 600; }
+  .flow-diagram .dim { color: #aaa; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 11px; margin: 6px 0; }
+  th {
+    font-size: 9px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; color: #888; text-align: left;
+    padding: 4px 6px 5px; border-bottom: 2px solid #ddd;
+  }
+  td { padding: 4px 6px; border-bottom: 1px solid #f0f0f0; color: #333; vertical-align: top; }
+  tr.total-row td { font-weight: 700; border-top: 2px solid #1a1a2e; color: #1a1a2e; }
+  table.compact th { padding: 3px 5px 4px; }
+  table.compact td { padding: 3px 5px; font-size: 10.5px; }
+  tr.highlight-row td { background: #e3f2fd; }
+  tr.danger-row td { background: #ffebee; }
+  tr.success-row td { background: #e8f5e9; }
+
+  .cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  .cols-2.wide-left { grid-template-columns: 1.15fr 0.85fr; }
+  .cols-2.wide-right { grid-template-columns: 0.85fr 1.15fr; }
+  .cols-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; align-items: start; }
+
+  .tag {
+    display: inline-block; font-size: 9px; font-weight: 600;
+    padding: 2px 8px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .tag.red { background: #ffebee; color: #c62828; }
+  .tag.green { background: #e8f5e9; color: #2e7d32; }
+  .tag.blue { background: #e3f2fd; color: #0f3460; }
+  .tag.orange { background: #fff3e0; color: #e65100; }
+  .tag.grey { background: #f5f5f5; color: #666; }
+  .tag.purple { background: #f3e5f5; color: #7b1fa2; }
+
+  .callout {
+    padding: 10px 14px; border-radius: 0 6px 6px 0;
+    font-size: 11px; line-height: 1.5; margin: 8px 0;
+  }
+  .callout.warning { background: #fff8e1; border-left: 3px solid #f9a825; color: #555; }
+  .callout.info { background: #e3f2fd; border-left: 3px solid #0f3460; color: #333; }
+  .callout.danger { background: #ffebee; border-left: 3px solid #c62828; color: #555; }
+  .callout.success { background: #e8f5e9; border-left: 3px solid #2e7d32; color: #333; }
+  .callout strong { color: #1a1a2e; }
+
+  .decision-box {
+    border: 2px solid #0f3460; border-radius: 8px; padding: 12px 16px; margin: 10px 0;
+  }
+  .decision-box h3 { font-size: 12px; font-weight: 700; color: #0f3460; margin-bottom: 6px; }
+  .decision-box p { font-size: 11px; color: #555; line-height: 1.5; }
+
+  .mini-card {
+    background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 6px;
+    padding: 10px 14px; margin: 6px 0;
+  }
+  .mini-card h4 {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.8px; color: #0f3460; margin-bottom: 4px;
+  }
+  .mini-card p { font-size: 11px; color: #555; line-height: 1.5; }
+
+  .check-list { list-style: none; font-size: 11px; line-height: 1.7; }
+  .check-list li::before { content: '\2192'; color: #0f3460; font-weight: 700; margin-right: 6px; }
+  .check-list li.ok::before { content: '\2713'; color: #2e7d32; }
+  .check-list li.warn::before { content: '\26A0'; color: #e65100; }
+  .check-list li.no::before { content: '\2717'; color: #c62828; }
+
+  .pl-block {
+    background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 6px;
+    padding: 12px 16px;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 10.5px; line-height: 1.7; color: #333; white-space: pre; margin: 6px 0;
+  }
+
+  .big-num { font-size: 28px; font-weight: 700; color: #0f3460; line-height: 1; }
+  .big-num.green { color: #2e7d32; }
+  .big-num.red { color: #c62828; }
+  .big-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 2px; }
+
+  .footer {
+    position: absolute; bottom: 14px; left: 50px; right: 50px;
+    display: flex; justify-content: space-between; font-size: 10px; color: #bbb;
+  }
+  .page-num { position: absolute; bottom: 14px; right: 50px; font-size: 10px; color: #bbb; }
+  .slide-number { font-size: 10px; color: #bbb; }
+  /* ── Logo ── */
+  .logo-title {
+    position: absolute; top: 30px; right: 40px;
+    height: 80px; opacity: 0.9;
+  }
+  .slide-footer {
+    position: absolute; bottom: 10px; left: 20px; right: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .prepared-by {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .prepared-by span {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+  .prepared-by img {
+    height: 22px; opacity: 0.7;
+  }
+  .footer-project {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ================================================================ -->
+
+<!-- SLIDE 1 — TITLE                                                   -->
+
+<!-- ================================================================ -->
+
+<div class="slide title-slide">
+
+  <img src="VVF-logo.png" alt="VVF" class="logo-title">
+  <div class="section-label" style="margin-bottom:18px;">Manufacturing</div>
+  <h1>Replenishment &amp; MPS<br>— From Excel to Odoo</h1>
+  <div class="subtitle">Reverse-engineering the RAP MPS workbook • Migration strategy to dryer-centric planning</div>
+
+  <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin: 20px 0; width:100%;">
+    <div class="mini-card" style="border-left:3px solid #0f3460; padding:8px 12px;">
+      <h4>Current State</h4>
+      <p>RAP MPS Excel workbook<br>3 BOM levels × 2 families<br>Rolling 6-month horizon</p>
+    </div>
+    <div class="mini-card" style="border-left:3px solid #0f3460; padding:8px 12px;">
+      <h4>Core Logic</h4>
+      <p>Safety stock reorder point<br>Pack rounding • Waste cascade<br>MTS vs MTO per SKU</p>
+    </div>
+    <div class="mini-card" style="border-left:3px solid #0f3460; padding:8px 12px;">
+      <h4>Target State</h4>
+      <p>Odoo MPS with dryer capacity<br>Planning families • Lot tracing<br>Automated replenishment</p>
+    </div>
+  </div>
+
+  <div class="meta">
+    Kebony — Manufacturing | March 2026<br>
+    Status: Architecture documentation
+  </div>
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">1 / 10</div>
+
+<!-- ================================================================ -->
+
+<!-- SLIDE 2 — CURRENT ARCHITECTURE                                    -->
+
+<!-- ================================================================ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">1</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>1. Current Architecture — RAP MPS Workbook</h1>
+  <p class="subtitle">Three BOM levels × two product families • Each level has a RAD/SP decision sheet + a Calc computation engine</p>
+
+  <div class="cols-2" style="margin-top:6px;">
+    <div>
+      <div class="section-label">BOM Levels &amp; Sheet Structure</div>
+      <table class="compact">
+        <thead><tr>
+<th>Level</th>
+<th>Description</th>
+<th>Radiata</th>
+<th>Spruce/Pine</th>
+<th>Calc</th>
+</tr></thead>
+        <tbody>
+          <tr class="highlight-row">
+<td><strong>FG</strong></td>
+<td>Finished Goods</td>
+<td>FG RAD</td>
+<td>FG SP</td>
+<td>FG Calc</td>
+</tr>
+          <tr>
+<td><strong>RS</strong></td>
+<td>Rough Sawn</td>
+<td>RS RAD</td>
+<td>—</td>
+<td>RS Calc</td>
+</tr>
+          <tr class="highlight-row">
+<td><strong>RM</strong></td>
+<td>Raw Material</td>
+<td>RM RAD</td>
+<td>RM SP</td>
+<td>RM Calc</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="section-label orange" style="margin-top:14px;">Waste / Yield Factors</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:4px;">
+        <div class="mini-card" style="padding:8px 12px; border-left:3px solid #e65100;">
+          <h4>FG → RS</h4>
+          <p><span class="big-num" style="font-size:22px;">1.10×</span><br><span style="font-size:10px; color:#888;">10% waste in finishing</span></p>
+        </div>
+        <div class="mini-card" style="padding:8px 12px; border-left:3px solid #e65100;">
+          <h4>RS → RM</h4>
+          <p><span class="big-num" style="font-size:22px;">1.05×</span><br><span style="font-size:10px; color:#888;">5% waste in sawing</span></p>
+        </div>
+      </div>
+      <div class="callout info" style="margin-top:8px;">
+        <strong>Overall RM→FG yield: ~86%</strong> — 1 / (1.10 × 1.05). Every 100 boards of raw material produce ~86 boards of finished goods.
+      </div>
+
+    <div>
+      <div class="section-label">Demand Cascade Flow</div>
+      <div class="flow-diagram" style="font-size:10px; line-height:1.6;">
+<span class="label">DATA SOURCES</span>                  <span class="label">CALC ENGINES</span>            <span class="label">DECISION SHEETS</span>
+
+<span class="blue">Demand Data</span> →─┌
+<span class="blue">Sales Orders</span>→─└ <span class="label">FG Calc</span> → <span class="green">FG RAD / FG SP</span>
+                   ↓                           ↓
+                   ↓  <span class="highlight">×1.10 waste</span>              ↓
+                   ↓                           ↓
+              <span class="label">RS Calc</span> → <span class="green">RS RAD</span>
+                   ↓                           ↓
+                   ↓  <span class="highlight">×1.05 waste</span>              ↓
+                   ↓                           ↓
+              <span class="label">RM Calc</span> → <span class="green">RM RAD / RM SP</span>
+                   ↓
+              <span class="highlight">Purchase Orders</span>
+</div>
+
+      <div class="callout warning" style="margin-top:8px;">
+        <strong>15 data source sheets</strong> feed the workbook: SO, Demand Data, US FC, Prod, Pur, Inv, PP, Safety Stocks, Item Master, Customers, Monthly Split, and more. All pulled from AX2012.
+      </div>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">2 / 10</div>
+
+<!-- ================================================================ -->
+
+<!-- SLIDE 3 — SKU GRANULARITY & DATA MODEL                            -->
+
+<!-- ================================================================ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">2</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>2. SKU Granularity &amp; Data Model</h1>
+  <p class="subtitle">Each FG product explodes into ~4–5 rows (one per foot length) • Maps to Odoo product template → variant structure</p>
+
+  <div class="cols-2" style="margin-top:8px;">
+    <div>
+      <div class="section-label">RAD Sheet Columns</div>
+      <table class="compact">
+        <thead><tr>
+<th>Col</th>
+<th>Field</th>
+<th>Example</th>
+<th>Meaning</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>A</td>
+<td><strong>WW</strong></td>
+<td>1934</td>
+<td>Input WW product (raw/semi ref)</td>
+</tr>
+          <tr class="highlight-row">
+<td>B</td>
+<td><strong>RS</strong></td>
+<td>1935</td>
+<td>Rough Sawn product reference</td>
+</tr>
+          <tr>
+<td>C</td>
+<td><strong>Repl. Time</strong></td>
+<td>1</td>
+<td>Lead time in months</td>
+</tr>
+          <tr class="highlight-row">
+<td>D</td>
+<td><strong>Part Nr</strong></td>
+<td>2131</td>
+<td>FG item number (AX item ID)</td>
+</tr>
+          <tr>
+<td>E</td>
+<td><strong>FT</strong></td>
+<td>10, 12, 14…</td>
+<td>Foot length</td>
+</tr>
+          <tr class="highlight-row">
+<td>F</td>
+<td><strong>M</strong></td>
+<td>30, 36, 42…</td>
+<td>Board dimension in mm</td>
+</tr>
+          <tr>
+<td>H</td>
+<td><strong>Planning Method</strong></td>
+<td>MTS / MTO</td>
+<td>Make to Stock vs Order</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="callout info" style="margin-top:10px;">
+        <strong>Same Part Nr, multiple rows.</strong> Part Nr 2131 appears as 5 rows: 10 FT, 12 FT, 14 FT, 16 FT, 18 FT. This is the product template → variant mapping in Odoo (FT = variant attribute).
+      </div>
+
+    <div>
+      <div class="section-label">PP Sheet — Pack Parameters</div>
+      <div class="mini-card">
+        <h4>Pack Rounding Logic</h4>
+        <p>The PP sheet defines <strong>boards per pack</strong> for each WW product. Pack size in linear meters is calculated as:</p>
+      </div>
+      <div class="flow-diagram" style="font-size:11px; margin-top:6px;">
+<span class="label">Pack Size</span> = (board_mm / 10) × boards_per_pack(WW)
+
+<span class="dim">Example:</span>
+  WW = 1934, boards_per_pack = 120
+  board_mm = 42
+  <span class="green">Pack Size = (42/10) × 120 = 504 LM</span>
+</div>
+
+      <div class="section-label" style="margin-top:14px;">Odoo Mapping</div>
+      <div class="flow-diagram" style="font-size:10.5px;">
+<span class="label">Excel</span>                <span class="label">Odoo</span>
+Part Nr          →  <span class="blue">product.product.default_code</span>
+FT (foot length) →  <span class="blue">Product variant attribute</span>
+M (dimension mm) →  <span class="blue">Product variant attribute</span>
+WW / RS          →  <span class="blue">BOM parent ↔ child</span>
+Planning Method  →  <span class="blue">product.template.route_ids</span>
+Boards per Pack  →  <span class="blue">kebony.planning.family.pack_boards</span>
+</div>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">3 / 10</div>
+
+<!-- ================================================================ -->
+
+<!-- SLIDE 4 — THE REPLENISHMENT FORMULA                               -->
+
+<!-- ================================================================ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">3</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>3. The Replenishment Formula</h1>
+  <p class="subtitle">Classic safety-stock reorder point with pack rounding • Distinct logic for MTS vs MTO items</p>
+
+  <div class="cols-2" style="margin-top:6px;">
+    <div>
+      <div class="section-label green">Make to Stock (MTS)</div>
+      <div class="flow-diagram" style="font-size:10.5px; line-height:1.65;">
+<span class="label">Step 1: Compute Thresholds</span>
+  Safety Stock  = dimension_mm × demand_factor
+  Target Stock  = demand_factor × (dimension_mm + 0.75)
+
+<span class="label">Step 2: Check Availability</span>
+  On Hand       = SUMIFS(AX inventory snapshot)
+  Available     = On Hand − Open SO (current month)
+
+<span class="label">Step 3: Trigger Decision</span>
+  <span class="green">IF</span> Available ≤ Safety Stock:
+    Produce = <span class="highlight">ROUNDUP</span>(
+      (Target − Available) / Pack Size
+    ) × Pack Size
+  <span class="green">ELSE</span>:
+    Produce = 0</div>
+
+      <div class="callout warning" style="margin-top:6px;">
+        <strong>Pack rounding is critical.</strong> Production quantities must be exact multiples of pack size to match physical stacking and dryer load constraints.
+      </div>
+
+    <div>
+      <div class="section-label red">Make to Order (MTO)</div>
+      <div class="mini-card" style="border-left:3px solid #c62828;">
+        <h4>Zero Safety Stock</h4>
+        <p>MTO items have <strong>Safety Stock = 0</strong> and <strong>Target Stock = 0</strong>. Production only triggers against confirmed sales demand. No speculative inventory build.</p>
+      </div>
+
+      <div class="section-label" style="margin-top:14px;">Rolling Forward (M+1 through M+5)</div>
+      <div class="flow-diagram" style="font-size:10.5px; line-height:1.6;">
+<span class="label">For each forward month:</span>
+  Available[M+n] = Available[M+n−1]
+                   − Demand[M+n]
+                   + Production[M+n]
+
+  <span class="green">IF</span> Available[M+n] ≤ Safety Stock:
+    Trigger replenishment (same formula)
+
+<span class="label">Slow Mover Flag:</span>
+  <span class="highlight">IF</span> stock &gt; ½ annual_demand → <span class="highlight">"SLOW"</span>
+  <span class="green">ELSE</span> → <span class="green">"OK"</span>
+
+<span class="label">MOH</span> = inventory / (annual_demand / 12)</div>
+
+      <div class="callout info" style="margin-top:6px;">
+        <strong>Existing production orders</strong> are subtracted before triggering new production. The formula avoids double-ordering.
+      </div>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">4 / 10</div>
+
+<!-- ================================================================ -->
+
+<!-- SLIDE 5 — THE CALC ENGINE                                         -->
+
+<!-- ================================================================ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">4</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>4. The Calc Engine — Rolling Projection</h1>
+  <p class="subtitle">7-row repeating block per SKU • 12-month rolling inventory balance • Two-month lookahead in PlndProd</p>
+
+  <div class="cols-2" style="margin-top:6px;">
+    <div>
+      <div class="section-label">7-Row Block per SKU</div>
+      <table class="compact">
+        <thead><tr>
+<th>#</th>
+<th>Row</th>
+<th>Source</th>
+<th>Description</th>
+</tr></thead>
+        <tbody>
+          <tr class="highlight-row">
+<td>1</td>
+<td><strong>OpenSales</strong></td>
+<td>So sheet</td>
+<td>SUMIFS by product/FT/month</td>
+</tr>
+          <tr>
+<td>2</td>
+<td><strong>FC</strong></td>
+<td>Demand Data</td>
+<td>Historical × growth × monthly split</td>
+</tr>
+          <tr class="highlight-row">
+<td>3</td>
+<td><strong>US FC</strong></td>
+<td>US FC sheet</td>
+<td>US forecast × quarterly split %</td>
+</tr>
+          <tr>
+<td>4</td>
+<td><strong>Prod</strong></td>
+<td>Prod sheet</td>
+<td>Existing/confirmed MOs</td>
+</tr>
+          <tr class="highlight-row">
+<td>5</td>
+<td><strong>PlndProd</strong></td>
+<td>Computed</td>
+<td>Replenishment trigger (key row)</td>
+</tr>
+          <tr>
+<td>6</td>
+<td><strong>Inv</strong></td>
+<td>Computed</td>
+<td>Rolling inventory balance</td>
+</tr>
+          <tr class="highlight-row">
+<td>7</td>
+<td><strong>MOH</strong></td>
+<td>Computed</td>
+<td>Months on Hand</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="section-label orange" style="margin-top:12px;">US Quarterly Split Percentages</div>
+      <table class="compact">
+        <thead><tr>
+<th>Q1 (Jan–Mar)</th>
+<th>Q2 (Apr–Jun)</th>
+<th>Q3 (Jul–Sep)</th>
+<th>Q4 (Oct–Dec)</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>5% / 5% / 5%</td>
+<td>9% / 9% / 9%</td>
+<td>10% / 10% / 10%</td>
+<td>9% / 9% / 9%</td>
+</tr>
+        </tbody>
+      </table>
+
+    <div>
+      <div class="section-label">PlndProd Formula (Two-Month Lookahead)</div>
+      <div class="flow-diagram" style="font-size:10px; line-height:1.6;">
+<span class="label">PlndProd[month]</span> =
+  <span class="green">IF</span> ( Inv[month−1]
+       − OpenSales[month]
+       − OpenSales[month+1]  <span class="dim">← lookahead</span>
+       − FC[month]
+       − US_FC[month]
+       + Prod[month]
+       <span class="highlight">&lt; Safety_Stock × Repl_Factor</span>
+  )
+  <span class="green">THEN</span>: MAX(Target − projected_avail, 0)
+  <span class="green">ELSE</span>: 0</div>
+
+      <div class="section-label" style="margin-top:10px;">Inventory Balance (Rolling)</div>
+      <div class="flow-diagram" style="font-size:10.5px; line-height:1.6;">
+<span class="label">Inv[month]</span> = Inv[month−1]
+             − OpenSales[month]
+             − FC[month]
+             − US_FC[month]
+             + Prod[month]       <span class="dim">(confirmed)</span>
+             + PlndProd[month]   <span class="dim">(proposed)</span>
+</div>
+
+      <div class="section-label" style="margin-top:10px;">Global Parameters</div>
+      <table class="compact">
+        <thead><tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>Growth target</td>
+<td>
+<span class="tag orange">1.2×</span> (Calc) / <span class="tag blue">1.1×</span> (RAD)</td>
+</tr>
+          <tr>
+<td>Repl. lead time</td>
+<td>1 month (all items)</td>
+</tr>
+        </tbody>
+      </table>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">5 / 10</div>
+
+<!-- ================================================================ -->
+
+<!-- SLIDE 6 — WHAT WORKS WELL                                         -->
+
+<!-- ================================================================ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">5</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>5. What Works Well — Preserve in Odoo</h1>
+  <p class="subtitle">The RAP MPS workbook embeds proven operational discipline • These patterns must survive the migration</p>
+
+  <div class="cols-2" style="margin-top:10px;">
+    <div>
+      <ul class="check-list" style="line-height:2.0;">
+        <li class="ok">
+<strong>Safety stock reorder point</strong> — Classic trigger: when projected inventory drops below safety stock, produce up to target level</li>
+        <li class="ok">
+<strong>Pack rounding to production multiples</strong> — Quantities always rounded up to full packs, matching physical stacking constraints</li>
+        <li class="ok">
+<strong>MTS vs MTO distinction</strong> — Per-SKU planning method: MTO items get zero safety stock, only produce against demand</li>
+        <li class="ok">
+<strong>Slow mover detection (SLOW flag)</strong> — Flags SKUs where stock exceeds half of annual demand — FIFO discipline mechanism</li>
+      </ul>
+    </div>
+
+    <div>
+      <ul class="check-list" style="line-height:2.0;">
+        <li class="ok">
+<strong>US forecast overlay with seasonality</strong> — Separate quarterly-split forecast for the US market, additive to base demand</li>
+        <li class="ok">
+<strong>Multi-level BOM explosion with waste</strong> — FG → RS (×1.10) → RM (×1.05) cascade ensures raw material covers yield loss</li>
+        <li class="ok">
+<strong>Rolling 6-month projection</strong> — Forward visibility of inventory balance, not just current month reorder</li>
+        <li class="ok">
+<strong>Existing PO/MO deduction</strong> — Avoids double-ordering by subtracting confirmed production and purchase orders</li>
+      </ul>
+    </div>
+
+  <div class="callout success" style="margin-top:12px;">
+    <strong>Key insight:</strong> The Excel logic is sound. The problem is not the algorithm — it is the lack of capacity constraints, traceability, and automation. Odoo must replicate this logic AND add what Excel cannot do.
+  </div>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">6 / 10</div>
+
+<!-- ================================================================ -->
+
+<!-- SLIDE 7 — WHAT EXCEL CANNOT DO                                    -->
+
+<!-- ================================================================ -->
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">6</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>6. What Excel Cannot Do — Odoo Must Add</h1>
+  <p class="subtitle">10 structural limitations of the spreadsheet approach • Each maps to a specific Odoo capability</p>
+
+  <div class="cols-2" style="margin-top:6px;">
+    <div>
+      <div class="section-label red">Limitations</div>
+      <ul class="check-list" style="line-height:1.65; font-size:10.5px;">
+        <li class="no">
+<strong>No dryer capacity constraint</strong> — ignores the primary bottleneck entirely</li>
+        <li class="no">
+<strong>No family batching</strong> — plans per SKU independently, not by compatible families</li>
+        <li class="no">
+<strong>No autoclave/dryer load composition</strong> — cannot model process pack → load hierarchy</li>
+        <li class="no">
+<strong>No WIP tracking</strong> — only sees FG/RS/RM inventory, blind to in-process stock</li>
+        <li class="no">
+<strong>No lot traceability</strong> — no link from raw material batch to finished goods</li>
+        <li class="no">
+<strong>No cost integration</strong> — quantities only, no FIFO cost flow</li>
+        <li class="no">
+<strong>No multi-entity view</strong> — single warehouse, no cross-company planning</li>
+        <li class="no">
+<strong>Static forecast</strong> — manual refresh, no live SO pipeline</li>
+        <li class="no">
+<strong>No chemical/mix planning link</strong> — cannot trigger mix batches from tank levels</li>
+        <li class="no">
+<strong>Approximate pack rounding</strong> — not tied to planning family definitions</li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="section-label green">Odoo Solutions</div>
+      <table class="compact">
+        <thead><tr>
+<th>Gap</th>
+<th>Odoo Capability</th>
+</tr></thead>
+        <tbody>
+          <tr class="success-row">
+<td>Dryer capacity</td>
+<td>Dryer-centric scheduling on <code>kebony.planning.family</code>
+</td>
+</tr>
+          <tr>
+<td>Family batching</td>
+<td>Planning Family grouping + load composition</td>
+</tr>
+          <tr class="success-row">
+<td>Load composition</td>
+<td>Process Pack → Autoclave Load → Dryer Load</td>
+</tr>
+          <tr>
+<td>WIP tracking</td>
+<td>Real-time WIP via stock locations + MO states</td>
+</tr>
+          <tr class="success-row">
+<td>Lot traceability</td>
+<td>Full lot tracking RM → RS → FG</td>
+</tr>
+          <tr>
+<td>Cost integration</td>
+<td>FIFO lot cost flows through BOM explosion</td>
+</tr>
+          <tr class="success-row">
+<td>Multi-entity</td>
+<td>Multi-company with entity-specific rules</td>
+</tr>
+          <tr>
+<td>Live forecast</td>
+<td>Dynamic from Odoo SO pipeline + CRM</td>
+</tr>
+          <tr class="success-row">
+<td>Chemical planning</td>
+<td>Mix batch MO triggered by tank reorder point</td>
+</tr>
+          <tr>
+<td>Pack rounding</td>
+<td>Exact calc from <code>planning.family.pack_boards</code>
+</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="callout danger" style="margin-top:8px;">
+        <strong>The dryer is the #1 gap.</strong> Excel produces plans that are physically infeasible because they ignore the 3-dryer bottleneck (~80 h cycle time per load).
+      </div>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">7 / 10</div>
+
+<!-- ================================================================ -->
+
+<!-- SLIDE 8 — ODOO OBJECT MODEL MAPPING                               -->
+
+<!-- ================================================================ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">7</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>7. Odoo Object Model Mapping</h1>
+  <p class="subtitle">Excel concepts → Odoo models and fields • The translation table for implementation</p>
+
+  <div style="margin-top:8px;">
+    <table class="compact">
+      <thead>
+        <tr>
+<th style="width:22%;">Excel Concept</th>
+<th style="width:28%;">Odoo Model / Field</th>
+<th style="width:50%;">Notes</th>
+</tr>
+      </thead>
+      <tbody>
+        <tr class="highlight-row">
+<td>
+<strong>Part Nr</strong> (item ID)</td>
+<td><code>product.product.default_code</code></td>
+<td>Unique product reference, maps 1:1</td>
+</tr>
+        <tr>
+<td>
+<strong>FT</strong> (foot length)</td>
+<td>Product variant attribute</td>
+<td>Each foot length is a variant of the same template</td>
+</tr>
+        <tr class="highlight-row">
+<td>
+<strong>M</strong> (board dimension mm)</td>
+<td>Product variant attribute</td>
+<td>Dimensional attribute on product template</td>
+</tr>
+        <tr>
+<td>
+<strong>WW / RS</strong> product</td>
+<td>BOM parent ↔ child relationship</td>
+<td>Multi-level BOM with waste factor in qty ratio</td>
+</tr>
+        <tr class="highlight-row">
+<td>
+<strong>Planning Method</strong> (MTS/MTO)</td>
+<td><code>product.template.route_ids</code></td>
+<td>MTO route vs MTS route per product</td>
+</tr>
+        <tr>
+<td><strong>Safety Stock</strong></td>
+<td>Reordering rule (min qty)</td>
+<td><code>stock.warehouse.orderpoint</code></td>
+</tr>
+        <tr class="highlight-row">
+<td><strong>Target Stock</strong></td>
+<td>Reordering rule (max qty)</td>
+<td>Max qty on the same orderpoint</td>
+</tr>
+        <tr>
+<td><strong>On Hand Stock</strong></td>
+<td><code>product.product.qty_available</code></td>
+<td>Real-time from stock quants</td>
+</tr>
+        <tr class="highlight-row">
+<td><strong>Open Sales Orders</strong></td>
+<td><code>product.product.outgoing_qty</code></td>
+<td>From confirmed SO lines</td>
+</tr>
+        <tr>
+<td><strong>Production Orders</strong></td>
+<td><code>product.product.incoming_qty</code></td>
+<td>From confirmed MO outputs</td>
+</tr>
+        <tr class="highlight-row">
+<td><strong>Forecast (FC)</strong></td>
+<td>Odoo Demand Forecast module</td>
+<td>Or custom forecast model</td>
+</tr>
+        <tr>
+<td><strong>US FC</strong></td>
+<td>Sales area-specific forecast overlay</td>
+<td>Additive forecast per sales region</td>
+</tr>
+        <tr class="highlight-row">
+<td><strong>Pack Size</strong></td>
+<td><code>kebony.planning.family.pack_boards</code></td>
+<td>Boards per pack × board dimensions</td>
+</tr>
+        <tr>
+<td><strong>Waste Factor</strong></td>
+<td>BOM quantity ratio</td>
+<td>1.10 RS per 1.00 FG, 1.05 RM per 1.00 RS</td>
+</tr>
+        <tr class="highlight-row">
+<td><strong>SLOW Control</strong></td>
+<td>Custom report</td>
+<td>Stock vs annual demand ratio analysis</td>
+</tr>
+        <tr>
+<td><strong>MOH</strong></td>
+<td>Custom report</td>
+<td>Inventory ÷ monthly consumption</td>
+</tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout info" style="margin-top:6px;">
+    <strong>Growth Rate</strong> (1.1× / 1.2×) and <strong>US Quarterly Splits</strong> become configurable forecast parameters — not hardcoded in BOM or reordering rules.
+  </div>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">8 / 10</div>
+
+<!-- ================================================================ -->
+
+<!-- SLIDE 9 — MIGRATION PHASES                                        -->
+
+<!-- ================================================================ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">8</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>8. Migration Phases</h1>
+  <p class="subtitle">Three-phase roadmap from manual Excel planning to fully automated dryer-centric MPS</p>
+
+  <div class="cols-3" style="margin-top:10px;">
+    <div>
+      <div style="text-align:center; margin-bottom:8px;">
+        <span class="tag green">Phase 1 — Current</span>
+      </div>
+      <div class="mini-card" style="min-height:200px;">
+        <h4>Planning Families in Odoo</h4>
+        <p style="margin-top:6px;">
+          Planning families defined with reference process times<br><br>
+          Basic MTS/MTO replenishment rules per product<br><br>
+          Safety stock and reorder points configured per SKU<br><br>
+          Manual planning using planning family views<br><br>
+          <span class="tag grey">Excel still used for MPS</span>
+        </p>
+      </div>
+    </div>
+
+    <div>
+      <div style="text-align:center; margin-bottom:8px;">
+        <span class="tag blue">Phase 2 — Target</span>
+      </div>
+      <div class="mini-card" style="min-height:200px; border-color:#0f3460;">
+        <h4>Full Automated MPS</h4>
+        <p style="margin-top:6px;">
+          Automated replenishment scheduler<br><br>
+          Safety stock + target stock logic (from RAP MPS)<br><br>
+          Pack rounding to family-compatible quantities<br><br>
+          <strong>Dryer capacity constraint</strong> (max loads/week)<br><br>
+          Waste factor cascade FG → RS → RM<br><br>
+          Rolling 6-month projection view<br><br>
+          US forecast overlay integrated<br><br>
+          Slow mover report from FIFO lot age
+        </p>
+      </div>
+    </div>
+
+    <div>
+      <div style="text-align:center; margin-bottom:8px;">
+        <span class="tag purple">Phase 3 — Future</span>
+      </div>
+      <div class="mini-card" style="min-height:200px;">
+        <h4>Optimisation &amp; Intelligence</h4>
+        <p style="margin-top:6px;">
+          Dryer scheduling optimisation (family sequencing to minimise changeovers)<br><br>
+          MES integration (Prediktor actual vs planned cycle times)<br><br>
+          AI-assisted demand forecasting replacing static growth factors<br><br>
+          <span class="tag orange">Requires Phase 2 complete</span>
+        </p>
+      </div>
+    </div>
+
+  <div class="callout warning" style="margin-top:10px;">
+    <strong>Phase 2 is the critical milestone.</strong> It replaces the RAP MPS workbook entirely. Until Phase 2 is live, Excel remains the system of record for production planning. Parallel running recommended during transition.
+  </div>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">9 / 10</div>
+
+<!-- ================================================================ -->
+
+<!-- SLIDE 10 — DECISION POINTS                                        -->
+
+<!-- ================================================================ -->
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">9</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>9. Decision Points — CEO/CFO Approval Required</h1>
+  <p class="subtitle">Five open questions that must be resolved before Phase 2 implementation can begin</p>
+
+  <div style="margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+    <div class="decision-box" style="border-color:#c62828;">
+      <h3 style="color:#c62828;">
+<span class="tag red">1</span>  Safety Stock Levels Validation</h3>
+      <p>Current safety stock formulas are embedded in Excel. Business must <strong>sign off on the formula</strong> (dimension × demand_factor) before it is codified in Odoo reordering rules. Are these levels correct, or do they need recalibration?</p>
+    </div>
+
+    <div class="decision-box" style="border-color:#c62828;">
+      <h3 style="color:#c62828;">
+<span class="tag red">2</span>  Growth Rate Assumptions</h3>
+      <p>The Calc engine uses <strong>1.2×</strong> while the RAD sheets use <strong>1.1×</strong>. Which is the correct growth assumption? This directly impacts safety stock levels and forecast-driven production triggers.</p>
+    </div>
+
+    <div class="decision-box" style="border-color:#c62828;">
+      <h3 style="color:#c62828;">
+<span class="tag red">3</span>  US Forecast Ownership</h3>
+      <p>The quarterly split percentages (5/5/5 → 9/9/9 → 10/10/10) are maintained manually. <strong>Who owns this forecast in Odoo?</strong> US sales team? Supply chain? How often is it updated?</p>
+    </div>
+
+    <div class="decision-box" style="border-color:#c62828;">
+      <h3 style="color:#c62828;">
+<span class="tag red">4</span>  Waste Factors Confirmation</h3>
+      <p>RS→FG = <strong>10%</strong>, RM→RS = <strong>5%</strong>. Are these measured from production data, or are they assumed? Should they vary by product family or remain global? Waste factors drive raw material purchasing.</p>
+    </div>
+
+  <div class="decision-box" style="border-color:#c62828; margin-top:16px;">
+    <h3 style="color:#c62828;">
+<span class="tag red">5</span>  MTO vs MTS Classification Review</h3>
+    <p>Some products currently classified as MTO may benefit from MTS treatment (and vice versa). A <strong>full product classification review</strong> is needed before Odoo replenishment rules are activated. Reclassification changes safety stock, forecast behaviour, and dryer scheduling priority.</p>
+  </div>
+
+  <div class="callout danger" style="margin-top:12px;">
+    <strong>These are not IT decisions.</strong> Each one directly impacts inventory investment, service levels, and production capacity utilisation. CEO/CFO sign-off required before Phase 2 development starts.
+  </div>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">10 / 10</div>
+
+</div>
+
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">10</div>
+  </div>
+</div>
+
+</body>
+</html>

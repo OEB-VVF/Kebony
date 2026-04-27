@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kebony — HR Tools Benchmark: Odoo vs. Officient</title>
+<style>
+  :root {
+    --kebony-dark: #2C3E50;
+    --kebony-brown: #6B4226;
+    --kebony-green: #27AE60;
+    --kebony-red: #E74C3C;
+    --kebony-orange: #F39C12;
+    --kebony-blue: #2980B9;
+    --kebony-light: #F8F9FA;
+    --kebony-border: #DEE2E6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #333; line-height: 1.6; background: #fff; }
+
+  .header { background: var(--kebony-dark); color: white; padding: 40px; text-align: center; }
+  .header h1 { font-size: 2em; margin-bottom: 8px; }
+  .header .subtitle { font-size: 1.1em; opacity: 0.85; }
+  .header .date { font-size: 0.85em; opacity: 0.6; margin-top: 12px; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 30px 40px; }
+
+  .exec-summary { background: var(--kebony-light); border-left: 4px solid var(--kebony-blue); padding: 24px; margin: 30px 0; border-radius: 4px; }
+  .exec-summary h2 { color: var(--kebony-blue); margin-bottom: 12px; border: none; padding: 0; }
+
+  h2 { color: var(--kebony-dark); font-size: 1.5em; margin: 40px 0 16px; border-bottom: 2px solid var(--kebony-border); padding-bottom: 8px; }
+  h3 { color: var(--kebony-brown); font-size: 1.15em; margin: 20px 0 10px; }
+
+  .module-card { border: 1px solid var(--kebony-border); border-radius: 8px; margin: 20px 0; overflow: hidden; }
+  .module-card .card-header { padding: 16px 20px; font-weight: 700; font-size: 1.1em; color: white; }
+  .module-card .card-body { padding: 20px; }
+
+  .bg-core      { background: #3498DB; }
+  .bg-time      { background: #9B59B6; }
+  .bg-leave     { background: #1ABC9C; }
+  .bg-payroll   { background: #E67E22; }
+  .bg-docs      { background: #34495E; }
+  .bg-recruit   { background: #E74C3C; }
+  .bg-planning  { background: #16A085; }
+  .bg-training  { background: #8E44AD; }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.9em; }
+  th { background: var(--kebony-dark); color: white; padding: 10px 14px; text-align: left; font-weight: 600; }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--kebony-border); vertical-align: top; }
+  tr:nth-child(even) { background: #F8F9FA; }
+
+  .verdict { padding: 12px 16px; border-radius: 6px; margin: 12px 0; font-weight: 600; }
+  .verdict-good { background: #D5F5E3; color: #1E8449; border-left: 4px solid var(--kebony-green); }
+  .verdict-ok   { background: #FEF9E7; color: #9A7D0A; border-left: 4px solid var(--kebony-orange); }
+  .verdict-weak { background: #FADBD8; color: #922B21; border-left: 4px solid var(--kebony-red); }
+
+  .pro     { color: var(--kebony-green); }
+  .con     { color: var(--kebony-red); }
+  .neutral { color: var(--kebony-orange); }
+
+  ul { margin: 8px 0 8px 20px; }
+  li { margin-bottom: 4px; }
+
+  .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+  .pricing-box { border: 1px solid var(--kebony-border); border-radius: 8px; padding: 20px; }
+  .pricing-box h4 { margin-bottom: 8px; }
+  .pricing-box .price { font-size: 1.8em; font-weight: 700; color: var(--kebony-dark); }
+  .pricing-box .price-note { font-size: 0.8em; color: #777; }
+  .pricing-box.highlight { border-color: var(--kebony-green); background: #F0FFF4; }
+
+  .recommendation { background: linear-gradient(135deg, #2C3E50, #34495E); color: white; padding: 30px; border-radius: 8px; margin: 30px 0; }
+  .recommendation h2 { color: white; border-bottom-color: rgba(255,255,255,0.3); }
+  .recommendation ul { margin-left: 20px; }
+  .recommendation li { margin-bottom: 6px; }
+
+  .effort-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 20px 0; }
+  .effort-box { border: 1px solid var(--kebony-border); border-radius: 8px; padding: 18px; }
+  .effort-box h4 { color: var(--kebony-dark); margin-bottom: 6px; }
+  .effort-box .days { font-size: 1.5em; font-weight: 700; color: var(--kebony-brown); }
+  .effort-box .days-note { font-size: 0.8em; color: #777; }
+
+  .callout { padding: 14px 18px; border-radius: 6px; margin: 16px 0; }
+  .callout.warn { background: #FEF5E7; border-left: 4px solid var(--kebony-orange); }
+  .callout.info { background: #EBF5FB; border-left: 4px solid var(--kebony-blue); }
+
+  .footer { text-align: center; padding: 30px; color: #999; font-size: 0.85em; border-top: 1px solid var(--kebony-border); margin-top: 40px; }
+
+  @media print { .container { padding: 20px; } .header { padding: 20px; } }
+  @media (max-width: 768px) { .pricing-grid, .effort-grid { grid-template-columns: 1fr; } .container { padding: 16px; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>HR Tools Benchmark</h1>
+  <div class="subtitle">Odoo 19 HR Suite vs. Officient — Scope, Effort &amp; Budget</div>
+  <div class="date">Prepared for Kebony HR Director &amp; CEO — April 2026 | Confidential</div>
+</div>
+
+<div class="container">
+
+<!-- EXECUTIVE SUMMARY -->
+<div class="exec-summary">
+  <h2>Executive Summary</h2>
+  <p>Kebony currently runs HR on <strong>Officient</strong> — a Belgian HR SaaS covering employee records, time tracking, leaves, documents, and a native export to <strong>SD Worx</strong> (outsourced payroll). The question is whether Odoo 19's HR suite, already paid for, can replace Officient <em>without taking on payroll</em>.</p>
+  <p style="margin-top:12px;"><strong>Short answer:</strong> Odoo covers 80–90% of the scope out of the box, and is stronger than Officient on anything that touches the ERP (expenses, project timesheets, fleet, skills, appraisal, <strong>training registry with mandatory-training expiry tracking</strong>). The single real risk is the <strong>SD Worx export</strong> — Officient has it natively, Odoo does not. Building a clean monthly export is a focused, well-bounded dev job, not a moonshot.</p>
+  <p style="margin-top:12px;"><strong>Bottom line:</strong> Migration is technically feasible at a <strong>fixed one-month package of €20K</strong>, including the Mandatory Training Matrix dashboard. The decision is operational, not technical: does the HR Director want to consolidate on the ERP, or keep a dedicated HR SaaS?</p>
+</div>
+
+<!-- CONTEXT -->
+<h2>📋 What Kebony Uses Today</h2>
+<table>
+  <tr>
+    <th>Area</th>
+    <th>Tool</th>
+    <th>Notes</th>
+  </tr>
+  <tr>
+    <td>Employee database, contracts, org chart</td>
+    <td>Officient</td>
+    <td>Core HRIS — used daily by HR Director</td>
+  </tr>
+  <tr>
+    <td>Time tracking (clock in/out, hours)</td>
+    <td>Officient</td>
+    <td>Feeds monthly payroll</td>
+  </tr>
+  <tr>
+    <td>Leave requests &amp; balances</td>
+    <td>Officient</td>
+    <td>Holiday, sick, comp time, etc.</td>
+  </tr>
+  <tr>
+    <td>Document storage (contracts, certificates)</td>
+    <td>Officient</td>
+    <td>Employee-accessible</td>
+  </tr>
+  <tr>
+    <td>Payroll processing</td>
+    <td><strong>SD Worx</strong> (outsourced)</td>
+    <td>Officient exports hours + leaves to SD Worx monthly</td>
+  </tr>
+  <tr>
+    <td>Expenses, fleet, project time</td>
+    <td>Odoo / manual</td>
+    <td>Already partially in Odoo</td>
+  </tr>
+</table>
+
+<div class="callout info">
+  <strong>Scope boundary:</strong> This benchmark explicitly <strong>excludes payroll</strong>. SD Worx stays. What's on the table is everything <em>upstream</em> of payroll — employee data, time, leaves, documents — plus HR-adjacent features Officient doesn't cover.
+</div>
+
+<!-- 1. EMPLOYEE CORE -->
+<div class="module-card">
+  <div class="card-header bg-core">👥 Employee Core (HRIS)</div>
+  <div class="card-body">
+    <h3>What Odoo 19 Can Do</h3>
+    <ul>
+      <li>Employee master record (personal, contract, bank, tax, emergency contact)</li>
+      <li>Org chart (manager hierarchy, departments, job positions)</li>
+      <li>Contract management with start/end, salary, type (full/part-time)</li>
+      <li>Skills matrix &amp; resume (new in v19) — useful for the upcoming Quality Manager work</li>
+      <li>Self-service portal — employees update their own info, upload documents</li>
+      <li>Departments, job positions, cost centers, analytic tags</li>
+    </ul>
+
+    <h3>Officient vs Odoo — Side by Side</h3>
+    <table>
+      <tr><th>Feature</th><th>Officient</th><th>Odoo 19</th></tr>
+      <tr><td>Employee record</td><td class="pro">✓ Clean UX</td><td class="pro">✓ Deeper fields, linked to everything</td></tr>
+      <tr><td>Org chart</td><td class="pro">✓ Visual</td><td class="pro">✓ Visual + clickable</td></tr>
+      <tr><td>Contract management</td><td class="pro">✓ Strong (BE-localized)</td><td class="neutral">~ Good but generic (no BE legal templates)</td></tr>
+      <tr><td>Skills matrix</td><td class="con">✗ Basic</td><td class="pro">✓ Strong (new in v19)</td></tr>
+      <tr><td>Integration with ERP</td><td class="con">✗ Island</td><td class="pro">✓ Native (cost centers, projects, expenses)</td></tr>
+    </table>
+
+    <div class="verdict verdict-good">✓ Odoo wins on depth &amp; integration. Officient wins on BE-specific contract templates — but those are mostly used once, at hire.</div>
+  </div>
+</div>
+
+<!-- 2. TIME TRACKING -->
+<div class="module-card">
+  <div class="card-header bg-time">⏱️ Time Tracking — The Critical Topic</div>
+  <div class="card-body">
+    <h3>What Odoo 19 Can Do</h3>
+    <ul>
+      <li><strong>Attendances</strong> — clock in/out via web, mobile app, kiosk, RFID badge, or PIN</li>
+      <li><strong>Timesheets</strong> — project/task-based hours (useful for manufacturing + service)</li>
+      <li><strong>Planning</strong> — shift planning, rotating schedules (relevant for production)</li>
+      <li>Overtime computation, break auto-deduction, rounding rules</li>
+      <li>Manager approval workflow</li>
+      <li>Reports by employee, department, project, cost center</li>
+      <li>Geofencing on mobile clock-in</li>
+    </ul>
+
+    <h3>Officient Strengths</h3>
+    <ul>
+      <li>Designed explicitly for Belgian SME working-time rules</li>
+      <li><strong>Native SD Worx export</strong> — this is the big one</li>
+      <li>Vacation/sick leave auto-feeds the timesheet</li>
+    </ul>
+
+    <div class="callout warn">
+      <strong>⚠️ The SD Worx export challenge.</strong> Officient ships a pre-built connector that sends monthly time + leave data to SD Worx in their required format. Odoo has <em>no native SD Worx connector for time data</em> — its BE payroll module exists but is not on our scope.
+      <br><br>
+      <strong>What this means concretely:</strong> to leave Officient, we need a custom monthly export from Odoo → SD Worx. SD Worx accepts CSV/Excel imports for variable elements (hours worked, overtime, absences, allowances). The format is documented and stable.
+      <br><br>
+      <strong>Effort estimate:</strong> 4–7 days of development + 2 days of parallel-run testing. Not trivial, but scoped and linear.
+    </div>
+
+    <div class="verdict verdict-ok">~ Odoo's time-tracking engine is <em>more powerful</em> than Officient's. The gap is the SD Worx handoff, which is a one-time integration cost.</div>
+  </div>
+</div>
+
+<!-- 3. LEAVES / TIME OFF -->
+<div class="module-card">
+  <div class="card-header bg-leave">🌴 Leave &amp; Time Off</div>
+  <div class="card-body">
+    <h3>What Odoo 19 Can Do</h3>
+    <ul>
+      <li>Configurable leave types (holiday, sick, comp, unpaid, parental, etc.)</li>
+      <li>Accrual rules (fixed, worked-hours-based, anniversary-based)</li>
+      <li>Request → approve workflow with email + in-app notifications</li>
+      <li>Shared team calendar — who's off when</li>
+      <li>Balance view per employee, including carried-over days</li>
+      <li>Auto-block leave when balance insufficient</li>
+      <li>Integration with attendances (leave day ≠ missed clock-in)</li>
+    </ul>
+
+    <div class="verdict verdict-good">✓ Full parity with Officient. Odoo's shared calendar + approval flow is arguably cleaner.</div>
+  </div>
+</div>
+
+<!-- 4. PAYROLL (OUT OF SCOPE) -->
+<div class="module-card">
+  <div class="card-header bg-payroll">💸 Payroll — Explicitly Out of Scope</div>
+  <div class="card-body">
+    <h3>Why we keep SD Worx</h3>
+    <ul>
+      <li>BE payroll is legally complex — social security, sectoral agreements (CP), meal vouchers, eco-cheques, holiday pay provisions</li>
+      <li>SD Worx handles the filings, declarations, slip generation — that expertise is not worth rebuilding</li>
+      <li>Odoo BE payroll exists but carries real compliance risk without a specialist payroll team on-site</li>
+    </ul>
+
+    <h3>What Odoo must deliver to SD Worx (monthly)</h3>
+    <ul>
+      <li>Hours worked per employee (regular, overtime, Sunday, holiday)</li>
+      <li>Absences by type (holiday, sick, etc.)</li>
+      <li>Variable elements: meal vouchers, expenses, commissions, bonuses</li>
+      <li>New hires / departures / contract changes</li>
+    </ul>
+
+    <div class="verdict verdict-ok">~ Not a module question — a file-export question. 1 custom "SD Worx Export" wizard replaces Officient's native connector.</div>
+  </div>
+</div>
+
+<!-- 5. DOCUMENTS -->
+<div class="module-card">
+  <div class="card-header bg-docs">📄 HR Documents</div>
+  <div class="card-body">
+    <h3>What Odoo 19 Can Do</h3>
+    <ul>
+      <li>Per-employee document folder (contracts, diplomas, ID, certificates)</li>
+      <li>Access control — employee sees own docs, manager sees team, HR sees all</li>
+      <li>E-signature module (Sign) — native, included</li>
+      <li>Document expiry alerts (work permit, medical exam, certifications)</li>
+      <li>Template-based document generation (offer letters, addenda)</li>
+    </ul>
+
+    <div class="verdict verdict-good">✓ Parity or better than Officient, and the Sign module is a real plus for contract workflow.</div>
+  </div>
+</div>
+
+<!-- 6. RECRUITMENT / APPRAISAL -->
+<div class="module-card">
+  <div class="card-header bg-recruit">🎯 Recruitment, Appraisal &amp; Skills</div>
+  <div class="card-body">
+    <h3>What Odoo 19 Can Do (Officient is weak here)</h3>
+    <ul>
+      <li><strong>Recruitment</strong> — job posting, candidate pipeline (kanban), interview scheduling, offer templates</li>
+      <li><strong>Appraisal</strong> — periodic review cycles, 360° feedback, goal tracking</li>
+      <li><strong>Skills</strong> — skill matrix, certification tracking, training needs</li>
+      <li><strong>Referrals</strong> — employee referral program with rewards</li>
+      <li><strong>Surveys</strong> — engagement pulses, exit interviews</li>
+    </ul>
+
+    <div class="verdict verdict-good">✓ Genuine upgrade over Officient. These are areas Officient either doesn't cover or covers minimally.</div>
+  </div>
+</div>
+
+<!-- 7. TRAINING REGISTRY -->
+<div class="module-card">
+  <div class="card-header bg-training">🎓 Training Registry &amp; Mandatory Training Tracking</div>
+  <div class="card-body">
+    <p><strong>HR Director explicit ask:</strong> per employee, track <em>what</em> training (past + future), <em>when</em>, and flag mandatory training that is missing or expiring — e.g. safety, forklift, quality, GDPR, first aid.</p>
+
+    <h3>What Odoo 19 Can Do</h3>
+    <ul>
+      <li><strong>Skills + Certifications</strong> on the employee — each certification carries an <em>acquisition date</em> and <em>expiry date</em>; expired certs flag automatically</li>
+      <li><strong>eLearning (Slides)</strong> — host internal training courses, track completion per employee, issue certificates</li>
+      <li><strong>Surveys</strong> — quiz/exam after training, pass/fail recorded against the employee</li>
+      <li><strong>Appraisal</strong> — training needs captured during review cycles, feed into training plan</li>
+      <li><strong>Calendar + Events</strong> — schedule upcoming classroom/external training sessions, register attendees</li>
+      <li><strong>Documents</strong> — attach certificate PDFs (external training) to the employee file</li>
+      <li>Self-service: employee sees own training history + upcoming obligations on their portal</li>
+    </ul>
+
+    <h3>The "Mandatory Training Matrix" (what the HR Director actually wants)</h3>
+    <p>Not a single module — it's a <strong>configuration pattern</strong> combining Skills + Recruitment job requirements + a light custom layer:</p>
+    <table>
+      <tr><th>Element</th><th>How it's built</th></tr>
+      <tr><td>Training catalog (what exists)</td><td>Skill types: "Forklift", "Fire safety", "GDPR 2024", "ISO 9001 internal auditor"…</td></tr>
+      <tr><td>Mandatory per role</td><td>Job position → list of required skills/certifications</td></tr>
+      <tr><td>Validity period</td><td>Each certification has an expiry rule (e.g. forklift = 5 yrs)</td></tr>
+      <tr><td>Per-employee status</td><td>Dashboard: Valid / Expiring soon (90 d) / Expired / Missing</td></tr>
+      <tr><td>Upcoming training</td><td>Calendar event linked to employee + skill to acquire</td></tr>
+      <tr><td>Proof of completion</td><td>Certificate PDF + eLearning completion record or Survey pass</td></tr>
+    </table>
+
+    <h3>What's native vs custom</h3>
+    <table>
+      <tr><th>Feature</th><th>Native</th><th>Custom needed?</th></tr>
+      <tr><td>Track training per employee with dates</td><td class="pro">✓</td><td>No</td></tr>
+      <tr><td>Certification expiry alerts</td><td class="pro">✓</td><td>No</td></tr>
+      <tr><td>eLearning courses + completion tracking</td><td class="pro">✓</td><td>No</td></tr>
+      <tr><td>Link job position → required skills</td><td class="pro">✓</td><td>No</td></tr>
+      <tr><td><strong>Mandatory Training Matrix dashboard</strong><br>(per employee: Valid / Expiring / Missing)</td><td class="neutral">~</td><td><strong>Yes — small report (~2 days)</strong></td></tr>
+      <tr><td>Audit-ready compliance report (regulator-facing)</td><td class="con">✗</td><td>Yes — custom PDF template (~1 day)</td></tr>
+    </table>
+
+    <h3>Officient comparison</h3>
+    <ul>
+      <li>Officient has a basic training field but <strong>no real training registry</strong> — no eLearning, no skill-based expiry logic, no automated mandatory-training matrix</li>
+      <li>For a regulated workplace (production, warehouse, forklifts, chemicals), Odoo is materially stronger here</li>
+    </ul>
+
+    <div class="verdict verdict-good">✓ Odoo is a <strong>genuine upgrade</strong> on this topic. 80% native, plus a small custom Mandatory Training Matrix dashboard (~3 days) to give the HR Director the at-a-glance compliance view she wants.</div>
+  </div>
+</div>
+
+<!-- 8. PLANNING / PRODUCTION -->
+<div class="module-card">
+  <div class="card-header bg-planning">🏭 Shift Planning (Manufacturing Relevance)</div>
+  <div class="card-body">
+    <h3>What Odoo 19 Can Do</h3>
+    <ul>
+      <li>Shift planning with drag-and-drop calendar</li>
+      <li>Rotating shifts, templates, auto-assignment</li>
+      <li>Link shifts to work centers (useful for Kallo production planning)</li>
+      <li>Employee self-service: see own schedule, request swaps</li>
+      <li>Direct feed into attendances + timesheets</li>
+    </ul>
+
+    <div class="verdict verdict-good">✓ Officient has no real manufacturing planning. For Kallo's production rotation, Odoo's Planning module is a net gain.</div>
+  </div>
+</div>
+
+<!-- COST COMPARISON -->
+<h2>💰 Cost Comparison</h2>
+<p>Based on Kebony's profile: ~80 employees across BE/NO/US, HR primarily BE-based, outsourced payroll via SD Worx.</p>
+
+<div class="pricing-grid">
+  <div class="pricing-box highlight">
+    <h4>Odoo 19 (HR Suite)</h4>
+    <div class="price">€0 extra</div>
+    <div class="price-note">All HR modules included in existing Odoo subscription</div>
+    <ul style="margin-top:12px; font-size:0.9em;">
+      <li>Employees ✓</li>
+      <li>Attendances + Timesheets ✓</li>
+      <li>Time Off ✓</li>
+      <li>Documents + Sign ✓</li>
+      <li>Recruitment + Appraisal + Skills ✓</li>
+      <li>Planning (shift) ✓</li>
+      <li>⚠️ SD Worx export: custom (one-shot)</li>
+    </ul>
+  </div>
+
+  <div class="pricing-box">
+    <h4>Officient (current)</h4>
+    <div class="price">~€8–12K/yr</div>
+    <div class="price-note">~€8–10 per employee per month, 80 employees</div>
+    <ul style="margin-top:12px; font-size:0.9em;">
+      <li>Clean BE-focused UX ✓</li>
+      <li>Native SD Worx connector ✓</li>
+      <li>BE legal contract templates ✓</li>
+      <li>⚠️ No ERP integration</li>
+      <li>⚠️ Weak on recruitment / appraisal / skills</li>
+      <li>⚠️ No manufacturing planning</li>
+    </ul>
+  </div>
+</div>
+
+<!-- EFFORT & BUDGET -->
+<h2>🛠️ Effort &amp; Budget — 20-Day Breakdown</h2>
+<p>Fixed one-month engagement. Seven committed workstreams summing to 20 working days.</p>
+
+<div class="effort-grid">
+  <div class="effort-box">
+    <h4>1. Configuration</h4>
+    <div class="days">3 days</div>
+    <div class="days-note">Departments, job positions, contract types, leave types with BE accrual rules, approval flows</div>
+  </div>
+  <div class="effort-box">
+    <h4>2. Data Migration</h4>
+    <div class="days">2 days</div>
+    <div class="days-note">Employees, contracts, leave balances, document archive — one-shot import from Officient</div>
+  </div>
+  <div class="effort-box">
+    <h4>3. SD Worx Export</h4>
+    <div class="days">5 days</div>
+    <div class="days-note">Custom wizard: hours + leaves + variables → SD Worx CSV format, per their published spec</div>
+  </div>
+  <div class="effort-box">
+    <h4>4. Time Tracking Setup</h4>
+    <div class="days">3 days</div>
+    <div class="days-note">Attendance modes (mobile/kiosk), rounding rules, overtime, break auto-deduction, BE working-time rules</div>
+  </div>
+  <div class="effort-box">
+    <h4>5. Training Registry</h4>
+    <div class="days">3 days</div>
+    <div class="days-note">Skill catalog + job-position requirements + Mandatory Training Matrix dashboard + compliance PDF</div>
+  </div>
+  <div class="effort-box">
+    <h4>6. Parallel Run &amp; Tuning</h4>
+    <div class="days">2 days</div>
+    <div class="days-note">Run Officient + Odoo in parallel one cycle, reconcile SD Worx export line-by-line</div>
+  </div>
+  <div class="effort-box">
+    <h4>7. Training &amp; Handover</h4>
+    <div class="days">2 days</div>
+    <div class="days-note">HR Director, managers, employee self-service walkthrough, written procedures</div>
+  </div>
+</div>
+
+<p style="text-align:right; font-weight:700; font-size:1.05em; margin-top:4px;">
+  Total: <span style="color: var(--kebony-brown);">20 days</span> &nbsp;·&nbsp; <span style="color: var(--kebony-green);">€20,000 fixed</span>
+</p>
+
+<div class="callout info">
+  <strong>Proposed package: one month, €20K fixed.</strong>
+  <br><br>
+  VVF standard rates are <strong>€1,150/day (Olivier)</strong> and <strong>€1,000/day (BU consultant)</strong>, blended ~€1,100/day for this project mix. For a committed one-month engagement we apply a discount to a <strong>flat €1,000/day blended rate × 20 working days = €20K</strong>. All seven workstreams above are covered inside this envelope; SD Worx edge cases or Mandatory Training Matrix refinements absorbed in scope.
+  <br><br>
+  <strong>Payback horizon:</strong> Officient at ~€10K/yr → break-even in ~2 years, pure license savings. Anything gained on ERP integration / recruitment / skills / planning / training compliance is on top.
+</div>
+
+<!-- RISKS -->
+<h2>⚠️ Risks &amp; Mitigations</h2>
+<table>
+  <tr><th>Risk</th><th>Likelihood</th><th>Mitigation</th></tr>
+  <tr>
+    <td>SD Worx export format drift (they change the spec)</td>
+    <td class="neutral">Medium</td>
+    <td>Build export as a config-driven mapping, not hardcoded. Test with SD Worx contact before go-live.</td>
+  </tr>
+  <tr>
+    <td>BE-specific time rules (CP, sectoral rules) missed</td>
+    <td class="neutral">Medium</td>
+    <td>Run 2 months in parallel. Compare outputs line-by-line against Officient.</td>
+  </tr>
+  <tr>
+    <td>Employee resistance to new tool</td>
+    <td class="neutral">Medium</td>
+    <td>Odoo self-service portal is the main employee touchpoint — keep it simple. Training + printed cheat-sheet.</td>
+  </tr>
+  <tr>
+    <td>Data loss during migration</td>
+    <td class="pro">Low</td>
+    <td>Export full Officient archive as read-only backup before switching.</td>
+  </tr>
+  <tr>
+    <td>Contract template coverage gap</td>
+    <td class="pro">Low</td>
+    <td>Translate Officient BE templates into Odoo Sign templates during config phase.</td>
+  </tr>
+</table>
+
+<!-- RECOMMENDATION -->
+<div class="recommendation">
+  <h2>🎯 Recommendation for Kebony</h2>
+
+  <h3 style="color: #27AE60; margin-top: 20px;">Phase 0 — Decide, don't migrate yet</h3>
+  <ul>
+    <li>Confirm with HR Director that <strong>consolidation on ERP</strong> is the operating goal — this is a people-process question before it's a software one</li>
+    <li>Pull the exact SD Worx file spec (format, cadence, fields) — this is the single technical unknown and de-risks the whole budget</li>
+    <li>Audit Officient's contract/document templates to scope the re-creation effort</li>
+  </ul>
+
+  <h3 style="color: #F39C12; margin-top: 20px;">Phase 1 — One-month implementation package</h3>
+  <ul>
+    <li>Week 1 — configuration + data migration + SD Worx spec lock-in</li>
+    <li>Week 2 — SD Worx export build + training registry catalog + Mandatory Training Matrix dashboard</li>
+    <li>Week 3 — pilot on one department (e.g. Kallo production, ~15 people), parallel run with Officient</li>
+    <li>Week 4 — reconcile SD Worx output, extend to all BE employees, training + handover</li>
+    <li><strong>Budget: €20K fixed</strong> (1,000 €/day blended × 20 days, discounted from 1,100 €/day standard)</li>
+  </ul>
+
+  <h3 style="color: #2980B9; margin-top: 20px;">Phase 2 — Decommission Officient</h3>
+  <ul>
+    <li>Keep Officient live for one full SD Worx cycle after go-live (safety net)</li>
+    <li>Shut down Officient at the next month-end; Odoo takes over fully</li>
+    <li>Budget: inside Phase 1 envelope</li>
+  </ul>
+
+  <h3 style="color: #E74C3C; margin-top: 20px;">What NOT to Do</h3>
+  <ul>
+    <li>Don't migrate and decommission Officient in the same month — always keep it live during one full SD Worx cycle</li>
+    <li>Don't touch Odoo's BE payroll module — the scope boundary with SD Worx is the whole point of this project</li>
+    <li>This is not a "cost saving" project — the real win is ERP integration (skills, projects, planning, cost centers, training compliance). The license saving just covers the migration cost.</li>
+  </ul>
+</div>
+
+<!-- SUMMARY TABLE -->
+<h2>📊 At-a-Glance Summary</h2>
+<table>
+  <tr>
+    <th>Area</th>
+    <th>Odoo Rating</th>
+    <th>Verdict</th>
+    <th>Custom work needed?</th>
+  </tr>
+  <tr>
+    <td><strong>Employee core</strong></td>
+    <td style="color: var(--kebony-green);">★★★★☆</td>
+    <td>Deeper than Officient, weaker on BE legal templates.</td>
+    <td>Re-create contract templates (Sign)</td>
+  </tr>
+  <tr>
+    <td><strong>Time tracking</strong></td>
+    <td style="color: var(--kebony-green);">★★★★☆</td>
+    <td>Engine is stronger. Mobile/kiosk/badge all native.</td>
+    <td>No (just configuration)</td>
+  </tr>
+  <tr>
+    <td><strong>Leave / time off</strong></td>
+    <td style="color: var(--kebony-green);">★★★★☆</td>
+    <td>Full parity with Officient.</td>
+    <td>No</td>
+  </tr>
+  <tr>
+    <td><strong>SD Worx payroll export</strong></td>
+    <td style="color: var(--kebony-red);">★☆☆☆☆</td>
+    <td>No native connector. <strong>The one real gap.</strong></td>
+    <td><strong>Yes — 4–7 days</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Documents + Sign</strong></td>
+    <td style="color: var(--kebony-green);">★★★★★</td>
+    <td>Better than Officient thanks to native Sign module.</td>
+    <td>No</td>
+  </tr>
+  <tr>
+    <td><strong>Recruitment / Appraisal / Skills</strong></td>
+    <td style="color: var(--kebony-green);">★★★★☆</td>
+    <td>Real upgrade — Officient barely covers this.</td>
+    <td>No</td>
+  </tr>
+  <tr>
+    <td><strong>Training registry &amp; mandatory training</strong></td>
+    <td style="color: var(--kebony-green);">★★★★☆</td>
+    <td>Real upgrade. Native skills + expiry + eLearning. Small custom dashboard for compliance view.</td>
+    <td>Yes — ~3 days (matrix dashboard)</td>
+  </tr>
+  <tr>
+    <td><strong>Shift planning (Kallo)</strong></td>
+    <td style="color: var(--kebony-green);">★★★★☆</td>
+    <td>Officient has nothing here.</td>
+    <td>No</td>
+  </tr>
+  <tr>
+    <td><strong>ERP integration</strong></td>
+    <td style="color: var(--kebony-green);">★★★★★</td>
+    <td>Cost centers, projects, expenses, fleet — all native.</td>
+    <td>Odoo's killer advantage</td>
+  </tr>
+</table>
+
+</div>
+
+<div class="footer">
+  <p>Prepared by VVF Consulting — April 2026 | For internal Kebony decision-making only</p>
+  <p style="margin-top:4px;">Sources: Odoo 19 HR documentation, Officient public docs, SD Worx variable-elements import spec, VVF implementation benchmarks</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- CHANGELOG                                                   -->
+<!-- v2  2026-04-15  Added Training Registry module card +       -->
+<!--                 Mandatory Training Matrix scope (HR Dir     -->
+<!--                 explicit ask). Budget revised to 19–31 days -->
+<!--                 (~€10–17K).                                 -->
+<!-- v1  2026-04-15  Initial HR tools benchmark. Covers Odoo 19  -->
+<!--                 HR suite vs Officient. Scope explicitly     -->
+<!--                 excludes payroll (SD Worx stays).           -->
+<!--                 Effort/budget: 16–27 days (~€8–15K).        -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+</body>
+</html>

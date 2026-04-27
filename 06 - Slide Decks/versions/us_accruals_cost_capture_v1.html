@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0">
+<title>US Accruals &amp; Cost Capture — Accounting Team Training</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    body { background: none; padding: 0; gap: 0; }
+    .slide { box-shadow: none; border-radius: 0; margin: 0;
+             page-break-inside: avoid; page-break-after: always; }
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    gap: 30px;
+  }
+
+  .slide {
+    width: 1280px;
+    min-height: 720px;
+    max-height: 720px;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    padding: 38px 50px 36px;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+  }
+
+  .slide::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
+
+  .slide.title-slide {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .slide.title-slide::before { height: 8px; }
+  .slide.title-slide h1 { font-size: 36px; line-height: 1.2; margin-bottom: 8px; }
+  .slide.title-slide .subtitle { font-size: 16px; color: #555; margin-bottom: 32px; }
+  .slide.title-slide .meta { font-size: 12px; color: #999; line-height: 1.8; }
+
+  h1 { font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  h2 { font-size: 15px; font-weight: 600; color: #0f3460; margin-bottom: 10px; margin-top: 14px; }
+  h3 { font-size: 12px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+
+  .subtitle { font-size: 12px; color: #888; margin-bottom: 16px; }
+
+  .section-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1.2px; color: #0f3460; margin-bottom: 8px;
+    padding-bottom: 4px; border-bottom: 2px solid #0f3460; display: inline-block;
+  }
+  .section-label.red { color: #c62828; border-color: #c62828; }
+  .section-label.green { color: #2e7d32; border-color: #2e7d32; }
+  .section-label.orange { color: #e65100; border-color: #e65100; }
+  .section-label.purple { color: #6a1b9a; border-color: #6a1b9a; }
+
+  .flow-diagram {
+    background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 8px;
+    padding: 16px 20px; margin: 8px 0;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 10.5px; line-height: 1.55; color: #333; white-space: pre; overflow-x: auto;
+  }
+  .flow-diagram .label { color: #0f3460; font-weight: 700; }
+  .flow-diagram .account { color: #555; }
+  .flow-diagram .highlight { color: #c62828; font-weight: 600; }
+  .flow-diagram .green { color: #2e7d32; font-weight: 600; }
+  .flow-diagram .arrow { color: #999; }
+  .flow-diagram .dim { color: #aaa; }
+  .flow-diagram .blue { color: #0f3460; font-weight: 600; }
+  .flow-diagram .orange { color: #e65100; font-weight: 600; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 11px; margin: 6px 0; }
+  th { background: #f8f9fa; padding: 6px 10px; text-align: left; font-weight: 600;
+       color: #1a1a2e; border-bottom: 2px solid #dee2e6; }
+  td { padding: 5px 10px; border-bottom: 1px solid #eee; color: #333; vertical-align: top; }
+  tr:hover td { background: #f8f9fa; }
+
+  table.compact { font-size: 10px; }
+  table.compact th, table.compact td { padding: 3px 8px; }
+
+  .tag {
+    display: inline-block; padding: 1px 7px; border-radius: 3px;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.3px;
+  }
+  .tag.green { background: #e8f5e9; color: #2e7d32; }
+  .tag.red { background: #ffebee; color: #c62828; }
+  .tag.orange { background: #fff3e0; color: #e65100; }
+  .tag.blue { background: #e3f2fd; color: #1565c0; }
+  .tag.purple { background: #f3e5f5; color: #6a1b9a; }
+  .tag.grey { background: #f5f5f5; color: #616161; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  .card {
+    background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .card h3 { margin-bottom: 6px; }
+
+  .callout {
+    margin-top: 10px; padding: 8px 12px; font-size: 10.5px; border-radius: 4px;
+  }
+  .callout.blue { background: #e3f2fd; border-left: 3px solid #1565c0; }
+  .callout.green { background: #e8f5e9; border-left: 3px solid #2e7d32; }
+  .callout.orange { background: #fff3e0; border-left: 3px solid #e65100; }
+  .callout.red { background: #ffebee; border-left: 3px solid #c62828; }
+  .callout.purple { background: #f3e5f5; border-left: 3px solid #6a1b9a; }
+
+  .decision-box {
+    border: 2px solid #1565c0; border-radius: 8px; padding: 12px 16px; margin-top: 8px;
+  }
+
+  .slide-number { font-size: 10px; color: #bbb; }
+  /* ── Logo ── */
+  .logo-title {
+    position: absolute; top: 30px; right: 40px;
+    height: 80px; opacity: 0.9;
+  }
+  .slide-footer {
+    position: absolute; bottom: 10px; left: 20px; right: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .prepared-by {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .prepared-by span {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+  .prepared-by img {
+    height: 22px; opacity: 0.7;
+  }
+  .footer-project {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+
+  ul { font-size: 11px; line-height: 1.6; padding-left: 16px; }
+  ul li { margin-bottom: 3px; }
+
+  p { font-size: 11px; line-height: 1.6; color: #444; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 1 — TITLE
+     ════════════════════════════════════════════════════════════════ -->
+
+<div class="slide title-slide">
+
+  <img src="VVF-logo.png" alt="VVF" class="logo-title">
+  <h1>US Accruals &amp; Cost Capture</h1>
+  <div class="subtitle">Kebony Inc. — Accounting Team Training &amp; Reference</div>
+  <div class="meta">
+    Version 1.0 — March 2026<br>
+    Audience: Accounting team, Controller, External accountant<br>
+    Scope: Accrual engine, vendor bill clearing, freight/customs provisioning, analytical tags
+
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 2 — THE BIG PICTURE
+     ════════════════════════════════════════════════════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">1</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>The Big Picture</h1>
+  <div class="subtitle">What the system does automatically, what needs manual action</div>
+
+  <div class="flow-diagram">
+<span class="label">CUSTOMER INVOICE</span>  ──→  <span class="blue">System computes accruals per line</span>  ──→  <span class="label">STORED ON INVOICE</span>
+        │                                                              │
+        │  <span class="dim">(4 accrual types × each product line)</span>                     │  <span class="dim">(visible in margin report)</span>
+        │                                                              │
+        ▼                                                              ▼
+  <span class="label">END OF MONTH</span>  ──→  <span class="green">EOM Accruals button</span>  ──→  <span class="label">JOURNAL ENTRY</span>  ──→  <span class="account">DR Expense (5801xx)</span>
+                                                              <span class="account">CR Liability (2155xx)</span>
+        │
+        │  <span class="dim">(when vendor bill arrives)</span>
+        ▼
+  <span class="label">VENDOR BILL</span>  ──→  <span class="highlight">Manual: book against liability account</span>  ──→  <span class="account">DR Liability (2155xx)</span>
+                                                                    <span class="account">CR AP (accounts payable)</span>
+                    <span class="orange">Zero EBITDA impact — expense was already accrued</span>
+</div>
+
+  <div class="callout blue">
+    <strong>Key principle:</strong> The expense hits P&amp;L at the time of sale (via accrual). When the actual vendor bill arrives, it clears the liability — no additional P&amp;L impact.
+
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 3 — THE FOUR ACCRUAL TYPES
+     ════════════════════════════════════════════════════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">2</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>The Four Accrual Types</h1>
+  <div class="subtitle">Each type has specific rates, eligibility rules, and GL accounts</div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Accrual Type</th>
+        <th>Rate (Wood)</th>
+        <th>Rate (Accessory)</th>
+        <th>Eligibility</th>
+        <th>Expense (DR)</th>
+        <th>Liability (CR)</th>
+        <th>Partner on CR</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Marketing</strong></td>
+        <td>4.0%</td>
+        <td>1.5%</td>
+        <td><span class="tag blue">Distributor only</span></td>
+        <td>581000</td>
+        <td>215510</td>
+        <td>Distributor (fund)</td>
+      </tr>
+      <tr>
+        <td><strong>Sales Rep Commission</strong></td>
+        <td colspan="2">Variable (per rep rate)</td>
+        <td><span class="tag green">If rep assigned</span></td>
+        <td>588000</td>
+        <td>215520</td>
+        <td>Sales Rep (fund)</td>
+      </tr>
+      <tr>
+        <td><strong>Royalties</strong></td>
+        <td>5.0%</td>
+        <td>0%</td>
+        <td><span class="tag orange">Wood only, no consignment</span></td>
+        <td>584000</td>
+        <td>215540</td>
+        <td>Invoice customer</td>
+      </tr>
+      <tr>
+        <td><strong>Management Fees</strong></td>
+        <td>14.0%</td>
+        <td>5.0%</td>
+        <td><span class="tag orange">No consignment</span></td>
+        <td>586000</td>
+        <td>215530</td>
+        <td>Invoice customer</td>
+      </tr>
+      <tr>
+        <td><strong>Freight</strong></td>
+        <td colspan="2">Manual entry (carrier estimate)</td>
+        <td><span class="tag grey">If freight entered</span></td>
+        <td>591000</td>
+        <td>215560</td>
+        <td>Invoice customer</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="two-col" style="margin-top:14px;">
+    <div class="card">
+      <h3>Computation Base</h3>
+      <p>All rates applied to <code>price_subtotal</code> of each invoice line (tax-excluded amount). Refund lines are negative (auto-reversed).</p>
+    </div>
+    <div class="card">
+      <h3>Consignment Exception</h3>
+      <p>Products in category "Product in Consignment" get <strong>zero royalties</strong> and <strong>zero management fees</strong>. Marketing and sales rep commission still apply if other conditions met.</p>
+    </div>
+
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 4 — MARKETING ACCRUAL DEEP DIVE
+     ════════════════════════════════════════════════════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">3</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Marketing Accrual — Detailed Flow</h1>
+  <div class="subtitle">Obligation to reimburse distributor marketing spend up to a ceiling</div>
+
+  <div class="two-col">
+    <div>
+      <div class="section-label">What it is</div>
+      <ul>
+        <li>Kebony has a <strong>contractual obligation</strong> to reimburse distributors for marketing expenses</li>
+        <li>The ceiling is computed as a <strong>% of sales</strong> to that distributor</li>
+        <li>4% on wood products, 1.5% on accessories</li>
+        <li>Only applies to customers classified as <strong>"Distributor"</strong>
+</li>
+      </ul>
+
+      <div class="section-label" style="margin-top:16px;">How the system computes it</div>
+      <ol style="font-size:11px; line-height:1.6; padding-left:16px;">
+        <li>Customer invoice is posted</li>
+        <li>Each product line: check if customer = Distributor</li>
+        <li>If yes → apply rate × price_subtotal</li>
+        <li>Store amount on <code>x_studio_marketing_accrual_line_item</code>
+</li>
+        <li>Sum flows into invoice-level <code>x_studio_total_accruals_cost</code>
+</li>
+      </ol>
+
+    <div>
+      <div class="section-label green">Monthly JE (EOM Accruals button)</div>
+      <div class="flow-diagram" style="font-size:10px;">
+<span class="label">DR</span>  <span class="account">581000 – Marketing Expense</span>      $4,000
+       <span class="dim">analytic: N. Rockies (sales area)</span>
+<span class="label">CR</span>  <span class="account">215510 – Marketing Liability</span>    $4,000
+       <span class="blue">partner: Rex Lumber</span> ← fund tracking!</div>
+
+      <div class="section-label purple" style="margin-top:14px;">Check Rex's fund balance</div>
+      <div class="flow-diagram" style="font-size:10px;">
+<span class="blue">Partner Ledger → Account 215510 → Partner = Rex Lumber</span>
+<span class="green">→ Shows exactly how much Rex has left to claim</span>
+</div>
+
+      <div class="section-label red" style="margin-top:14px;">When vendor bill arrives</div>
+      <div class="flow-diagram" style="font-size:10px;">
+<span class="label">Rex sends invoice for $3,200 marketing spend</span>
+
+<span class="label">DR</span>  <span class="account">215510 – Marketing Liability</span>    $3,200
+       <span class="blue">partner: Rex Lumber</span>
+<span class="label">CR</span>  <span class="account">AP – Accounts Payable</span>            $3,200
+
+<span class="green">→ Zero P&amp;L impact (expense was already booked)</span>
+<span class="orange">→ Remaining $800 stays in Rex's fund</span>
+</div>
+
+      <div class="callout orange" style="margin-top:8px;">
+        <strong>Important:</strong> The vendor bill MUST be booked against <strong>215510</strong> (liability) with <strong>partner = Rex</strong>. NOT against 581000 (expense). Otherwise you double-count.
+
+      </div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 5 — SALES REP, ROYALTIES, MGMT FEES
+     ════════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">4</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Sales Rep, Royalties &amp; Management Fees</h1>
+  <div class="subtitle">Same principle — accrue at sale, clear with vendor bill</div>
+
+  <div class="three-col">
+    <div class="card">
+      <h3>Sales Rep Commission</h3>
+      <div class="section-label">Trigger</div>
+      <p>Sales representative assigned on invoice (or inherited from customer)</p>
+      <div class="section-label" style="margin-top:8px;">Rate</div>
+      <p>Variable — per rep (stored on partner: <code>x_studio_sales_rep_rate</code>)</p>
+      <div class="section-label" style="margin-top:8px;">Vendor bill from</div>
+      <p><strong>The sales representative</strong> (independent contractor)</p>
+      <div class="flow-diagram" style="font-size:9px; margin-top:8px;">
+<span class="label">DR</span> <span class="account">215520</span> <span class="blue">(partner: rep name)</span>
+<span class="label">CR</span> <span class="account">AP</span>
+<span class="dim">Check balance: Partner Ledger → 215520 → rep</span>
+</div>
+    </div>
+
+    <div class="card">
+      <h3>Royalties</h3>
+      <div class="section-label">Trigger</div>
+      <p>Wood products only. No consignment.</p>
+      <div class="section-label" style="margin-top:8px;">Rate</div>
+      <p><strong>5%</strong> of price_subtotal</p>
+      <div class="section-label" style="margin-top:8px;">Vendor bill from</div>
+      <p><strong>Kebony Holding</strong> (intercompany)</p>
+      <div class="flow-diagram" style="font-size:9px; margin-top:8px;">
+<span class="label">DR</span> <span class="account">215540</span> (clear liability)
+<span class="label">CR</span> <span class="account">AP</span>
+</div>
+    </div>
+
+    <div class="card">
+      <h3>Management Fees</h3>
+      <div class="section-label">Trigger</div>
+      <p>All marketable products. No consignment.</p>
+      <div class="section-label" style="margin-top:8px;">Rate</div>
+      <p><strong>14%</strong> wood, <strong>5%</strong> accessories</p>
+      <div class="section-label" style="margin-top:8px;">Vendor bill from</div>
+      <p><strong>Kebony Holding</strong> (intercompany)</p>
+      <div class="flow-diagram" style="font-size:9px; margin-top:8px;">
+<span class="label">DR</span> <span class="account">215530</span> (clear liability)
+<span class="label">CR</span> <span class="account">AP</span>
+</div>
+    </div>
+
+  <div class="callout blue" style="margin-top:12px;">
+    <strong>Rule for ALL vendor bills against accruals:</strong> Always book on the <strong>liability account</strong> (2155xx), never on the expense account (5801xx). The expense was already recognized at the time of sale. The vendor bill only clears the balance sheet provision.
+
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 6 — INVOICE-LEVEL OVERRIDES
+     ════════════════════════════════════════════════════════════════ -->
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">5</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Invoice-Level Overrides</h1>
+  <div class="subtitle">Three toggle switches to disable accruals for specific invoices</div>
+
+  <div class="two-col">
+    <div>
+      <table>
+        <thead>
+          <tr>
+<th>Toggle</th>
+<th>Effect when unchecked</th>
+<th>Use case</th>
+</tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Compute Marketing</strong></td>
+            <td>Marketing accrual = 0 for all lines</td>
+            <td>Promotional shipment, no marketing obligation</td>
+          </tr>
+          <tr>
+            <td><strong>Compute Royalties</strong></td>
+            <td>Royalties = 0 for all lines</td>
+            <td>Internal transfer, exceptional deal</td>
+          </tr>
+          <tr>
+            <td><strong>Compute Mgmt Fees</strong></td>
+            <td>Management fees = 0 for all lines</td>
+            <td>Exceptional deal structure</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="margin-top:12px;">All three default to <strong>checked</strong> (accruals active). Uncheck before clicking the margin recompute button.</p>
+      <div class="section-label purple" style="margin-top:14px;">Rate overrides (new)</div>
+      <p>Each rate can be adjusted per invoice in <strong>Other Info → Rate Overrides</strong>:</p>
+      <table class="compact" style="margin-top:6px;">
+        <tr>
+<td>Marketing (Wood)</td>
+<td>default 4%</td>
+</tr>
+        <tr>
+<td>Marketing (Accessory)</td>
+<td>default 1.5%</td>
+</tr>
+        <tr>
+<td>Royalty</td>
+<td>default 5%</td>
+</tr>
+        <tr>
+<td>Mgmt Fees (Wood)</td>
+<td>default 14%</td>
+</tr>
+        <tr>
+<td>Mgmt Fees (Accessory)</td>
+<td>default 5%</td>
+</tr>
+      </table>
+    </div>
+    <div>
+      <div class="card" style="border-color: #c62828;">
+        <h3 style="color:#c62828;">Recompute Flow</h3>
+        <div class="flow-diagram" style="font-size:10px;">
+<span class="blue">1.</span> Open posted customer invoice
+<span class="blue">2.</span> Adjust toggles if needed
+<span class="blue">3.</span> Click <span class="green">"Recompute Margin"</span> button
+<span class="blue">4.</span> System recalculates:
+     → Accruals per line (4 types)
+     → COGS (dropship / stock / consignment)
+     → Net sales (incl. down payments, credit notes)
+     → Freight, warehousing, other adjustments
+     → <span class="highlight">Final margin &amp; margin %</span>
+</div>
+      </div>
+    </div>
+
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 7 — EOM ACCRUAL JOURNAL ENTRY
+     ════════════════════════════════════════════════════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">6</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>End-of-Month Accrual Journal Entry</h1>
+  <div class="subtitle">The EOM Accruals button on the Accounting Hub</div>
+
+  <div class="two-col">
+    <div>
+      <div class="section-label green">What the button does</div>
+      <ol style="font-size:11px; line-height:1.7; padding-left:16px;">
+        <li>
+<strong>Scans</strong> all posted invoices with un-accrued lines</li>
+        <li>
+<strong>Groups</strong> amounts by type × sales area × partner</li>
+        <li>
+<strong>Creates</strong> one journal entry with paired lines:
+          <ul>
+            <li>DR: Expense (581000/588000/584000/586000/591000) + <strong>sales area analytic</strong>
+</li>
+            <li>CR: Liability (215510/520/530/540/560) + <strong>partner</strong> (distributor or rep)</li>
+          </ul>
+        </li>
+        <li>
+<strong>Collects freight</strong> from invoice header (manual amount)</li>
+        <li>
+<strong>Marks</strong> all processed lines + freight invoices as accrued</li>
+      </ol>
+
+      <div class="callout green" style="margin-top:12px;">
+        <strong>Idempotent:</strong> Running the button twice won't double-accrue. Lines are flagged after first run.
+      </div>
+
+    <div>
+      <div class="section-label">Example JE output</div>
+      <div class="flow-diagram" style="font-size:9.5px;">
+<span class="label">Accrual Journal Entry — March 2026</span>
+<span class="dim">────────────────────────────────────────────────</span>
+<span class="label">DR</span>  <span class="account">581000 Marketing Expense</span>       $12,450
+       <span class="dim">analytic: N. Rockies</span>
+<span class="label">CR</span>  <span class="account">215510 Marketing Liability</span>     $12,450
+       <span class="blue">partner: Rex Lumber</span>
+<span class="dim">────────────────────────────────────────────────</span>
+<span class="label">DR</span>  <span class="account">584000 Royalties Expense</span>        $6,800
+       <span class="dim">analytic: N. Rockies</span>
+<span class="label">CR</span>  <span class="account">215540 Royalties Liability</span>      $6,800
+       <span class="blue">partner: Rex Lumber</span>
+<span class="dim">────────────────────────────────────────────────</span>
+<span class="label">DR</span>  <span class="account">588000 Sales Rep Expense</span>        $3,200
+       <span class="dim">analytic: N. Rockies</span>
+<span class="label">CR</span>  <span class="account">215520 Sales Rep Liability</span>      $3,200
+       <span class="blue">partner: Sam Brown (rep)</span>
+<span class="dim">────────────────────────────────────────────────</span>
+<span class="label">DR</span>  <span class="account">591000 Freight Expense</span>          $1,800
+       <span class="dim">analytic: N. Rockies</span>
+<span class="label">CR</span>  <span class="account">215560 Freight Liability</span>        $1,800
+       <span class="blue">partner: Rex Lumber</span>
+</div>
+
+    </div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 8 — VENDOR BILL CLEARING
+     ════════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">7</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Vendor Bill Clearing — Zero P&amp;L Impact</h1>
+  <div class="subtitle">When the actual bill arrives, it clears the liability — NOT the expense</div>
+
+  <div class="two-col">
+    <div>
+      <div class="section-label red">Critical: Correct booking</div>
+      <table>
+        <thead>
+          <tr>
+<th>Vendor Bill From</th>
+<th>Book Against</th>
+<th>With Partner</th>
+</tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Distributor (marketing)</td>
+            <td>
+<span class="tag green">DR 215510</span> / CR AP</td>
+            <td>The distributor</td>
+          </tr>
+          <tr>
+            <td>Sales representative</td>
+            <td>
+<span class="tag green">DR 215520</span> / CR AP</td>
+            <td>The sales rep</td>
+          </tr>
+          <tr>
+            <td>Kebony Holding (royalties)</td>
+            <td>
+<span class="tag green">DR 215540</span> / CR AP</td>
+            <td>Kebony Holding</td>
+          </tr>
+          <tr>
+            <td>Kebony Holding (mgmt fees)</td>
+            <td>
+<span class="tag green">DR 215530</span> / CR AP</td>
+            <td>Kebony Holding</td>
+          </tr>
+          <tr>
+            <td>Carrier (freight)</td>
+            <td>
+<span class="tag green">DR 215560</span> / CR AP</td>
+            <td>The customer</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout red" style="margin-top:12px;">
+        <strong>NEVER book vendor bills against expense accounts (581000, 588000, etc.).</strong> The expense was already recognized via the EOM accrual. Booking against expense = double-counting.
+      </div>
+
+    <div>
+      <div class="section-label">Monthly reconciliation</div>
+      <ul>
+        <li>
+<strong>Balance 215510:</strong> Accrued marketing minus vendor bills received = <em>outstanding obligation</em>
+</li>
+        <li>
+<strong>Over-accrual:</strong> If vendor bills &lt; accrued → release excess at year-end</li>
+        <li>
+<strong>Under-accrual:</strong> If vendor bills &gt; accrued → book additional expense</li>
+      </ul>
+
+      <div class="section-label purple" style="margin-top:14px;">Partner = the key to fund tracking</div>
+      <div class="card" style="border-color:#6a1b9a;">
+        <h3 style="color:#6a1b9a;">Always set the Partner on liability lines</h3>
+        <p>When booking the vendor bill against a liability account, <strong>always set the same partner</strong> that was used on the original accrual. This is how you track each distributor's fund balance.</p>
+        <p style="margin-top:6px;"><strong>To check a fund balance:</strong> Partner Ledger → filter account (e.g. 215510) + partner (e.g. Rex Lumber). The balance = amount Rex can still claim.</p>
+
+      </div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 9 — FREIGHT & CUSTOMS: THE PROBLEM + AUTOMATED SOLUTION
+     ════════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">8</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Freight &amp; Customs — Closing the Landed Cost Loop</h1>
+  <div class="subtitle">IAS 2 / US GAAP requires full acquisition cost in inventory. Today it's manual and error-prone. We automate it.</div>
+
+  <div class="two-col">
+    <div>
+      <div class="section-label red">The problem today</div>
+      <p>When goods arrive from abroad, freight and customs bills often lag by <strong>2-6 weeks</strong>. Until those costs are allocated, inventory is <strong>undervalued</strong> and margin is <strong>overstated</strong>.</p>
+      <p style="margin-top:6px;">The manual process requires the controller to:</p>
+      <ol style="font-size:11px; line-height:1.7; padding-left:16px;">
+        <li>Remember that a receipt needs a landed cost provision</li>
+        <li>Estimate freight + customs amounts</li>
+        <li>Create an accrual journal entry</li>
+        <li>Create a Landed Cost object in Odoo</li>
+        <li>Link it to the correct receipt</li>
+        <li>Choose the right split method</li>
+        <li>Validate to update valuation layers</li>
+        <li>When the bill arrives weeks later — reverse, redo at actual</li>
+      </ol>
+      <div class="callout red" style="margin-top:8px;">
+        <strong>8 manual steps, any of which can be forgotten.</strong> If step 1 is missed, inventory is wrong until someone notices — often at year-end audit.
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label green">The solution: Linked Cost POs (custom dev)</div>
+      <p>A goods PO (e.g. wood from Brazil) gets <strong>linked Cost POs</strong> for freight and customs. The system handles everything automatically:</p>
+      <div class="flow-diagram" style="font-size:10px;">
+<span class="label">GOODS PO</span> ──── linked to ───┬── <span class="orange">PO-Freight</span> (forwarder)
+  <span class="dim">wood from Brazil</span>            └── <span class="orange">PO-Customs</span> (broker)
+        │
+        ▼  <span class="blue">receipt validated</span>
+        │
+  For each linked Cost PO:
+        │
+  Bill posted? ─── <span class="green">YES</span> ──→ auto-create Landed Cost
+        │                   source = vendor bill
+        <span class="highlight">NO</span>                  split across receipt lines ✓
+        │
+        ▼
+  <span class="highlight">Auto-create accrual JE</span> (estimated from PO)
+  <span class="highlight">Auto-create Landed Cost</span>
+  source = accrual JE
+  split across receipt lines ✓
+        │
+        ▼  <span class="dim">bill arrives later</span>
+        │
+  <span class="green">Auto-reverse accrual</span>
+  <span class="green">Auto-create new Landed Cost at actual</span>
+  <span class="green">Delta absorbed + re-split</span> ✓</div>
+
+      <div class="callout green" style="margin-top:4px;">
+        <strong>Zero manual steps.</strong> The controller only needs to create the Cost POs at purchase time. Everything else — accrual, allocation, settlement — is automated.
+
+      </div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 10 — AUTOMATED LANDED COST: HOW IT WORKS
+     ════════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">9</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Automated Landed Cost — How It Works</h1>
+  <div class="subtitle">Three triggers, fully automated, using Odoo's native Landed Cost engine for proper cost allocation</div>
+
+  <div class="two-col">
+    <div>
+      <div class="section-label blue">Trigger 1 — Receipt Validated</div>
+      <div class="flow-diagram" style="font-size:9.5px;">
+<span class="label">Receipt WH/IN/00123 validated</span>
+System finds goods PO → finds linked Cost POs:
+
+<span class="orange">PO-Freight ($8,500)</span> — no bill yet
+  → <span class="highlight">Auto-create accrual JE:</span>
+     <span class="label">DR</span> <span class="account">110410 Landed Cost Clearing</span>  $8,500
+     <span class="label">CR</span> <span class="account">211000 GRNI Accrual</span>          $8,500
+  → <span class="highlight">Auto-create Landed Cost:</span>
+     Transfer: WH/IN/00123
+     Source: accrual JE
+     Split: by value across receipt lines
+  → <span class="green">Validate → valuation layers updated</span>
+
+<span class="orange">PO-Customs ($2,200)</span> — bill already posted
+  → <span class="green">Auto-create Landed Cost:</span>
+     Transfer: WH/IN/00123
+     Source: vendor bill
+     Split: by value across receipt lines
+  → <span class="green">Validate → valuation layers updated</span>
+
+<span class="dim">Chatter message on goods PO: summary of what was created</span>
+</div>
+
+      <div class="section-label blue" style="margin-top:10px;">Trigger 2 — Vendor Bill Posted</div>
+      <div class="flow-diagram" style="font-size:9.5px;">
+<span class="label">Freight bill arrives: $9,100</span> (vs $8,500 estimated)
+
+System detects: this bill's PO is a linked Cost PO
+  → <span class="highlight">Auto-reverse accrual JE</span> ($8,500)
+  → <span class="highlight">Cancel estimated Landed Cost</span>
+  → <span class="green">Auto-create new Landed Cost at actual</span> ($9,100)
+     Source: vendor bill
+     Split: by value across original receipt lines
+  → <span class="green">Validate → valuation layers corrected</span>
+  → <span class="dim">Delta: +$600 properly split across products</span>
+</div>
+
+    <div>
+      <div class="section-label purple">Trigger 3 — EOM Dashboard</div>
+      <div class="card" style="margin-bottom:10px;">
+        <h3>Pending Landed Cost Accruals</h3>
+        <p>New section on the Accounting Hub showing all outstanding estimated Landed Costs:</p>
+        <table class="compact" style="font-size:9.5px;">
+          <thead><tr>
+<th>Receipt</th>
+<th>Goods PO</th>
+<th>Cost PO</th>
+<th>Est. Amount</th>
+<th>Days Open</th>
+</tr></thead>
+          <tbody>
+            <tr>
+<td>WH/IN/00123</td>
+<td>PO-001</td>
+<td>PO-Freight</td>
+<td>$8,500</td>
+<td style="color:#c62828; font-weight:600;">42 days</td>
+</tr>
+            <tr>
+<td>WH/IN/00156</td>
+<td>PO-012</td>
+<td>PO-Customs</td>
+<td>$1,800</td>
+<td>12 days</td>
+</tr>
+          </tbody>
+        </table>
+        <p style="margin-top:6px; font-size:10px;">Items &gt; 30 days highlighted as overdue. Controller follows up with vendor.</p>
+      </div>
+
+      <div class="section-label orange">Why native Landed Cost matters</div>
+      <div class="card">
+        <h3>Proper cost allocation vs lump-sum journal entry</h3>
+        <p>A manual JE (DR Inventory / CR Accrual) puts a <strong>lump sum</strong> on inventory without distributing it across products on the receipt.</p>
+        <p style="margin-top:6px;">By using Odoo's native <strong>Landed Cost object</strong>, the system splits the cost across receipt lines using the chosen method (by value, quantity, or weight). Same quality of allocation whether the bill has arrived or not.</p>
+      </div>
+
+      <div class="section-label" style="margin-top:10px;">Implementation</div>
+      <table class="compact" style="font-size:9.5px;">
+        <thead><tr>
+<th>Component</th>
+<th>Effort</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>New fields (linked Cost POs on purchase.order)</td>
+<td>1 day</td>
+</tr>
+          <tr>
+<td>Receipt trigger (auto-accrual + Landed Cost)</td>
+<td>2 days</td>
+</tr>
+          <tr>
+<td>Bill trigger (auto-reverse + re-allocate at actual)</td>
+<td>1.5 days</td>
+</tr>
+          <tr>
+<td>EOM dashboard + edge cases + testing</td>
+<td>2.5 days</td>
+</tr>
+          <tr style="font-weight:700;">
+<td>Total</td>
+<td>7 days</td>
+</tr>
+        </tbody>
+      </table>
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 11 — ANALYTICAL TAGS: SALES AREA
+     ════════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">10</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Analytical Tags — Sales Area</h1>
+  <div class="subtitle">Every transaction must carry the right Sales Area for reporting</div>
+
+  <div class="two-col">
+    <div>
+      <div class="section-label purple">Where Sales Area lives</div>
+      <table>
+        <thead>
+          <tr>
+<th>Document</th>
+<th>Field</th>
+<th>Populated by</th>
+</tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Customer (partner)</td>
+            <td><code>x_studio_area_of_sales</code></td>
+            <td>Master data (manual)</td>
+          </tr>
+          <tr>
+            <td>Customer Invoice</td>
+            <td><code>x_studio_area_of_sales</code></td>
+            <td>Auto from customer</td>
+          </tr>
+          <tr>
+            <td>Invoice line</td>
+            <td><code>analytic_distribution</code></td>
+            <td>Auto from invoice/SO</td>
+          </tr>
+          <tr>
+            <td>EOM Accrual JE</td>
+            <td><code>analytic_distribution</code></td>
+            <td>Copied from invoice lines</td>
+          </tr>
+          <tr style="background:#fff3e0;">
+            <td><strong>Vendor bill (clearing)</strong></td>
+            <td><code>analytic_distribution</code></td>
+            <td><strong>MANUAL — must match</strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout red" style="margin-top:12px;">
+        <strong>Critical:</strong> When booking a vendor bill against a liability account (2155xx), the accounting team <strong>must set the same Sales Area analytical tag</strong> as the original accrual. Otherwise the liability balance by area becomes unreliable.
+      </div>
+
+    <div>
+      <div class="section-label">Why it matters</div>
+      <div class="card">
+        <h3>Profitability by Sales Area</h3>
+        <p>Management needs margin analysis by geographic area. If revenue is tagged "East Canada" but the corresponding accrual clearing is untagged (or tagged differently), the area P&amp;L becomes meaningless.</p>
+      </div>
+
+      <div class="card" style="margin-top:10px;">
+        <h3>Reconciliation by Area</h3>
+        <p>Monthly liability reconciliation (215510/520/530/540) should be done <strong>per Sales Area</strong>. Each area should show:</p>
+        <ul>
+          <li>Opening balance (accrued)</li>
+          <li>+ New accruals (EOM JE)</li>
+          <li>− Vendor bills received</li>
+          <li>= Closing balance (outstanding obligation)</li>
+        </ul>
+      </div>
+
+      <div class="card" style="margin-top:10px; border-color:#6a1b9a;">
+        <h3 style="color:#6a1b9a;">Future: Product Group Analytic</h3>
+        <p>A second analytical dimension (KSP, KRRS, KR) will be added for product-group profitability. Same tagging discipline applies.</p>
+
+      </div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 12 — MONTHLY CLOSE CHECKLIST
+     ════════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">11</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Monthly Close — Accrual Checklist</h1>
+  <div class="subtitle">Step-by-step procedure for the accounting team</div>
+
+  <div class="two-col">
+    <div>
+      <div class="section-label green">Before EOM</div>
+      <table class="compact">
+        <thead><tr>
+<th>#</th>
+<th>Action</th>
+<th>Who</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>1</td>
+<td>Ensure all customer invoices are <strong>posted</strong>
+</td>
+<td>AR</td>
+</tr>
+          <tr>
+<td>2</td>
+<td>Run <strong>Recompute Margin</strong> on any invoice missing COGS</td>
+<td>Controller</td>
+</tr>
+          <tr>
+<td>3</td>
+<td>Review override toggles on special invoices</td>
+<td>Controller</td>
+</tr>
+          <tr>
+<td>4</td>
+<td>Verify Sales Area tag on all invoices</td>
+<td>AR</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="section-label green" style="margin-top:14px;">EOM Close</div>
+      <table class="compact">
+        <thead><tr>
+<th>#</th>
+<th>Action</th>
+<th>Who</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>5</td>
+<td>Click <strong>EOM Accruals</strong> on Accounting Hub</td>
+<td>Controller</td>
+</tr>
+          <tr>
+<td>6</td>
+<td>Review generated JE — check amounts, analytics</td>
+<td>Controller</td>
+</tr>
+          <tr>
+<td>7</td>
+<td>Post the accrual JE</td>
+<td>Controller</td>
+</tr>
+        </tbody>
+      </table>
+
+    <div>
+      <div class="section-label orange">Vendor Bill Processing</div>
+      <table class="compact">
+        <thead><tr>
+<th>#</th>
+<th>Action</th>
+<th>Who</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>8</td>
+<td>Book vendor bills against <strong>liability accounts</strong> (2155xx)</td>
+<td>AP</td>
+</tr>
+          <tr>
+<td>9</td>
+<td>Set <strong>same partner</strong> as the accrual (distributor / rep)</td>
+<td>AP</td>
+</tr>
+          <tr>
+<td>10</td>
+<td>Match bill to accrual type (marketing/rep/royalty/mgmt/freight)</td>
+<td>AP</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="section-label red" style="margin-top:14px;">Monthly Reconciliation</div>
+      <table class="compact">
+        <thead><tr>
+<th>#</th>
+<th>Action</th>
+<th>Who</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>11</td>
+<td>Reconcile each 2155xx account <strong>by Partner</strong> (Partner Ledger)</td>
+<td>Controller</td>
+</tr>
+          <tr>
+<td>12</td>
+<td>Investigate large outstanding balances per distributor/rep</td>
+<td>Controller</td>
+</tr>
+          <tr>
+<td>13</td>
+<td>Release over-accruals (year-end or quarterly)</td>
+<td>CFO</td>
+</tr>
+          <tr>
+<td>14</td>
+<td>Book additional expense for under-accruals</td>
+<td>CFO</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="callout purple" style="margin-top:10px;">
+        <strong>GRNI review:</strong> Also check open freight/customs POs (PO-002 type). If goods received but bill not yet → provision is active. If bill overdue → follow up with vendor.
+
+      </div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 13 — SUMMARY: GL ACCOUNT MAP
+     ════════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">12</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>GL Account Map — Full Reference</h1>
+  <div class="subtitle">All accounts involved in the accrual and cost capture cycle</div>
+
+  <table>
+    <thead>
+      <tr>
+<th>Account</th>
+<th>Name</th>
+<th>Type</th>
+<th>Used For</th>
+<th>DR when</th>
+<th>CR when</th>
+</tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>581000</strong></td>
+<td>Marketing Expense</td>
+<td><span class="tag red">P&amp;L</span></td>
+        <td>Accrual booking</td>
+<td>EOM accrual JE (+ sales area)</td>
+<td>—</td>
+      </tr>
+      <tr>
+        <td><strong>215510</strong></td>
+<td>Marketing Accrual</td>
+<td><span class="tag blue">BS</span></td>
+        <td>Fund per distributor</td>
+<td>Vendor bill (+ partner)</td>
+<td>EOM accrual JE (+ partner)</td>
+      </tr>
+      <tr>
+        <td><strong>588000</strong></td>
+<td>Sales Rep Expense</td>
+<td><span class="tag red">P&amp;L</span></td>
+        <td>Accrual booking</td>
+<td>EOM accrual JE (+ sales area)</td>
+<td>—</td>
+      </tr>
+      <tr>
+        <td><strong>215520</strong></td>
+<td>Sales Rep Accrual</td>
+<td><span class="tag blue">BS</span></td>
+        <td>Fund per sales rep</td>
+<td>Vendor bill (+ partner)</td>
+<td>EOM accrual JE (+ partner)</td>
+      </tr>
+      <tr>
+        <td><strong>584000</strong></td>
+<td>Royalties Expense</td>
+<td><span class="tag red">P&amp;L</span></td>
+        <td>Accrual booking</td>
+<td>EOM accrual JE (+ sales area)</td>
+<td>—</td>
+      </tr>
+      <tr>
+        <td><strong>215540</strong></td>
+<td>Royalties Accrual</td>
+<td><span class="tag blue">BS</span></td>
+        <td>Accrual provision</td>
+<td>Vendor bill (+ partner)</td>
+<td>EOM accrual JE (+ partner)</td>
+      </tr>
+      <tr>
+        <td><strong>586000</strong></td>
+<td>Mgmt Fees Expense</td>
+<td><span class="tag red">P&amp;L</span></td>
+        <td>Accrual booking</td>
+<td>EOM accrual JE (+ sales area)</td>
+<td>—</td>
+      </tr>
+      <tr>
+        <td><strong>215530</strong></td>
+<td>Mgmt Fees Accrual</td>
+<td><span class="tag blue">BS</span></td>
+        <td>Accrual provision</td>
+<td>Vendor bill (+ partner)</td>
+<td>EOM accrual JE (+ partner)</td>
+      </tr>
+      <tr>
+        <td><strong>591000</strong></td>
+<td>Freight &amp; Tariffs</td>
+<td><span class="tag red">P&amp;L</span></td>
+        <td>Freight accrual</td>
+<td>EOM accrual JE (+ sales area)</td>
+<td>—</td>
+      </tr>
+      <tr>
+        <td><strong>215560</strong></td>
+<td>Freight Accrual</td>
+<td><span class="tag blue">BS</span></td>
+        <td>Freight provision</td>
+<td>Carrier bill (+ partner)</td>
+<td>EOM accrual JE (+ partner)</td>
+      </tr>
+      <tr style="background:#fff3e0;">
+        <td><strong>110100</strong></td>
+<td>Inventory</td>
+<td><span class="tag blue">BS</span></td>
+        <td>Stock valuation</td>
+<td>Landed cost applied</td>
+<td>COGS on sale</td>
+      </tr>
+      <tr style="background:#fff3e0;">
+        <td><strong>110410</strong></td>
+<td>Landed Cost Clearing</td>
+<td><span class="tag blue">BS</span></td>
+        <td>Freight/customs provision</td>
+<td>Month-end GRNI</td>
+<td>Bill received</td>
+      </tr>
+      <tr style="background:#fff3e0;">
+        <td><strong>211000</strong></td>
+<td>GRNI Accrual</td>
+<td><span class="tag blue">BS</span></td>
+        <td>Goods received, not invoiced</td>
+<td>Bill received</td>
+<td>Month-end provision</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout blue" style="margin-top:8px;">
+    <strong>Colour coding:</strong> <span class="tag red">P&amp;L</span> accounts are hit once (at accrual time). <span class="tag blue">BS</span> accounts are hit twice (accrual + clearing). <span style="background:#fff3e0; padding:2px 6px; border-radius:3px;">Orange rows</span> = freight/customs/inventory accounts.
+
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 14 — INITIAL BACKFILL (JAN 2026 → TODAY)
+     ════════════════════════════════════════════════════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">13</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Initial Backfill — Jan 2026 to Today</h1>
+  <div class="subtitle">One-time catch-up to accrue all historical invoices since January</div>
+
+  <div class="two-col">
+    <div>
+      <div class="section-label red">Why this is needed</div>
+      <p>Invoices posted since January 2026 have accrual <strong>amounts computed</strong> on each line (via margin button) but <strong>no journal entry</strong> has been posted yet. The liability accounts (2155xx) are empty.</p>
+      <p style="margin-top:8px;">We need a catch-up JE to recognize all accruals from Jan 1 to today.</p>
+
+      <div class="section-label green" style="margin-top:16px;">3-Step Procedure</div>
+      <table class="compact">
+        <thead><tr>
+<th>#</th>
+<th>Action</th>
+<th>Where</th>
+</tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="tag blue">1</span></td>
+            <td>
+<strong>Recompute Margin</strong> on all historical invoices<br>
+                <span style="color:#888; font-size:9px;">(ensures accrual amounts are populated on lines)</span>
+</td>
+            <td>Each invoice → "Recompute Margin (US)"</td>
+          </tr>
+          <tr>
+            <td><span class="tag orange">2</span></td>
+            <td>
+<strong>Reset Accrual Flags</strong><br>
+                <span style="color:#888; font-size:9px;">(clears is_accrued so EOM picks up all lines)</span>
+</td>
+            <td>Accounting Hub → "Reset Accrual Flags"</td>
+          </tr>
+          <tr>
+            <td><span class="tag green">3</span></td>
+            <td>
+<strong>Run EOM Accruals</strong><br>
+                <span style="color:#888; font-size:9px;">(creates one catch-up JE for all historical invoices)</span>
+</td>
+            <td>Accounting Hub → "Run EoM Accruals (US)"</td>
+          </tr>
+        </tbody>
+      </table>
+
+    <div>
+      <div class="section-label purple">What the catch-up JE looks like</div>
+      <div class="flow-diagram" style="font-size:9.5px;">
+<span class="label">Catch-Up Accrual JE — March 2026</span>
+<span class="dim">Covers: Jan 1 → Mar 31 2026 (all invoices)</span>
+<span class="dim">────────────────────────────────────────────────</span>
+<span class="label">DR</span>  <span class="account">581000 Marketing</span>         $48,200
+       <span class="dim">grouped by sales area</span>
+<span class="label">CR</span>  <span class="account">215510 Mkt Liability</span>     $48,200
+       <span class="blue">per distributor (partner)</span>
+<span class="dim">────────────────────────────────────────────────</span>
+<span class="label">DR</span>  <span class="account">588000 Sales Rep</span>         $12,800
+<span class="label">CR</span>  <span class="account">215520 Rep Liability</span>     $12,800
+       <span class="blue">per sales rep (partner)</span>
+<span class="dim">────────────────────────────────────────────────</span>
+<span class="dim">... royalties, mgmt fees, freight ...</span>
+</div>
+
+      <div class="callout orange" style="margin-top:12px;">
+        <strong>Date:</strong> The catch-up JE is dated today. If you need monthly splits for cleaner period reporting, reverse this JE and re-run with date filters per month (future enhancement).
+      </div>
+
+      <div class="callout red" style="margin-top:8px;">
+        <strong>Warning:</strong> "Reset Accrual Flags" is for initial setup only. In normal monthly operations, the EOM engine is incremental — it only picks up new, un-accrued invoices.
+
+      </div>
+
+</div>
+</div>
+</div>
+
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">14</div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,25 @@
+id,bom_id/id,name,workcenter_id,time_mode,time_cycle_manual,sequence
+OP_1127_35_STACK,BOM_1127_M_35,Entry Stacking,Stacking,manual,3.5,10
+OP_1127_35_AC,BOM_1127_M_35,Autoclave,Autoclave,manual,75.0,20
+OP_1127_35_DRY,BOM_1127_M_35,Dryer,Dryer,manual,75.0,30
+OP_1127_38_STACK,BOM_1127_M_38,Entry Stacking,Stacking,manual,3.5,10
+OP_1127_38_AC,BOM_1127_M_38,Autoclave,Autoclave,manual,75.0,20
+OP_1127_38_DRY,BOM_1127_M_38,Dryer,Dryer,manual,75.0,30
+OP_1127_41_STACK,BOM_1127_M_41,Entry Stacking,Stacking,manual,3.5,10
+OP_1127_41_AC,BOM_1127_M_41,Autoclave,Autoclave,manual,75.0,20
+OP_1127_41_DRY,BOM_1127_M_41,Dryer,Dryer,manual,75.0,30
+OP_1127_44_STACK,BOM_1127_M_44,Entry Stacking,Stacking,manual,3.5,10
+OP_1127_44_AC,BOM_1127_M_44,Autoclave,Autoclave,manual,75.0,20
+OP_1127_44_DRY,BOM_1127_M_44,Dryer,Dryer,manual,75.0,30
+OP_1127_47_STACK,BOM_1127_M_47,Entry Stacking,Stacking,manual,3.5,10
+OP_1127_47_AC,BOM_1127_M_47,Autoclave,Autoclave,manual,75.0,20
+OP_1127_47_DRY,BOM_1127_M_47,Dryer,Dryer,manual,75.0,30
+OP_1931_35_STACK,BOM_1931_M_35,Entry Stacking,Stacking,manual,4.5,10
+OP_1931_35_AC,BOM_1931_M_35,Autoclave,Autoclave,manual,54.0,20
+OP_1931_35_DRY,BOM_1931_M_35,Dryer,Dryer,manual,54.0,30
+OP_1931_38_STACK,BOM_1931_M_38,Entry Stacking,Stacking,manual,4.5,10
+OP_1931_38_AC,BOM_1931_M_38,Autoclave,Autoclave,manual,54.0,20
+OP_1931_38_DRY,BOM_1931_M_38,Dryer,Dryer,manual,54.0,30
+OP_1931_41_STACK,BOM_1931_M_41,Entry Stacking,Stacking,manual,4.5,10
+OP_1931_41_AC,BOM_1931_M_41,Autoclave,Autoclave,manual,54.0,20
+OP_1931_41_DRY,BOM_1931_M_41,Dryer,Dryer,manual,54.0,30

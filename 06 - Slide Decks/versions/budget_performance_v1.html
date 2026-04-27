@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0">
+<title>Budget &amp; Performance Architecture — Kebony</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    body { background: none; padding: 0; gap: 0; }
+    .slide { box-shadow: none; border-radius: 0; margin: 0;
+             page-break-inside: avoid; page-break-after: always; }
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f5f5f5;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 20px; gap: 30px;
+  }
+
+  .slide {
+    width: 1280px; min-height: 720px; max-height: 720px;
+    background: #fff; border-radius: 4px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    padding: 38px 50px 36px; position: relative;
+    overflow: hidden; page-break-after: always;
+  }
+  .slide::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 5px;
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
+
+  .slide.title-slide {
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: flex-start;
+  }
+  .slide.title-slide::before { height: 8px; }
+  .slide.title-slide h1 { font-size: 36px; line-height: 1.2; margin-bottom: 8px; }
+  .slide.title-slide .subtitle { font-size: 16px; color: #555; margin-bottom: 32px; }
+  .slide.title-slide .meta { font-size: 12px; color: #999; line-height: 1.8; }
+
+  h1 { font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  h2 { font-size: 15px; font-weight: 600; color: #0f3460; margin-bottom: 10px; margin-top: 14px; }
+  h3 { font-size: 12px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  .subtitle { font-size: 12px; color: #888; margin-bottom: 16px; }
+
+  .section-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1.2px; color: #0f3460; margin-bottom: 8px;
+    padding-bottom: 4px; border-bottom: 2px solid #0f3460; display: inline-block;
+  }
+  .section-label.green { color: #2e7d32; border-color: #2e7d32; }
+  .section-label.orange { color: #e65100; border-color: #e65100; }
+  .section-label.red { color: #c62828; border-color: #c62828; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 11px; margin: 6px 0; }
+  th {
+    font-size: 9px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; color: #888; text-align: left;
+    padding: 4px 6px 5px; border-bottom: 2px solid #ddd;
+  }
+  td { padding: 4px 6px; border-bottom: 1px solid #f0f0f0; color: #333; vertical-align: top; }
+
+  .cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  .cols-2.wide-left { grid-template-columns: 1.15fr 0.85fr; }
+  .cols-2.wide-right { grid-template-columns: 0.85fr 1.15fr; }
+  .cols-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; align-items: start; }
+  .cols-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; align-items: start; }
+
+  .callout {
+    background: #fff8e1; border-left: 4px solid #ffa000;
+    padding: 10px 14px; font-size: 11px; line-height: 1.5;
+    margin: 8px 0; border-radius: 0 6px 6px 0;
+  }
+  .callout.blue { background: #e8eaf6; border-color: #3949ab; }
+  .callout.green { background: #e8f5e9; border-color: #2e7d32; }
+  .callout.red { background: #ffebee; border-color: #c62828; }
+
+  .badge {
+    display: inline-block; padding: 2px 10px; border-radius: 12px;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.3px;
+  }
+  .badge.green { background: #e8f5e9; color: #2e7d32; }
+  .badge.blue { background: #e8eaf6; color: #283593; }
+  .badge.orange { background: #fff3e0; color: #e65100; }
+  .badge.red { background: #ffebee; color: #c62828; }
+  .badge.grey { background: #f5f5f5; color: #666; }
+  .badge.navy { background: #1a1a2e; color: #fff; }
+
+  .step-box {
+    background: #fafbfc; border: 1px solid #e0e0e0;
+    border-radius: 8px; padding: 14px 16px; margin: 6px 0;
+  }
+  .step-box h3 { font-size: 12px; margin-bottom: 6px; color: #0f3460; }
+  .step-box p, .step-box li { font-size: 11px; line-height: 1.5; color: #444; }
+  .step-box ul { padding-left: 16px; }
+
+  ul.compact { padding-left: 16px; }
+  ul.compact li { font-size: 11px; line-height: 1.6; color: #444; }
+
+  .stats {
+    display: flex; gap: 20px; margin: 12px 0;
+    background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+    border-radius: 8px; padding: 16px 24px; color: #fff;
+  }
+  .stat { text-align: center; flex: 1; }
+  .stat .value { font-size: 24px; font-weight: 700; }
+  .stat .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8; }
+
+  .flow-diagram {
+    background: #fafbfc; border: 1px solid #e0e0e0;
+    border-radius: 8px; padding: 16px 20px; margin: 8px 0;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 10.5px; line-height: 1.55; color: #333; white-space: pre; overflow-x: auto;
+  }
+  .flow-diagram .label { color: #0f3460; font-weight: 700; }
+  .flow-diagram .highlight { color: #c62828; font-weight: 600; }
+  .flow-diagram .green { color: #2e7d32; font-weight: 600; }
+  .flow-diagram .arrow { color: #999; }
+  .flow-diagram .dim { color: #aaa; }
+
+  .domain-card {
+    background: #fafbfc; border: 1px solid #e0e0e0;
+    border-radius: 8px; padding: 12px 14px; text-align: center;
+  }
+  .domain-card .icon { font-size: 22px; margin-bottom: 4px; }
+  .domain-card .name { font-size: 11px; font-weight: 700; color: #1a1a2e; }
+  .domain-card .desc { font-size: 9px; color: #888; margin-top: 2px; line-height: 1.4; }
+
+  .compare-row { display: flex; gap: 2px; margin: 3px 0; }
+  .compare-label {
+    width: 180px; font-size: 11px; font-weight: 600;
+    color: #1a1a2e; padding: 6px 8px; flex-shrink: 0;
+  }
+  .compare-cell {
+    flex: 1; font-size: 11px; padding: 6px 10px;
+    border-radius: 4px; line-height: 1.4;
+  }
+  .compare-cell.yes { background: #e8f5e9; }
+  .compare-cell.no { background: #ffebee; }
+  .compare-cell.partial { background: #fff3e0; }
+
+  .mock-dashboard {
+    background: #f8f9fa; border: 2px solid #dee2e6; border-radius: 8px;
+    padding: 12px; font-family: 'SF Mono', monospace; font-size: 9px;
+    line-height: 1.5; color: #333;
+  }
+  .mock-dashboard .mock-header {
+    background: #1a1a2e; color: #fff; padding: 6px 10px;
+    border-radius: 4px; font-size: 10px; font-weight: 700;
+    margin: -12px -12px 10px; letter-spacing: 0.5px;
+  }
+  .mock-section {
+    border: 1px solid #e0e0e0; border-radius: 4px;
+    padding: 6px 8px; margin: 4px 0; background: #fff;
+  }
+  .mock-section .mock-title {
+    font-size: 8px; font-weight: 700; text-transform: uppercase;
+    color: #0f3460; letter-spacing: 0.5px; margin-bottom: 4px;
+  }
+  .slide-number { font-size: 10px; color: #bbb; }
+  /* ── Logo ── */
+  .logo-title {
+    position: absolute; top: 30px; right: 40px;
+    height: 80px; opacity: 0.9;
+  }
+  .slide-footer {
+    position: absolute; bottom: 10px; left: 20px; right: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .prepared-by {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .prepared-by span {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+  .prepared-by img {
+    height: 22px; opacity: 0.7;
+  }
+  .footer-project {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 1 — Title -->
+
+<!-- ════════════════════════════════════════════════════════════ -->
+
+<div class="slide title-slide">
+
+  <img src="VVF-logo.png" alt="VVF" class="logo-title">
+  <h1>Budget &amp; Performance</h1>
+  <div class="subtitle">Custom Budget Capture, Forecast &amp; CEO Dashboard for Odoo</div>
+  <div class="meta">
+    Kebony — All Entities (INC, BNV)<br>
+    April 2026 — Architecture Proposal<br>
+    <span style="color:#0f3460; font-weight:600;">Company-sensitive — each entity maintains its own BP</span>
+
+  </div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 2 — Why Custom -->
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">1</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Why We Need a Custom Module</h1>
+  <div class="subtitle">Odoo 19 native budgets cover only GL-level monetary amounts</div>
+
+  <div style="margin-top:4px;">
+    <div class="compare-row" style="margin-bottom:6px;">
+      <div class="compare-label" style="color:#888; font-size:9px; text-transform:uppercase;">CEO Requirement</div>
+      <div class="compare-cell" style="font-weight:700; font-size:9px; text-align:center; text-transform:uppercase;">Native Odoo</div>
+      <div class="compare-cell" style="font-weight:700; font-size:9px; text-align:center; text-transform:uppercase;">Our Module</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-label">Sales budget by country / area</div>
+      <div class="compare-cell no">No — GL only</div>
+      <div class="compare-cell yes">Per country + sales area (US)</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-label">Volume targets (m3, LF, LM)</div>
+      <div class="compare-cell no">No — monetary only</div>
+      <div class="compare-cell yes">All units per line</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-label">GM1 margin target</div>
+      <div class="compare-cell no">No margin concept</div>
+      <div class="compare-cell yes">GM1 % + COGS budget</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-label">Production output (m3 + dryer loads)</div>
+      <div class="compare-cell no">Not in scope</div>
+      <div class="compare-cell yes">Per chain (Character / Clear)</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-label">Cash flow (indirect method)</div>
+      <div class="compare-cell no">No cash flow budget</div>
+      <div class="compare-cell yes">EBITDA → WCR → FCF → Cash</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-label">Stock level targets</div>
+      <div class="compare-cell no">Not in scope</div>
+      <div class="compare-cell yes">m3 + Days by location</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-label">EBITDA budget</div>
+      <div class="compare-cell no">No subtotals</div>
+      <div class="compare-cell yes">Computed from waterfall</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-label">OTIF / DSO KPIs</div>
+      <div class="compare-cell no">No KPI framework</div>
+      <div class="compare-cell yes">Budgetable KPIs</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-label">FTE headcount per BU</div>
+      <div class="compare-cell no">No headcount planning</div>
+      <div class="compare-cell yes">FTE + cost per BU</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-label">Last year reference</div>
+      <div class="compare-cell partial">P&amp;L only (actuals)</div>
+      <div class="compare-cell yes">All domains (from 2027)</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-label">Reforecast</div>
+      <div class="compare-cell partial">One-time overwrite</div>
+      <div class="compare-cell yes">RF1, RF2… versioned</div>
+    </div>
+
+  </div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 3 — 8 Domains -->
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">2</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>8 Budget Domains</h1>
+  <div class="subtitle">Each domain has its own model — simple, focused, maintainable</div>
+
+  <div class="cols-4" style="margin-top:12px;">
+    <div class="domain-card" style="border-color:#2e7d32;">
+      <div class="icon">💰</div>
+      <div class="name">1. Sales</div>
+      <div class="desc">Revenue, Volume (m3/LF/LM),<br>GM1 target per country<br>+ sales area (US)</div>
+    </div>
+    <div class="domain-card">
+      <div class="icon">📈</div>
+      <div class="name">2. Expenses (GL)</div>
+      <div class="desc">Per GL account +<br>cost center, monthly.<br>Extends existing Cost Version</div>
+    </div>
+    <div class="domain-card" style="border-color:#0f3460;">
+      <div class="icon">⚙</div>
+      <div class="name">3. Production</div>
+      <div class="desc">Output m3 + dryer loads<br>per month, split<br>Character / Clear</div>
+    </div>
+    <div class="domain-card">
+      <div class="icon">📦</div>
+      <div class="name">4. Stock Targets</div>
+      <div class="desc">Target m3 + Days<br>per location, per category<br>(RM / Semi / FG)</div>
+    </div>
+  </div>
+
+  <div class="cols-4" style="margin-top:12px;">
+    <div class="domain-card" style="border-color:#2e7d32;">
+      <div class="icon">💵</div>
+      <div class="name">5. Cash Flow</div>
+      <div class="desc">EBITDA → ΔWCR → Capex<br>→ FCF → Cash Position<br>Indirect method</div>
+    </div>
+    <div class="domain-card">
+      <div class="icon">👥</div>
+      <div class="name">6. FTE</div>
+      <div class="desc">Headcount + cost<br>per Business Unit<br>per month</div>
+    </div>
+    <div class="domain-card">
+      <div class="icon">🎯</div>
+      <div class="name">7. KPIs</div>
+      <div class="desc">OTIF %, DSO (US),<br>Quality claims<br>Budgetable targets</div>
+    </div>
+    <div class="domain-card" style="border-color:#e65100;">
+      <div class="icon">📋</div>
+      <div class="name">8. Pipeline</div>
+      <div class="desc">Order backlog (value + m3)<br>Top 10 customers<br><em>Actuals only — no BP</em>
+</div>
+    </div>
+  </div>
+
+  <div class="callout blue" style="margin-top:16px;">
+    <strong>All domains are company-sensitive.</strong> Each entity (INC, BNV) maintains its own budget versions. Dashboard can show per-entity or consolidated.
+
+  </div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 4 — Sales Budget Detail -->
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">3</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Domain 1 — Sales Budget</h1>
+  <div class="subtitle">Revenue + volume + GM1 targets per country, per month</div>
+
+  <div class="cols-2" style="margin-top:4px;">
+    <div>
+      <h2>Budget entry dimensions</h2>
+      <table>
+        <tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+        <tr>
+<td><strong>Company</strong></td>
+<td>Kebony INC or BNV</td>
+</tr>
+        <tr>
+<td><strong>Country</strong></td>
+<td>Destination country</td>
+</tr>
+        <tr>
+<td><strong>Sales Area</strong></td>
+<td>US only (optional). BP2026: single catch-all. BP2027+: per area</td>
+</tr>
+        <tr>
+<td><strong>Period</strong></td>
+<td>Calendar month</td>
+</tr>
+        <tr>
+<td><strong>Revenue</strong></td>
+<td>Target in local currency (USD / EUR)</td>
+</tr>
+        <tr>
+<td><strong>Volume m3</strong></td>
+<td>Universal physical volume</td>
+</tr>
+        <tr>
+<td><strong>Volume LF / LM</strong></td>
+<td>Linear feet (US) or meters (BE)</td>
+</tr>
+        <tr>
+<td><strong>COGS</strong></td>
+<td>Expected cost of goods sold</td>
+</tr>
+        <tr>
+<td><strong>GM1 %</strong></td>
+<td>Gross margin target percentage</td>
+</tr>
+      </table>
+
+      <div class="callout" style="margin-top:10px;">
+        <strong>US Sales Areas:</strong> model supports per-area budgets. For BP 2026, all US volume maps to a single "US National" area. Team can start declining per area for BP 2027.
+      </div>
+    </div>
+    <div>
+      <h2>Actuals — from existing data</h2>
+      <div class="step-box">
+        <h3>No double entry needed</h3>
+        <ul class="compact">
+          <li>
+<strong>Revenue</strong> ← posted invoices by country/month</li>
+          <li>
+<strong>Volume m3</strong> ← <code>x_kebony_total_volume_m3</code> on invoice</li>
+          <li>
+<strong>COGS</strong> ← <code>x_studio_cogs</code> on invoice header</li>
+          <li>
+<strong>GM1</strong> = Revenue - COGS (computed)</li>
+          <li>
+<strong>GM1 %</strong> = GM1 / Revenue (computed)</li>
+        </ul>
+      </div>
+
+      <h2>Dashboard preview</h2>
+      <div class="mock-dashboard">
+        <div class="mock-section">
+          <div class="mock-title">Sales — YTD</div>
+<span style="font-size:8px;">Country   BP Rev    Act Rev   Var%   BP m3  Act m3  GM1%
+USA       12,500    11,200   -10%   4,200  3,800   32%
+Belgium    3,800     4,100   +8%    1,100  1,250   28%
+France     1,200     1,050   -13%     380    320   25%
+TOTAL     17,500    16,350   -7%    5,680  5,370   30%</span>
+        </div>
+
+      </div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 5 — P&L + EBITDA + Cash Flow -->
+
+<!-- ════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">4</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>P&amp;L Waterfall, EBITDA &amp; Cash Flow</h1>
+  <div class="subtitle">Domains 2 + 5 — expense budget feeds EBITDA, EBITDA feeds cash flow</div>
+
+  <div class="cols-2" style="margin-top:4px;">
+    <div>
+      <h2>P&amp;L Waterfall (computed)</h2>
+      <div class="mock-dashboard">
+        <div class="mock-section">
+          <div class="mock-title">Profitability — YTD</div>
+<span style="font-size:8px;">               BP       Actual    Var%     LY
+Revenue      17,500   16,350    -7%     (n/a)
+COGS        (12,250) (11,200)   +9%     (n/a)
+<strong>GM1           5,250    5,150    -2%     (n/a)</strong>
+GM1 %          30%      31%
+SG&amp;A        (2,100)  (1,950)   +7%
+Marketing      (800)    (720)  +10%
+<strong>EBITDA        2,350    2,480    +6%     (n/a)</strong>
+EBITDA %       13%      15%</span>
+        </div>
+      </div>
+
+      <div class="callout green" style="margin-top:8px;">
+        <strong>EBITDA is computed</strong> from Sales (Domain 1) + Expenses (Domain 2). Not entered manually. GL mapping classifies each account into the waterfall.
+      </div>
+
+      <h2>Expense budget (Domain 2)</h2>
+      <div class="step-box">
+        <p>Extends existing <strong>Cost Version BU Lines</strong> with monthly periods + company. Covers all GL accounts: manufacturing, SG&amp;A, marketing, logistics, admin.</p>
+      </div>
+    </div>
+    <div>
+      <h2>Cash Flow — Indirect Method (Domain 5)</h2>
+      <div class="mock-dashboard">
+        <div class="mock-section">
+          <div class="mock-title">Cash Flow — Monthly</div>
+<span style="font-size:8px;">                      BP       Actual
+<strong>EBITDA</strong>                 390       410
+
+Working Capital Changes:
+  Δ Inventory           (50)      (80)
+  Δ Receivables (AR)    (30)      (15)
+  Δ Payables (AP)       +20       +35
+  Δ Other WCR           (10)       (5)
+<strong>Operating Cash Flow</strong>    320       345
+
+  Capex                 (100)     (120)
+  Other investing          0         0
+<strong>Free Cash Flow</strong>         220       225
+
+  Interest paid          (15)      (12)
+  Other financial          0         0
+<strong>Net Cash Movement</strong>      205       213
+
+Opening Cash           1,200     1,200
+<strong>Closing Cash</strong>           1,405     1,413</span>
+
+      <div class="callout blue" style="margin-top:8px;">
+        <strong>Actuals auto-computed</strong> from balance sheet GL accounts at month-end. Inventory from stock valuation, AR/AP from accounting, cash from bank reconciliation.
+
+      </div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 6 — Production + Stock + FTE -->
+
+<!-- ════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">5</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Production, Stock &amp; Headcount</h1>
+  <div class="subtitle">Domains 3, 4 &amp; 6 — operational budget dimensions</div>
+
+  <div class="cols-3" style="margin-top:4px;">
+    <div>
+      <div class="section-label">Domain 3 — Production</div>
+      <div class="mock-dashboard" style="margin-top:6px;">
+        <div class="mock-section">
+          <div class="mock-title">Production — Monthly</div>
+<span style="font-size:8px;">             BP    Act   Var%
+Char. m3    850   780   -8%
+Char. DL     12    11   -8%
+Clear m3    620   650   +5%
+Clear DL      8     9  +13%
+TOTAL m3  1,470 1,430   -3%
+TOTAL DL     20    20    0%</span>
+        </div>
+      </div>
+      <div class="step-box" style="margin-top:8px;">
+        <h3>Budget entry</h3>
+        <ul class="compact">
+          <li>m3 output per chain per month</li>
+          <li>Dryer loads per chain per month</li>
+          <li>Split: Character (Scots Pine) vs Clear (Radiata)</li>
+        </ul>
+      </div>
+      <div class="step-box">
+        <h3>Actuals from</h3>
+        <ul class="compact">
+          <li>Completed MOs (<code>mrp.production</code>)</li>
+          <li>Dryer load count (<code>kebony.dryer.load</code>)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Domain 4 — Stock Targets</div>
+      <div class="mock-dashboard" style="margin-top:6px;">
+        <div class="mock-section">
+          <div class="mock-title">Inventory — End of Month</div>
+<span style="font-size:8px;">Loc   Cat   Tgt m3  Act m3  Tgt Days  Act
+US    RM      200     180      30      27
+US    Semi    150     160      20      22
+US    FG      400     380      45      42
+BE    RM       80      75      25      23
+BE    FG      250     270      50      54</span>
+        </div>
+      </div>
+      <div class="step-box" style="margin-top:8px;">
+        <h3>Budget entry</h3>
+        <ul class="compact">
+          <li>Target m3 per location per category</li>
+          <li>Target days of stock (DOS)</li>
+          <li>Categories: RM, Semi-Finished, FG</li>
+        </ul>
+      </div>
+      <div class="step-box">
+        <h3>Actuals from</h3>
+        <ul class="compact">
+          <li>
+<code>stock.quant</code> by location</li>
+          <li>DOS = stock / trailing 90d consumption</li>
+        </ul>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Domain 6 — FTE Headcount</div>
+      <div class="mock-dashboard" style="margin-top:6px;">
+        <div class="mock-section">
+          <div class="mock-title">People — Current Month</div>
+<span style="font-size:8px;">BU           BP FTE  Act FTE  BP Cost
+Sales           12      11    180k
+Operations      35      34    420k
+Admin            8       8     96k
+Leadership       4       4    120k
+TOTAL           59      57    816k</span>
+        </div>
+      </div>
+      <div class="step-box" style="margin-top:8px;">
+        <h3>Budget entry</h3>
+        <ul class="compact">
+          <li>FTE count per BU per month</li>
+          <li>Total personnel cost per BU</li>
+          <li>Supports 0.5 for part-time</li>
+        </ul>
+      </div>
+      <div class="step-box">
+        <h3>Actuals from</h3>
+        <ul class="compact">
+          <li>HR module (if active) or manual</li>
+          <li>Payroll GL totals by cost center</li>
+        </ul>
+      </div>
+
+    </div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 7 — KPIs + Pipeline -->
+
+<!-- ════════════════════════════════════════════════════════════ -->
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">6</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>KPIs &amp; Order Pipeline</h1>
+  <div class="subtitle">Domains 7 &amp; 8 — operational excellence + commercial visibility</div>
+
+  <div class="cols-2" style="margin-top:4px;">
+    <div>
+      <div class="section-label">Domain 7 — Operational KPIs</div>
+      <table style="margin-top:8px;">
+        <tr>
+<th>KPI</th>
+<th>Budgetable?</th>
+<th>Actual Source</th>
+<th>Notes</th>
+</tr>
+        <tr>
+          <td><strong>OTIF %</strong></td>
+          <td><span class="badge green">YES</span></td>
+          <td>
+<code>stock.picking</code>: promised vs done date</td>
+          <td>On-time in-full delivery</td>
+        </tr>
+        <tr>
+          <td><strong>DSO</strong></td>
+          <td><span class="badge green">YES</span></td>
+          <td>AR balance / (revenue / 90)</td>
+          <td>US-sensitive. BE has 90% factoring</td>
+        </tr>
+        <tr>
+          <td><strong>Claim Rate</strong></td>
+          <td><span class="badge grey">FUTURE</span></td>
+          <td>Claims / shipments</td>
+          <td>When quality module active</td>
+        </tr>
+        <tr>
+          <td><strong>Arch. Projects</strong></td>
+          <td><span class="badge grey">FUTURE</span></td>
+          <td>
+<code>crm.lead</code> count by stage</td>
+          <td>When CRM is implemented</td>
+        </tr>
+      </table>
+
+      <div class="mock-dashboard" style="margin-top:12px;">
+        <div class="mock-section">
+          <div class="mock-title">KPIs — YTD</div>
+<span style="font-size:8px;">             Target   Actual    LY
+OTIF %         95%      92%   (n/a)
+DSO (US)       45d      52d   (n/a)
+DSO (BE)       30d      28d   (n/a)</span>
+        </div>
+      </div>
+
+    <div>
+      <div class="section-label orange">Domain 8 — Pipeline (Actuals Only)</div>
+
+      <div class="step-box" style="margin-top:8px;">
+        <h3>Order Backlog</h3>
+        <p>Confirmed SO not yet fully shipped. No budget — actuals only, shown as trend.</p>
+        <table style="margin-top:6px;">
+          <tr>
+<th>Measure</th>
+<th>Source</th>
+</tr>
+          <tr>
+<td>Backlog value</td>
+<td>SO lines: remaining qty × price</td>
+</tr>
+          <tr>
+<td>Backlog m3</td>
+<td>Remaining qty × volume factor</td>
+</tr>
+          <tr>
+<td>Open orders count</td>
+<td>Confirmed SO count</td>
+</tr>
+        </table>
+      </div>
+
+      <div class="step-box" style="margin-top:8px;">
+        <h3>Top 10 Customers</h3>
+        <p>Revenue + volume YTD, ranked. No BP per customer for now — model supports it if they want it later.</p>
+        <table style="margin-top:6px;">
+          <tr>
+<th>Measure</th>
+<th>Source</th>
+</tr>
+          <tr>
+<td>Revenue YTD</td>
+<td>Posted invoices by partner, TOP 10</td>
+</tr>
+          <tr>
+<td>Volume YTD (m3)</td>
+<td>Same, volume metric</td>
+</tr>
+          <tr>
+<td>vs LY</td>
+<td>Prior year comparison (from 2027)</td>
+</tr>
+        </table>
+      </div>
+
+      <div class="callout" style="margin-top:10px;">
+        <strong>CRM pipeline</strong> (architectural projects in pipe, pipeline value) will be added when the CRM module is implemented. The KPI model is ready to capture it.
+
+      </div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 8 — Version & Workflow -->
+
+<!-- ════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">7</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Budget Versions &amp; Reforecast</h1>
+  <div class="subtitle">Each company owns its versions — BP, RF1, RF2…</div>
+
+  <div class="cols-2" style="margin-top:4px;">
+    <div>
+      <h2>Version model</h2>
+      <table>
+        <tr>
+<th>Field</th>
+<th>Example</th>
+</tr>
+        <tr>
+<td><strong>Name</strong></td>
+<td>BP 2026 — Kebony INC</td>
+</tr>
+        <tr>
+<td><strong>Fiscal year</strong></td>
+<td>2026</td>
+</tr>
+        <tr>
+<td><strong>Type</strong></td>
+<td>Budget or Reforecast</td>
+</tr>
+        <tr>
+<td><strong>Company</strong></td>
+<td>Kebony INC</td>
+</tr>
+        <tr>
+<td><strong>State</strong></td>
+<td>Draft → Approved → Locked</td>
+</tr>
+      </table>
+
+      <h2>Lifecycle</h2>
+      <div class="flow-diagram">
+<span class="label">Draft</span> <span class="arrow">──►</span> <span class="green">Approved</span> <span class="arrow">──►</span> <span class="highlight">Locked</span>
+                  <span class="arrow">│</span>
+                  <span class="arrow">└──►</span> <span class="dim">Create RF1 (copy, modify, approve)</span>
+                        <span class="arrow">└──►</span> <span class="dim">Create RF2 …</span>
+</div>
+
+      <h2>Dashboard shows</h2>
+      <div class="step-box">
+        <ul class="compact">
+          <li>
+<strong>BP</strong> — original annual budget (locked)</li>
+          <li>
+<strong>RF</strong> — latest reforecast (if any)</li>
+          <li>
+<strong>Actual</strong> — computed from Odoo data</li>
+          <li>
+<strong>LY</strong> — prior year actuals (from 2027)</li>
+          <li>
+<strong>Variance %</strong> — actual vs BP (or RF)</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <h2>Data entry workflow</h2>
+      <div class="step-box">
+        <h3>Annual Budget (BP)</h3>
+        <ol class="compact" style="padding-left:16px;">
+          <li>Finance creates version for each entity</li>
+          <li>Sales: revenue + volume + GM1 per country per month</li>
+          <li>Production: m3 + dryer loads per chain per month</li>
+          <li>Expenses: amounts per GL + cost center per month</li>
+          <li>Cash flow: WCR assumptions, capex, financial costs</li>
+          <li>Stock targets: m3 + days per location</li>
+          <li>FTE: headcount per BU</li>
+          <li>KPIs: OTIF target, DSO target</li>
+          <li>Approve and lock</li>
+        </ol>
+      </div>
+
+      <div class="step-box" style="margin-top:8px;">
+        <h3>Excel Import</h3>
+        <p>Template Excel per domain. Import wizard validates and creates lines. Avoids tedious manual entry.</p>
+      </div>
+
+      <div class="callout green" style="margin-top:8px;">
+        <strong>Actuals are never entered</strong> — they are computed live from Odoo's accounting, inventory, manufacturing, and sales data.
+
+      </div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 9 — CEO Dashboard Mock -->
+
+<!-- ════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">8</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>CEO Dashboard — Full Layout</h1>
+  <div class="subtitle">Built as an Odoo Spreadsheet with live PIVOT connections — filterable by entity, period, version</div>
+
+  <div class="cols-2" style="margin-top:4px; gap:12px;">
+    <div>
+      <div class="mock-dashboard">
+        <div class="mock-header">KEBONY — CEO DASHBOARD    FY 2026   |   Kebony INC (US)</div>
+
+        <div class="mock-section">
+          <div class="mock-title">Sales</div>
+<span style="font-size:8px;">Country   BP Rev   Act Rev  Var%  BP m3  Act m3  GM1  GM1%
+USA       12,500   11,200  -10%  4,200  3,800   32%
+Canada     1,200    1,100   -8%    400    370   29%
+TOTAL     13,700   12,300  -10%  4,600  4,170   31%</span>
+        </div>
+
+        <div class="mock-section">
+          <div class="mock-title">P&amp;L Waterfall</div>
+<span style="font-size:8px;">            BP      Actual   Var%    LY
+Revenue    13,700   12,300   -10%   (n/a)
+COGS       (9,590)  (8,487)  +11%
+GM1         4,110    3,813    -7%
+GM1 %         30%      31%
+OpEx       (2,100)  (1,900)   +10%
+EBITDA      2,010    1,913    -5%
+EBITDA %      15%      16%</span>
+        </div>
+
+        <div class="mock-section">
+          <div class="mock-title">Cash Flow</div>
+<span style="font-size:8px;">                   BP      Actual
+EBITDA             2,010    1,913
+Δ WCR               (90)    (110)
+Oper. CF           1,920    1,803
+Capex               (400)    (350)
+FCF                1,520    1,453
+Cash Position      3,200    3,133</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="mock-dashboard" style="margin-top:0;">
+        <div class="mock-header" style="background:#0f3460;"> </div>
+
+        <div class="mock-section">
+          <div class="mock-title">Production</div>
+<span style="font-size:8px;">            BP     Act    Var%
+Char. m3   5,100  4,700   -8%
+Char. DL      72     65   -10%
+Clear m3   3,700  3,900   +5%
+Clear DL      48     52   +8%
+TOTAL m3   8,800  8,600   -2%
+TOTAL DL     120    117   -3%</span>
+        </div>
+
+        <div class="mock-section">
+          <div class="mock-title">Inventory</div>
+<span style="font-size:8px;">Loc  Cat   Tgt m3  Act m3  Days
+US   RM      200     180    27
+US   FG      400     380    42
+BE   RM       80      75    23
+BE   FG      250     270    54</span>
+        </div>
+
+        <div style="display:flex; gap:8px;">
+          <div class="mock-section" style="flex:1;">
+            <div class="mock-title">KPIs</div>
+<span style="font-size:8px;">        Tgt   Act
+OTIF    95%   92%
+DSO     45d   52d</span>
+          </div>
+          <div class="mock-section" style="flex:1;">
+            <div class="mock-title">People</div>
+<span style="font-size:8px;">BU       BP  Act
+Sales    12   11
+Ops      35   34
+Admin     8    8
+TOTAL    55   53</span>
+          </div>
+          <div class="mock-section" style="flex:1;">
+            <div class="mock-title">Backlog</div>
+<span style="font-size:8px;">Orders     124
+Value    2,450k
+Volume   820 m3</span>
+          </div>
+        </div>
+
+      <div class="callout" style="margin-top:8px; font-size:10px;">
+        <strong>LY = Last Year.</strong> Columns present from day one, populated from Jan 2027 when a full year of Odoo data exists. No manual LY entry.
+
+      </div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 10 — Implementation Plan -->
+
+<!-- ════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">9</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Implementation Plan</h1>
+  <div class="subtitle">4 weeks development + validation post go-live</div>
+
+  <div class="cols-4" style="margin-top:8px;">
+    <div>
+      <div class="section-label">Week 1 — Models + Forms</div>
+      <p style="font-size:10px; color:#888; margin-bottom:6px;">Development</p>
+      <div class="step-box">
+        <ul class="compact">
+          <li>All 8 domain models</li>
+          <li>Form &amp; list views</li>
+          <li>Excel import wizard</li>
+          <li>Security groups + menus</li>
+          <li>Extend cost version BU lines</li>
+        </ul>
+        <p style="margin-top:6px; font-size:10px; color:#888;">Straightforward Odoo model work — Float fields + foreign keys.</p>
+      </div>
+    </div>
+    <div>
+      <div class="section-label orange">Weeks 2–3 — Controller Input</div>
+      <p style="font-size:10px; color:#888; margin-bottom:6px;">Finance / Controller</p>
+      <div class="step-box">
+        <ul class="compact">
+          <li>GL mapping for EBITDA waterfall</li>
+          <li>GM1 definition confirmation</li>
+          <li>Stock category rules</li>
+          <li>Cash flow opening balances</li>
+          <li>
+<strong>Actual BP numbers</strong> (Excel)</li>
+        </ul>
+        <p style="margin-top:6px; font-size:10px; color:#888;">Dev does NOT block — models are ready, waiting for data.</p>
+      </div>
+    </div>
+    <div>
+      <div class="section-label">Week 4 — Actuals + Dashboard</div>
+      <p style="font-size:10px; color:#888; margin-bottom:6px;">Development</p>
+      <div class="step-box">
+        <ul class="compact">
+          <li>SQL views for all actuals</li>
+          <li>EBITDA GL mapping</li>
+          <li>KPI actuals (OTIF, DSO)</li>
+          <li>Backlog + Top 10 views</li>
+          <li>BP vs Actual PIVOT views</li>
+          <li>Odoo Spreadsheet dashboard</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="section-label green">Post Go-Live — Validation</div>
+      <p style="font-size:10px; color:#888; margin-bottom:6px;">Joint</p>
+      <div class="step-box">
+        <ul class="compact">
+          <li>US-only initially</li>
+          <li>Need real data flowing</li>
+          <li>Dashboard review with CEO</li>
+          <li>Belgium onboarded later</li>
+        </ul>
+        <p style="margin-top:6px; font-size:10px; color:#888;">Validation requires live transactional data — cannot happen before go-live.</p>
+      </div>
+
+      <div style="margin-top:12px;">
+        <div class="section-label" style="color:#888; border-color:#888;">Future — CRM</div>
+        <p style="font-size:10px; color:#888; margin-top:4px;">Arch. projects in pipe + pipeline value. When CRM is implemented.</p>
+      </div>
+
+  <div class="callout blue" style="margin-top:16px;">
+    <strong>Total: ~4 weeks development</strong> + validation post go-live. Key dependency: controller providing GL mapping and BP numbers (weeks 2-3). Dev work continues in parallel.
+
+  </div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 11 — Open Questions -->
+
+<!-- ════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">10</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Open Questions</h1>
+  <div class="subtitle">Input needed from Finance &amp; Operations before implementation</div>
+
+  <div class="cols-2" style="margin-top:8px;">
+    <div>
+      <div class="step-box">
+        <h3>1. GM1 Definition</h3>
+        <p>Is GM1 = Revenue - COGS only?<br>Or does it include accruals (marketing, royalties, commissions)?</p>
+      </div>
+      <div class="step-box">
+        <h3>2. Stock Categories</h3>
+        <p>Three categories: RM, Semi-Finished, FG.<br>Do we need a 4th for <strong>consignment</strong> stock (Biewer)?</p>
+      </div>
+      <div class="step-box">
+        <h3>3. Budget Approval</h3>
+        <p>Who approves budget versions?<br>Single approver or multi-level workflow?</p>
+      </div>
+      <div class="step-box">
+        <h3>4. Currency Scope</h3>
+        <p>Belgium budgets in EUR only?<br>Or also NOK for the Norway entity?</p>
+      </div>
+    </div>
+    <div>
+      <div class="step-box">
+        <h3>5. EBITDA GL Mapping</h3>
+        <p>Which GL accounts go into D&amp;A add-back?<br>Need the account list from finance.</p>
+      </div>
+      <div class="step-box">
+        <h3>6. DSO Scope</h3>
+        <p>US only or also Belgium?<br>BE has 90% factoring + prepayment — less sensitive but still trackable.</p>
+      </div>
+      <div class="step-box">
+        <h3>7. Production Budget Owner</h3>
+        <p>Operations team or finance enters production targets?</p>
+      </div>
+      <div class="step-box">
+        <h3>8. Cash Flow Opening Balance</h3>
+        <p>Manual entry for month 1 of each fiscal year?<br>Or pull from Odoo's bank reconciliation?</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">11</div>
+  </div>
+</div>
+
+div class="prepared-by"&gt;<span>Prepared by</span><img src="VVF-logo.png" alt="VVF">
+
+</body>
+</html>

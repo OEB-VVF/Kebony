@@ -78,10 +78,17 @@ Abstract model mixed into: `stock.quant`, `stock.lot`, `stock.move`,
 - Then normalises to metres based on UoM detection (meter/foot)
 - Odoo 19 merged packaging and UoM, so line_uom may be a "Pack of 50"
 
-**`_kebony_boards_from_linear(linear_m, length_per_board_m)`**
-- `raw = linear_m / length_per_board_m`
-- Round-up threshold: `ROUND_UP_THRESHOLD = 0.95`
-- If fractional part > 0.95 -> round up, else truncate
+**`_kebony_boards_from_raw(total_qty, length_per_board)`**
+- Low-level board count; both args in the **same** unit (feet or metres), method is unit-agnostic.
+- `raw = total_qty / length_per_board`
+- Snap tolerance: `BOARD_SNAP_TOLERANCE = 0.2`
+- Rule: if `|raw - round(raw)| <= 0.2` → snap to nearest integer, otherwise truncate.
+  - Absorbs bidirectional float/UoM drift (e.g. `89.97 → 90`, `90.03 → 90`)
+  - Stays well below a genuine partial board (0.5+), so `10.5 → 10` (not 11).
+- Replaces the older `ROUND_UP_THRESHOLD = 0.95` rule (removed after a rounding bug in UoM conversion produced systematic under-counts).
+- `_kebony_boards_from_linear` kept as an alias for backwards compatibility.
+
+Implementation: `kebony_bol_report/models/kebony_metrics_layer.py:164-192`
 
 **`_kebony_volume_m3(product, linear_m)`**
 - `volume = linear_m x x_studio_volume_m3`

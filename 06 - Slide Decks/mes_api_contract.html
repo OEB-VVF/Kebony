@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MES ↔ Odoo API Contract</title>
+<style>
+  @page { size: A4; margin: 18mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 11pt;
+    line-height: 1.55;
+    color: #1a1a1a;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 30px 40px;
+    background: #fafaf7;
+  }
+  h1, h2, h3, h4 { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #0f2a4f; font-weight: 600; }
+  h1 { font-size: 24pt; margin: 0 0 4px 0; letter-spacing: -0.5px; }
+  .subtitle { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 11pt; color: #5a6b80; margin-bottom: 6px; }
+  .meta { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9pt; color: #7a8698; border-bottom: 1px solid #c8d1df; padding-bottom: 14px; margin-bottom: 26px; }
+  h2 { font-size: 16pt; margin: 36px 0 10px 0; border-bottom: 2px solid #0f2a4f; padding-bottom: 4px; }
+  h3 { font-size: 12.5pt; margin: 22px 0 8px 0; color: #2d4a73; }
+  h4 { font-size: 11pt; margin: 16px 0 6px 0; color: #2d4a73; }
+  p { margin: 8px 0; }
+  ul, ol { margin: 6px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9.5pt; }
+  th { background: #0f2a4f; color: #fff; text-align: left; padding: 8px 10px; font-weight: 600; }
+  td { border-bottom: 1px solid #dbe2ec; padding: 7px 10px; vertical-align: top; }
+  tr:nth-child(even) td { background: #f2f4f9; }
+  code { font-family: "SF Mono", Menlo, monospace; font-size: 9pt; background: #eef1f7; padding: 1px 5px; border-radius: 2px; }
+  pre { font-family: "SF Mono", Menlo, monospace; font-size: 9pt; background: #0f2a4f; color: #e8eef6; padding: 14px 16px; border-radius: 3px; overflow-x: auto; line-height: 1.45; }
+  pre code { background: transparent; color: inherit; padding: 0; }
+  .callout { background: #eaf2fb; border-left: 4px solid #2563a8; padding: 12px 16px; margin: 14px 0; font-style: italic; }
+  .decided { background: #e7f3ec; border-left: 4px solid #2f855a; padding: 12px 16px; margin: 14px 0; }
+  .open { background: #fff4e5; border-left: 4px solid #d97706; padding: 12px 16px; margin: 14px 0; }
+  .warn { background: #fde4e4; border-left: 4px solid #b00020; padding: 12px 16px; margin: 14px 0; }
+  .pill { display: inline-block; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 8.5pt; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+  .pill-green { background: #d7efe5; color: #065f46; }
+  .pill-amber { background: #fef0d4; color: #b45309; }
+  .pill-blue  { background: #e0ecf8; color: #1a4a86; }
+  .pill-gray  { background: #e5e9f0; color: #3b4657; }
+  .method-get  { background: #e0ecf8; color: #1a4a86; padding: 3px 10px; font-weight: 700; font-family: "SF Mono", Menlo, monospace; font-size: 9pt; border-radius: 3px; }
+  .method-post { background: #d7efe5; color: #065f46; padding: 3px 10px; font-weight: 700; font-family: "SF Mono", Menlo, monospace; font-size: 9pt; border-radius: 3px; }
+  .endpoint {
+    background: #fff; border: 1px solid #dbe2ec; border-left: 5px solid #0f2a4f;
+    padding: 16px 20px; margin: 18px 0; border-radius: 3px;
+  }
+  .endpoint h3 { margin-top: 0; color: #0f2a4f; font-family: "SF Mono", Menlo, monospace; font-size: 12pt; }
+  .toc { background: #fff; border: 1px solid #dbe2ec; padding: 14px 20px; margin: 16px 0 28px 0; border-radius: 3px; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 10pt; }
+  .toc ol { margin: 6px 0; padding-left: 20px; }
+  .toc li { margin: 2px 0; }
+  .toc a { color: #2d4a73; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .flow-section { margin: 20px 0; padding: 14px 18px; background: #fff; border: 1px solid #dbe2ec; border-left: 5px solid #0f2a4f; border-radius: 3px; font-family: "SF Mono", Menlo, monospace; font-size: 9.5pt; line-height: 1.5; }
+  .footer { margin-top: 50px; padding-top: 14px; border-top: 1px solid #c8d1df; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9pt; color: #7a8698; }
+  @media print { body { background: #fff; padding: 0; } .endpoint, .callout, .decided, .open, .warn, pre { break-inside: avoid; } table { break-inside: avoid; } }
+</style>
+</head>
+<body>
+
+<h1>MES ↔ Odoo API Contract</h1>
+<div class="subtitle">Middleware integration spec — reference for SIS middleware team</div>
+<div class="meta">
+  Version 1.0 · 2026-04-23 · Olivier Eberhard / VVF Consulting · Source-of-truth spec — <em>not</em> an implementation · For Rinaldo + SIS middleware team · Review before build
+</div>
+
+<div class="toc">
+  <strong>Contents</strong>
+  <ol>
+    <li><a href="#purpose">Purpose + scope</a></li>
+    <li><a href="#arch">Architecture</a></li>
+    <li><a href="#oos">Out of scope</a></li>
+    <li><a href="#conventions">Conventions — auth, format, versioning</a></li>
+    <li><a href="#cursor">Cursor-based polling model</a></li>
+    <li><a href="#endpoints-out">Endpoints — Odoo → middleware (pulled)</a></li>
+    <li><a href="#endpoints-in">Endpoints — middleware → Odoo (pushed)</a></li>
+    <li><a href="#idempotency">Idempotency + dedup</a></li>
+    <li><a href="#errors">Error handling + ingest queue</a></li>
+    <li><a href="#open">Open questions for SIS</a></li>
+  </ol>
+</div>
+
+<h2 id="purpose">1. Purpose + scope</h2>
+
+<p>This document specifies the HTTP API exposed by Odoo (module <code>kebony_mes_api</code>, to be built) to exchange production data with SIS MES via a middleware layer.</p>
+
+<p><strong>Three categories of data flow</strong>, matching the SIS spec (<em>SIS_MES_Axapta_Summary v0.1</em>):</p>
+
+<table>
+  <tr><th>Flow</th><th>Odoo side</th><th>MES side</th><th>Who polls whom</th></tr>
+  <tr>
+    <td>White wood (raw material) stock</td>
+    <td><code>stock.lot</code> / <code>stock.quant</code> / <code>stock.move</code></td>
+    <td><code>ERP_RawMaterialPackage</code> · <code>ERP_Inventory</code></td>
+    <td>Middleware polls Odoo</td>
+  </tr>
+  <tr>
+    <td>MO instructions</td>
+    <td><code>mrp.production</code> (+ <code>kebony.dryer.load</code> · <code>kebony.autoclave.batch</code>)</td>
+    <td><code>ERP_ProductionOrder</code></td>
+    <td>Middleware polls Odoo</td>
+  </tr>
+  <tr>
+    <td>Production feedback (stage events, consumption, quality)</td>
+    <td><code>kebony.process.pack.event</code> · <code>stock.move</code> · <code>kebony.process.pack</code> (mes_quality)</td>
+    <td><code>MES_ProductionOrder</code> · <code>MES_UsedRawMaterialPackage</code> · <code>MES_ProducedPackage</code></td>
+    <td>Middleware pushes to Odoo</td>
+  </tr>
+</table>
+
+<p><strong>Audience:</strong> SIS middleware team (Rinaldo + co.) designing the translation layer between the <code>MES_ERP_Mailbox</code> SQL schema and Odoo's HTTP API.</p>
+
+<h2 id="arch">2. Architecture</h2>
+
+<div class="flow-section">
+┌──────────────┐    SQL schema     ┌──────────────┐    HTTP / JSON     ┌──────────────┐
+│              │◄──────────────────┤              │◄──────────────────►│              │
+│     MES      │   MES_ERP_Mailbox │  Middleware  │   /api/v1/mes/…    │     Odoo     │
+│    (SIS)     │   (shared DB)     │  (SIS-built) │                    │ kebony_mes_  │
+│              │──────────────────►│              │                    │     api      │
+└──────────────┘                   └──────────────┘                    └──────────────┘
+   emits on           mailbox tables       polls Odoo        HTTP endpoints
+   production         + read/write         every N seconds   (this spec)
+   events             from ERP side        + pushes events
+</div>
+
+<p><strong>Design principle:</strong> middleware isolates both sides. Odoo never talks to the MES database directly; MES never calls Odoo directly. Middleware owns translation, retry, buffering, cursor state, and scheduling.</p>
+
+<div class="decided">
+<strong>Cadence recommendation (subject to SIS tuning):</strong>
+<ul>
+  <li>Stock + inventory moves → poll every <strong>60 s</strong></li>
+  <li>MO instructions → poll every <strong>60 s</strong></li>
+  <li>Production events (stacking, autoclave, dryer, destack) → push immediately on MES event (or batched every <strong>15–30 s</strong> if MES aggregates)</li>
+</ul>
+</div>
+
+<h2 id="oos">3. Out of scope</h2>
+
+<ul>
+  <li><strong>Middleware internals</strong> — language, runtime, deployment, scheduler, resilience. SIS owns the middleware; this spec only constrains the Odoo-facing contract.</li>
+  <li><strong>MES database schema</strong> — already specified by SIS (<em>SIS_MES_Axapta_Summary v0.1</em>). This contract references MES fields only where helpful for mapping.</li>
+  <li><strong>Inbound interactive flows</strong> (users creating MOs from MES UI) — Odoo remains the system of record for master data, procurement, invoicing, accounting. MES is production-execution only.</li>
+  <li><strong>Finished-goods transactions back to ERP</strong> — handled by standard Odoo MO completion posting <code>stock.move</code> and valuation records. The API only covers what the current SIS spec lists.</li>
+  <li><strong>Real-time streaming</strong> (WebSocket, SSE) — polling + synchronous POST is sufficient for the volumes at Kallo.</li>
+</ul>
+
+<h2 id="conventions">4. Conventions</h2>
+
+<table>
+  <tr><th>Topic</th><th>Rule</th></tr>
+  <tr><td>Base URL</td><td><code>https://&lt;odoo-host&gt;/api/v1/mes/</code></td></tr>
+  <tr><td>Version path prefix</td><td><code>/v1/</code> — breaking changes bump to <code>/v2/</code>; backward-compatible additions stay on <code>/v1/</code></td></tr>
+  <tr><td>Format</td><td>JSON in + JSON out; UTF-8; <code>Content-Type: application/json</code></td></tr>
+  <tr><td>Authentication</td><td>API key in header: <code>X-API-Key: &lt;key&gt;</code>. One key per middleware client. Rotatable via Odoo admin UI. No OAuth — single-client integration.</td></tr>
+  <tr><td>Timestamps</td><td>ISO 8601 UTC — e.g. <code>2026-04-23T14:12:05Z</code>. No timezone offsets in payloads.</td></tr>
+  <tr><td>IDs</td><td>Integers are Odoo primary keys (<code>"id": 4521</code>). External identifiers (MES refs, supplier plates) are strings.</td></tr>
+  <tr><td>HTTP codes</td><td><code>200</code> success · <code>201</code> created · <code>400</code> malformed payload · <code>401</code> bad API key · <code>404</code> unknown ID · <code>409</code> idempotency conflict · <code>422</code> validation failure · <code>500</code> server error</td></tr>
+  <tr><td>Rate limiting</td><td>Not enforced at v1. Middleware should self-throttle to ≤ 60 rps total.</td></tr>
+</table>
+
+<h2 id="cursor">5. Cursor-based polling model</h2>
+
+<p>Every <code>GET</code> endpoint accepts a <code>?since=&lt;cursor&gt;</code> query parameter and returns a new <code>next_cursor</code> in the response. Middleware stores the cursor and passes it on the next call.</p>
+
+<p>Cursor is an opaque string (currently an ISO 8601 timestamp, but treated as opaque so we can evolve to <code>(timestamp, id)</code> tuples later).</p>
+
+<pre><code>Request:  GET /api/v1/mes/raw-packages?since=2026-04-23T10:00:00Z&amp;limit=200
+Response: 200 OK
+{
+  "data": [ /* up to 200 records */ ],
+  "next_cursor": "2026-04-23T10:15:42Z",
+  "has_more": true
+}</code></pre>
+
+<p>If <code>has_more = true</code>, middleware should immediately re-poll with the new cursor. If <code>has_more = false</code>, wait for the next scheduled tick.</p>
+
+<p>First call of a fresh middleware instance: omit <code>since</code> → server returns the most recent 200 records (for bootstrap) plus a cursor. Or pass <code>since=0</code> for a full historical replay (if ever needed).</p>
+
+<h2 id="endpoints-out">6. Endpoints — Odoo → middleware (pulled)</h2>
+
+<div class="endpoint">
+<h3><span class="method-get">GET</span> /api/v1/mes/raw-packages</h3>
+<p><strong>Purpose:</strong> New/updated white wood packages available for MES to consume. Maps to SIS's <code>ERP_RawMaterialPackage</code>.</p>
+<p><strong>Query params:</strong> <code>since</code> (cursor), <code>limit</code> (default 200, max 1000)</p>
+<pre><code>{
+  "data": [
+    {
+      "supplier_plate": "TS749697",       // stock.lot.name
+      "article_number": "RAW-SP-100",     // product.default_code
+      "article_name": "Scots Pine 1 inch, 3m",
+      "start_amount": 120.0,              // boards at receipt
+      "current_amount": 118.0,            // boards remaining
+      "length_unit": 3.0,                 // x_studio_length_m (MES-mandatory)
+      "blocked": false,                   // true = ClosedInAx / scrap / QC quarantine
+      "location": "WH/KALLO/RAW",
+      "received_datetime": "2026-04-20T09:15:00Z",
+      "last_changed": "2026-04-23T08:30:12Z"
+    }
+  ],
+  "next_cursor": "2026-04-23T08:30:12Z",
+  "has_more": false
+}</code></pre>
+<p class="callout"><strong>Mapping:</strong> <code>supplier_plate</code> → <code>RawMaterialPackageIdent</code> · <code>blocked</code> → <code>Blocked = 1</code> when true.</p>
+</div>
+
+<div class="endpoint">
+<h3><span class="method-get">GET</span> /api/v1/mes/inventory-moves</h3>
+<p><strong>Purpose:</strong> Wood-pack stock transactions since cursor. Maps to SIS's <code>ERP_Inventory</code>. Covers Sold, TransferFrom, TransferTo, Counting.</p>
+<p><strong>Query params:</strong> <code>since</code>, <code>limit</code></p>
+<pre><code>{
+  "data": [
+    {
+      "id": 88421,                         // stock.move.id
+      "product_number": "RAW-SP-100",
+      "package_ident": "TS749697",
+      "amount": -2.0,                      // negative = out
+      "transaction_type": "counting",      // "sold" | "transfer_from" | "transfer_to" | "counting" | "scrap"
+      "location": "WH/KALLO/RAW",
+      "location_dest": null,
+      "timestamp": "2026-04-23T08:30:12Z",
+      "invent_status": 0,                  // 1 = disable in MES
+      "notes": null
+    }
+  ],
+  "next_cursor": "2026-04-23T08:30:12Z",
+  "has_more": false
+}</code></pre>
+</div>
+
+<div class="endpoint">
+<h3><span class="method-get">GET</span> /api/v1/mes/production-orders</h3>
+<p><strong>Purpose:</strong> Active / planned MOs for MES to execute. Maps to SIS's <code>ERP_ProductionOrder</code>.</p>
+<p><strong>Query params:</strong> <code>since</code>, <code>limit</code>, <code>state</code> (optional filter: <code>planned,confirmed,in_progress</code>)</p>
+<pre><code>{
+  "data": [
+    {
+      "production_order_ident": "MO/2026/00123",
+      "dryer_load_ref": "DL-2026-0042",
+      "dryer_id": "DRY2",                  // from kebony.equipment
+      "autoclave_batches": [
+        { "ref": "DL-2026-0042-AC01", "autoclave_id": "AUT1" },
+        { "ref": "DL-2026-0042-AC02", "autoclave_id": "AUT1" }
+      ],
+      "product": {
+        "article_number": "1931-I-10",
+        "article_name": "Profile 1931, Imperial, 10 ft",
+        "length_unit": 3.048
+      },
+      "planned_qty_boards": 480,
+      "planned_m3": 1.23,
+      "planned_start": "2026-04-24T06:00:00Z",
+      "planned_finish": "2026-04-27T14:00:00Z",
+      "operations": [10, 23, 26, 30],      // MES op codes
+      "state": "planned"                    // "planned" | "confirmed" | "in_progress" | "done" | "cancelled"
+    }
+  ],
+  "next_cursor": "2026-04-23T08:30:12Z",
+  "has_more": false
+}</code></pre>
+</div>
+
+<h2 id="endpoints-in">7. Endpoints — middleware → Odoo (pushed)</h2>
+
+<div class="endpoint">
+<h3><span class="method-post">POST</span> /api/v1/mes/events</h3>
+<p><strong>Purpose:</strong> Per-pack stage events emitted by MES. Maps to <code>MES_ProducedPackage</code> rows. One POST per batch of events (preferred) or per event. Writes to <code>kebony.process.pack.event</code>.</p>
+<pre><code>Request body:
+{
+  "events": [
+    {
+      "pack_number": 1234,                        // kebony.process.pack.pack_number
+      "mes_produced_package_ident": "PP-019435-10-001",
+      "mes_op_code": 10,                          // 10=stack · 23=autoclave · 26=dry · 30=destack
+      "event_type": "stacked",                    // matches event_type selection
+      "stage_before": null,
+      "stage_after": "sa",
+      "timestamp": "2026-04-24T06:12:45Z",
+      "equipment_code": null,                     // "AUT1" / "DRY1" / etc. — optional
+      "operator_code": "OP-12",                   // MES operator ID; mapped to res.users on Odoo side
+      "mes_ref": "MES-evt-009912",
+      "note": null
+    }
+  ]
+}
+
+Response: 201 Created
+{
+  "accepted": 1,
+  "rejected": 0,
+  "errors": []
+}</code></pre>
+<p class="callout"><strong>Idempotency key:</strong> <code>mes_produced_package_ident</code>. Duplicate POSTs are safe — the server returns <code>200 OK</code> with <code>accepted: 0, already_present: 1</code>.</p>
+</div>
+
+<div class="endpoint">
+<h3><span class="method-post">POST</span> /api/v1/mes/consumption</h3>
+<p><strong>Purpose:</strong> Raw material consumption reported by MES. Maps to <code>MES_UsedRawMaterialPackage</code>. Supports whole loads, partial loads, and returns to raw storage. Writes <code>stock.move</code> records on Odoo side.</p>
+<pre><code>Request body:
+{
+  "transactions": [
+    {
+      "raw_package_ident": "TS720956",       // stock.lot.name
+      "production_order_ident": "MO/2026/00123",
+      "pack_number": 1234,                   // destination process pack
+      "amount": 48.0,                        // boards consumed (positive)
+      "direction": "consume",                // "consume" | "return_to_raw"
+      "mes_op_code": 10,                     // operation that consumed it
+      "timestamp": "2026-04-24T06:14:02Z",
+      "mes_ref": "MES-cons-0045112"
+    }
+  ]
+}
+
+Response: 201 Created
+{ "accepted": 1, "rejected": 0, "errors": [] }</code></pre>
+<p class="callout"><strong>Partial consumption handled natively.</strong> Middleware can emit "consume 48 of 60" followed by "return_to_raw 12" — Odoo creates two <code>stock.move</code> records. Idempotency key: <code>mes_ref</code>.</p>
+</div>
+
+<div class="endpoint">
+<h3><span class="method-post">POST</span> /api/v1/mes/produced-packages</h3>
+<p><strong>Purpose:</strong> Per-step produced pack with quality + quantities. Maps to <code>MES_ProducedPackage</code>. Updates <code>kebony.process.pack</code> (actual quantities, <code>mes_quality</code>, stage advance) AND creates an <code>event</code> row.</p>
+<pre><code>Request body:
+{
+  "packages": [
+    {
+      "pack_number": 1234,
+      "mes_produced_package_ident": "PP-019435-30-001",
+      "mes_op_code": 30,                     // destacking
+      "mes_quality": 1,                      // 1=prime · 2=secondary · 3=scrap
+      "amount_boards": 47,                   // actual boards
+      "amount_m3": 0.142,                    // optional, if MES computes
+      "article_number": "1931-I-10",         // output SKU
+      "timestamp": "2026-04-27T14:22:11Z",
+      "mes_ref": "MES-prod-0009912"
+    }
+  ]
+}
+
+Response: 201 Created
+{ "accepted": 1, "rejected": 0, "errors": [] }</code></pre>
+<p class="callout"><strong>Side effects on the Odoo side:</strong> pack <code>stage</code> advances (from <code>aa</code> to <code>da</code> on op 26, from <code>da</code> to <code>fa</code> on op 30), <code>actual_lm</code> / <code>actual_m3</code> / <code>actual_board_count</code> are set, and a matching <code>kebony.process.pack.event</code> row is created.</p>
+</div>
+
+<h2 id="idempotency">8. Idempotency + dedup</h2>
+
+<table>
+  <tr><th>Endpoint</th><th>Idempotency key</th><th>Duplicate behaviour</th></tr>
+  <tr><td><code>POST /events</code></td><td><code>mes_produced_package_ident</code></td><td>Second submit returns <code>200 OK</code> + <code>already_present: 1</code>, no duplicate row</td></tr>
+  <tr><td><code>POST /consumption</code></td><td><code>mes_ref</code></td><td>Same</td></tr>
+  <tr><td><code>POST /produced-packages</code></td><td><code>mes_ref</code></td><td>Same — but if pack data differs, returns <code>409 Conflict</code> with diff</td></tr>
+  <tr><td><code>GET</code> endpoints</td><td>n/a</td><td>Safe by definition; same cursor returns same data</td></tr>
+</table>
+
+<p>Middleware can replay failed POSTs without risk. Rule of thumb: <strong>on any 5xx or network error, retry with exponential backoff up to 5 times, then move to dead-letter queue.</strong></p>
+
+<h2 id="errors">9. Error handling + ingest queue</h2>
+
+<h3>9.1 Error shape</h3>
+<pre><code>Response: 422 Unprocessable Entity
+{
+  "accepted": 2,
+  "rejected": 1,
+  "errors": [
+    {
+      "index": 2,                         // index in the submitted array
+      "error_code": "pack_not_found",
+      "error_message": "No kebony.process.pack with pack_number=9999 found.",
+      "payload": { /* the rejected item, verbatim */ }
+    }
+  ]
+}</code></pre>
+<p>Partial success is allowed — accepted items are committed, rejected items are returned in <code>errors</code> for middleware retry or manual handling.</p>
+
+<h3>9.2 Ingest queue on Odoo side</h3>
+<p>Beyond the synchronous response, Odoo keeps a failed-ingest log (<code>kebony.mes.ingest.queue</code>) with:</p>
+<ul>
+  <li>Raw payload (JSON)</li>
+  <li>Error code + message</li>
+  <li>Timestamp received + last retry</li>
+  <li>Retry count</li>
+  <li>Status: <code>pending</code> / <code>resolved</code> / <code>dead</code></li>
+</ul>
+<p>QA / IT ops have a view to inspect + replay these. SIS middleware can also call <code>POST /api/v1/mes/events</code> again with the original payload; idempotency prevents double-writes.</p>
+
+<h3>9.3 Error code catalogue (v1)</h3>
+<table>
+  <tr><th>Code</th><th>HTTP</th><th>Meaning</th></tr>
+  <tr><td><code>auth_missing</code></td><td>401</td><td>Header <code>X-API-Key</code> absent</td></tr>
+  <tr><td><code>auth_invalid</code></td><td>401</td><td>API key unknown or revoked</td></tr>
+  <tr><td><code>malformed_payload</code></td><td>400</td><td>JSON parse error or schema mismatch</td></tr>
+  <tr><td><code>pack_not_found</code></td><td>422</td><td>Referenced <code>pack_number</code> has no matching <code>kebony.process.pack</code></td></tr>
+  <tr><td><code>raw_package_not_found</code></td><td>422</td><td>Referenced <code>raw_package_ident</code> has no matching <code>stock.lot</code></td></tr>
+  <tr><td><code>mo_not_found</code></td><td>422</td><td>Referenced <code>production_order_ident</code> has no matching <code>mrp.production</code></td></tr>
+  <tr><td><code>invalid_op_code</code></td><td>422</td><td><code>mes_op_code</code> not in {10, 23, 26, 30}</td></tr>
+  <tr><td><code>invalid_quality</code></td><td>422</td><td><code>mes_quality</code> not in {1, 2, 3}</td></tr>
+  <tr><td><code>idempotency_conflict</code></td><td>409</td><td>Same idempotency key submitted with different payload body</td></tr>
+  <tr><td><code>server_error</code></td><td>500</td><td>Unexpected Odoo-side failure; safe to retry</td></tr>
+</table>
+
+<h2 id="open">10. Open questions for SIS</h2>
+
+<div class="open">
+<strong>Need answers before implementation starts</strong>
+<ol>
+  <li><strong>Quality 1 vs 2</strong> — SIS doc explicitly defines <code>Quality = 3</code> (scrap) but not 1 / 2. Confirm meaning (prime / secondary?) so we can label the selection on Odoo side.</li>
+  <li><strong>Operator mapping</strong> — does MES emit stable operator codes on <code>MES_ProducedPackage</code>, or just a name? We need a stable key to map to <code>res.users</code>.</li>
+  <li><strong>Equipment identifier</strong> — MES reports which physical dryer (1/2/3)? If yes, under what field? Critical for capacity tracking on Odoo side.</li>
+  <li><strong>Consumption timing</strong> — when the stacking machine loads 60 boards and later returns 12, does MES emit two <code>MES_UsedRawMaterialPackage</code> rows (one <code>consume +60</code>, one <code>return -12</code>), or one net row (<code>+48</code>)? Affects how we model <code>direction</code>.</li>
+  <li><strong>MO cancellation flow</strong> — if Odoo cancels a planned MO, how does that propagate to MES? Do we need <code>DELETE /api/v1/mes/production-orders/{ident}</code> or a status change via another endpoint?</li>
+  <li><strong>Polling or push for events</strong> — is middleware happy polling MES's output tables every 15–30 s, or should MES push? (Affects cadence of the inbound <code>POST /events</code>.)</li>
+  <li><strong>Article master sync</strong> — this spec covers <em>transactions</em>. Master data (articles, planning family, equipment) is also needed in MES. Does middleware pull that separately, or should we add endpoints here?</li>
+  <li><strong>Authentication ownership</strong> — who issues and rotates the API key? Proposed: Odoo admin UI, rotated quarterly; SIS stores in middleware config.</li>
+</ol>
+</div>
+
+<div class="decided">
+<strong>Already agreed</strong>
+<ul>
+  <li>Middleware owns all translation + retry</li>
+  <li>Odoo exposes HTTP/JSON — no direct DB access</li>
+  <li>Cursor-based polling, not real-time streaming</li>
+  <li>Idempotency via stable MES identifiers</li>
+  <li>Partial success on batch POSTs</li>
+  <li>Error queue on Odoo side for replay</li>
+</ul>
+</div>
+
+<div class="footer">
+  Contract document — canonical source in the vault at <code>02 - General Topics / MES API Contract.md</code> (companion markdown). This file is the shareable version for the SIS middleware team.
+  <br>
+  Review sign-off sequence: SIS middleware team → Olivier → Rinaldo → implementation kickoff.
+  <br>
+  Olivier Eberhard · VVF Consulting · 2026-04-23
+</div>
+
+<!--
+  CHANGELOG
+  v1.0 · 2026-04-23 · Initial draft based on SIS_MES_Axapta_Summary v0.1.
+                      6 endpoints (3 GET Odoo-exposed + 3 POST middleware-pushed),
+                      cursor polling model, idempotency via MES stable identifiers,
+                      partial-success + ingest queue, 10 error codes, 8 open questions for SIS.
+-->
+
+</body>
+</html>

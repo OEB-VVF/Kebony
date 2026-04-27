@@ -1,0 +1,2542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0">
+<title>Costing Architecture &amp; COGS Decomposition — Full Deck</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    body { background: none; padding: 0; gap: 0; }
+    .slide { box-shadow: none; border-radius: 0; margin: 0;
+             page-break-inside: avoid; page-break-after: always; }
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    gap: 30px;
+  }
+
+  .slide {
+    width: 1280px;
+    min-height: 720px;
+    max-height: 720px;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    padding: 38px 50px 36px;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+  }
+
+  .slide::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
+
+  /* ── Title slide ── */
+  .slide.title-slide {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .slide.title-slide::before {
+    height: 8px;
+  }
+  .slide.title-slide h1 {
+    font-size: 36px;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .slide.title-slide .subtitle {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 32px;
+  }
+  .slide.title-slide .meta {
+    font-size: 12px;
+    color: #999;
+    line-height: 1.8;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+  }
+
+  h2 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0f3460;
+    margin-bottom: 10px;
+    margin-top: 14px;
+  }
+
+  h3 {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 16px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #0f3460;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid #0f3460;
+    display: inline-block;
+  }
+
+  .section-label.red { color: #c62828; border-color: #c62828; }
+  .section-label.green { color: #2e7d32; border-color: #2e7d32; }
+  .section-label.orange { color: #e65100; border-color: #e65100; }
+
+  /* ── Flow diagrams ── */
+  .flow-diagram {
+    background: #fafbfc;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 8px 0;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 10.5px;
+    line-height: 1.55;
+    color: #333;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .flow-diagram .label { color: #0f3460; font-weight: 700; }
+  .flow-diagram .account { color: #555; }
+  .flow-diagram .highlight { color: #c62828; font-weight: 600; }
+  .flow-diagram .green { color: #2e7d32; font-weight: 600; }
+  .flow-diagram .arrow { color: #999; }
+  .flow-diagram .dim { color: #aaa; }
+  .flow-diagram .blue { color: #0f3460; font-weight: 600; }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    margin: 6px 0;
+  }
+
+  th {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #888;
+    text-align: left;
+    padding: 4px 6px 5px;
+    border-bottom: 2px solid #ddd;
+  }
+
+  td {
+    padding: 4px 6px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #333;
+    vertical-align: top;
+  }
+
+  tr.total-row td {
+    font-weight: 700;
+    border-top: 2px solid #1a1a2e;
+    color: #1a1a2e;
+  }
+
+  .muted { color: #bbb; }
+
+  /* ── Columns ── */
+  .cols-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .cols-2.wide-left {
+    grid-template-columns: 1.15fr 0.85fr;
+  }
+
+  .cols-2.wide-right {
+    grid-template-columns: 0.85fr 1.15fr;
+  }
+
+  .cols-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .cols-4 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 14px;
+    align-items: start;
+  }
+
+  /* ── Badges & tags ── */
+  .tag {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .tag.red { background: #ffebee; color: #c62828; }
+  .tag.green { background: #e8f5e9; color: #2e7d32; }
+  .tag.blue { background: #e3f2fd; color: #0f3460; }
+  .tag.orange { background: #fff3e0; color: #e65100; }
+  .tag.grey { background: #f5f5f5; color: #666; }
+
+  /* ── Callout ── */
+  .callout {
+    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+    font-size: 11px;
+    line-height: 1.5;
+    margin: 8px 0;
+  }
+
+  .callout.warning {
+    background: #fff8e1;
+    border-left: 3px solid #f9a825;
+    color: #555;
+  }
+
+  .callout.info {
+    background: #e3f2fd;
+    border-left: 3px solid #0f3460;
+    color: #333;
+  }
+
+  .callout.danger {
+    background: #ffebee;
+    border-left: 3px solid #c62828;
+    color: #555;
+  }
+
+  .callout.success {
+    background: #e8f5e9;
+    border-left: 3px solid #2e7d32;
+    color: #333;
+  }
+
+  .callout strong { color: #1a1a2e; }
+
+  /* ── Decision box ── */
+  .decision-box {
+    border: 2px solid #0f3460;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 10px 0;
+  }
+
+  .decision-box h3 {
+    font-size: 12px;
+    font-weight: 700;
+    color: #0f3460;
+    margin-bottom: 6px;
+  }
+
+  .decision-box p {
+    font-size: 11px;
+    color: #555;
+    line-height: 1.5;
+  }
+
+  /* ── Journal entry styling ── */
+  .journal {
+    background: #fafbfc;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 6px 0;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 10px;
+    line-height: 1.6;
+    color: #333;
+    white-space: pre;
+  }
+
+  .journal .dr { color: #c62828; font-weight: 600; }
+  .journal .cr { color: #2e7d32; font-weight: 600; }
+  .journal .note { color: #888; font-style: italic; }
+
+  /* ── List ── */
+  .check-list {
+    list-style: none;
+    font-size: 11px;
+    line-height: 1.7;
+  }
+
+  .check-list li::before {
+    content: '→';
+    color: #0f3460;
+    font-weight: 700;
+    margin-right: 6px;
+  }
+
+  .check-list li.ok::before {
+    content: '✓';
+    color: #2e7d32;
+  }
+
+  .check-list li.warn::before {
+    content: '⚠';
+    color: #e65100;
+  }
+
+  .check-list li.no::before {
+    content: '✗';
+    color: #c62828;
+  }
+
+  /* ── Mini card ── */
+  .mini-card {
+    background: #fafbfc;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 6px 0;
+  }
+
+  .mini-card h4 {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #0f3460;
+    margin-bottom: 4px;
+  }
+
+  .mini-card p {
+    font-size: 11px;
+    color: #555;
+    line-height: 1.5;
+  }
+
+  /* ── PL block ── */
+  .pl-block {
+    background: #fafbfc;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 10.5px;
+    line-height: 1.7;
+    color: #333;
+    white-space: pre;
+    margin: 6px 0;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    position: absolute;
+    bottom: 14px;
+    left: 50px;
+    right: 50px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #bbb;
+  }
+
+  .page-num {
+    position: absolute;
+    bottom: 14px;
+    right: 50px;
+    font-size: 10px;
+    color: #bbb;
+  }
+
+  /* ── Compact table variant ── */
+  table.compact th { padding: 3px 5px 4px; }
+  table.compact td { padding: 3px 5px; font-size: 10.5px; }
+
+  /* ── Timeline table ── */
+  table.timeline td:first-child { font-weight: 600; color: #0f3460; text-align: center; width: 30px; }
+  table.timeline td:nth-child(4) { font-weight: 600; }
+
+  /* Highlight row */
+  tr.highlight-row td { background: #e3f2fd; }
+  tr.danger-row td { background: #ffebee; }
+  tr.success-row td { background: #e8f5e9; }
+
+  /* ── Big number ── */
+  .big-num {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f3460;
+    line-height: 1;
+  }
+  .big-num.green { color: #2e7d32; }
+  .big-num.red { color: #c62828; }
+
+  .big-label {
+    font-size: 10px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-top: 2px;
+  }
+  .slide-number { font-size: 10px; color: #bbb; }
+  /* ── Logo ── */
+  .logo-title {
+    position: absolute; top: 30px; right: 40px;
+    height: 80px; opacity: 0.9;
+  }
+  .slide-footer {
+    position: absolute; bottom: 10px; left: 20px; right: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .prepared-by {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .prepared-by span {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+  .prepared-by img {
+    height: 22px; opacity: 0.7;
+  }
+  .footer-project {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 1: TITLE                                                  -->
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+
+<div class="slide title-slide">
+
+  <img src="VVF-logo.png" alt="VVF" class="logo-title">
+  <div class="section-label" style="margin-bottom:18px;">Architecture Decision</div>
+  <h1>Costing Architecture<br>&amp; COGS Decomposition</h1>
+  <p class="subtitle">How raw material costs, conversion costs, and subcontracting costs flow through inventory into COGS — and how cost structure is made visible in margin analysis.</p>
+
+  <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap:12px; margin: 20px 0;">
+    <div class="mini-card" style="border-left:3px solid #0f3460; padding:8px 12px;">
+      <h4>Wood</h4>
+      <p>Raw timber (white wood)<br><strong>FIFO</strong></p>
+    </div>
+    <div class="mini-card" style="border-left:3px solid #0f3460; padding:8px 12px;">
+      <h4>Chemicals</h4>
+      <p>Furfuryl alcohol &amp; mix<br><strong>FIFO</strong></p>
+    </div>
+    <div class="mini-card" style="border-left:3px solid #0f3460; padding:8px 12px;">
+      <h4>Packaging</h4>
+      <p>Packaging materials<br><strong>FIFO</strong></p>
+    </div>
+    <div class="mini-card" style="border-left:3px solid #0f3460; padding:8px 12px;">
+      <h4>Conversion</h4>
+      <p>Stacking, AC, dryer<br><strong>WC hourly rates</strong></p>
+    </div>
+    <div class="mini-card" style="border-left:3px solid #0f3460; padding:8px 12px;">
+      <h4>Machining</h4>
+      <p>Subcontracting (RDK)<br><strong>Two-step: std → actual</strong></p>
+    </div>
+  </div>
+
+  <div style="display:grid; grid-template-columns: 1.2fr 0.8fr; gap:16px; margin-bottom:4px;">
+    <div class="decision-box" style="margin:0;">
+      <h3>Three Questions This Architecture Must Answer</h3>
+      <div class="cols-3" style="margin-top:6px;">
+        <div>
+          <p style="font-size:11px; color:#555; line-height:1.4;"><strong>1.</strong> At what cost do WIP and FG sit on the <strong>balance sheet</strong>?</p>
+        </div>
+        <div>
+          <p style="font-size:11px; color:#555; line-height:1.4;"><strong>2.</strong> When goods are sold, how is <strong>COGS decomposed</strong> by component?</p>
+        </div>
+        <div>
+          <p style="font-size:11px; color:#555; line-height:1.4;"><strong>3.</strong> How are <strong>variances</strong> (actual vs. absorbed) treated?</p>
+        </div>
+      </div>
+    </div>
+    <div class="mini-card" style="border-left:3px solid #e65100; margin:0;">
+      <h4 style="color:#e65100;">Logistics Costs</h4>
+      <p><strong>Transfer cost</strong> (freight to plant) → capitalised (IAS 2.11) via landed cost or BOM service line<br>
+      <strong>External warehousing</strong> → period expense (IAS 2.16b), not on BS</p>
+    </div>
+  </div>
+
+  <div class="meta" style="margin-top: 20px;">
+    Kebony BNV (Belgian manufacturing entity) · Odoo 19<br>
+    Status: <strong>Approved</strong> — SteerCo 23 March 2026 (Option B+) · Go-live target: July 1, 2026
+  </div>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">1 / 15</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 2: CURRENT STATE — ACCOUNT STRUCTURE & COST COMPONENTS    -->
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">1</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Current State — AX Account Structure</h1>
+  <p class="subtitle">Source: PO-019357 (KRRS 50×150mm, Feb 2026) · Belgian PCMN primary, Norwegian AX in parentheses</p>
+
+  <div class="cols-2">
+    <div>
+      <div class="section-label red">Balance Sheet Accounts</div>
+      <table class="compact">
+        <thead><tr>
+<th>PCMN</th>
+<th>Description</th>
+<th>AX Account</th>
+<th>Role</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td><strong>300</strong></td>
+<td>Matières premières — Bois blanc</td>
+<td>1400--R--2490</td>
+<td>Raw wood (FIFO)</td>
+</tr>
+          <tr>
+<td><strong>301</strong></td>
+<td>Matières premières — Chimie</td>
+<td>1400--MIX--2615</td>
+<td>Chemical mix (FIFO)</td>
+</tr>
+          <tr>
+<td><strong>330</strong></td>
+<td>Produits finis</td>
+<td>1440--KRRS--2489</td>
+<td>Finished goods (standard)</td>
+</tr>
+          <tr>
+<td><strong>330bis</strong></td>
+<td>PF — offset WIP</td>
+<td>1441--KRRS--2489</td>
+<td>Temporary FG offset</td>
+</tr>
+          <tr>
+<td><strong>320</strong></td>
+<td>En-cours (WIP)</td>
+<td>1492</td>
+<td>WIP clearing (materials)</td>
+</tr>
+          <tr>
+<td><strong>320bis</strong></td>
+<td>En-cours indirect (WIP-IC)</td>
+<td>1493</td>
+<td>WIP clearing (conversion)</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="section-label red" style="margin-top:10px;">P&amp;L Accounts</div>
+      <table class="compact">
+        <thead><tr>
+<th>PCMN</th>
+<th>Description</th>
+<th>AX Account</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>—</td>
+<td>Indirect cost personnel</td>
+<td>4501--ICP--1290</td>
+</tr>
+          <tr>
+<td>—</td>
+<td>Indirect cost other</td>
+<td>4501--IC--1292</td>
+</tr>
+          <tr>
+<td>—</td>
+<td>Direct cost electricity</td>
+<td>4961--DC--4025</td>
+</tr>
+          <tr>
+<td><strong>604</strong></td>
+<td>Écart de production</td>
+<td>4226 (actual cost)</td>
+</tr>
+          <tr>
+<td><strong>714</strong></td>
+<td>Variation des stocks</td>
+<td>4227 (standard cost)</td>
+</tr>
+        </tbody>
+      </table>
+
+    <div>
+      <div class="section-label red">Five Cost Components (PO-019357)</div>
+      <table class="compact">
+        <thead><tr>
+<th>#</th>
+<th>Component</th>
+<th>Qty</th>
+<th>Amount (NOK)</th>
+<th>Nature</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>1</td>
+<td>Raw wood (2490)</td>
+<td>1,969 m / 14.77 m³</td>
+<td style="text-align:right;">138,573</td>
+<td>Material (FIFO)</td>
+</tr>
+          <tr>
+<td>2</td>
+<td>Chemical mix (2615)</td>
+<td>9,850 L / 665 L/m³</td>
+<td style="text-align:right;">60,178</td>
+<td>Material (FIFO)</td>
+</tr>
+          <tr>
+<td>3</td>
+<td>ICP personnel (1290)</td>
+<td>17.56 Keb.hrs</td>
+<td style="text-align:right;">18,104</td>
+<td>Conversion</td>
+</tr>
+          <tr>
+<td>4</td>
+<td>IC other (1292)</td>
+<td>17.56 Keb.hrs</td>
+<td style="text-align:right;">15,558</td>
+<td>Conversion</td>
+</tr>
+          <tr>
+<td>5</td>
+<td>DC electricity (4025)</td>
+<td>15.01 m³</td>
+<td style="text-align:right;">19,768</td>
+<td>Direct cost</td>
+</tr>
+          <tr class="total-row">
+<td></td>
+<td>Total consumed</td>
+<td></td>
+<td style="text-align:right;">252,182</td>
+<td></td>
+</tr>
+          <tr class="highlight-row">
+<td></td>
+<td><strong>FG output (2489 KRRS)</strong></td>
+<td>1,975 m / 14.81 m³</td>
+<td style="text-align:right;"><strong>259,726</strong></td>
+<td>Standard cost</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="callout warning" style="margin-top:10px;">
+        <strong>Conversion uses a single “Kebony hour” rate</strong> (1.17 h/m³) split across ICP + IC. Same hours drive both. In Odoo, this splits into 3 WC pools (Stacking, Autoclave, Dryer).
+      </div>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">2 / 15</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 3: CURRENT STATE — TWO-PHASE POSTING & LIMITATIONS       -->
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">2</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Current State — AX Two-Phase Posting Model</h1>
+  <p class="subtitle">Every production order generates temporary entries at start, then reverses + reposts at close</p>
+
+  <div class="cols-2">
+    <div>
+      <div class="section-label red">Phase 1 — WIP Input (at picking)</div>
+      <div class="journal">
+<span class="dr">DR</span> 320 WIP             138,344  <span class="note">(wood at std)</span>
+  <span class="cr">CR</span> 300 RM Bois       138,344
+<span class="dr">DR</span> 320 WIP              60,363  <span class="note">(mix at std)</span>
+  <span class="cr">CR</span> 301 RM Chimie      60,363
+<span class="dr">DR</span> 320bis WIP-IC        18,104  <span class="note">(ICP)</span>
+  <span class="cr">CR</span> — Ind.personnel    18,104
+<span class="dr">DR</span> 320bis WIP-IC        15,558  <span class="note">(IC)</span>
+  <span class="cr">CR</span> — Ind.other        15,558
+<span class="dr">DR</span> 320bis WIP-IC        19,768  <span class="note">(DC)</span>
+  <span class="cr">CR</span> — Electricity      19,768</div>
+
+      <div class="section-label red" style="margin-top:8px;">Phase 1 — Report as Finished</div>
+      <div class="journal">
+<span class="dr">DR</span> 330 Produits finis   259,726  <span class="note">(standard)</span>
+  <span class="cr">CR</span> 330bis FG offset   259,726  <span class="note">(temporary)</span>
+</div>
+
+    <div>
+      <div class="section-label red">Phase 2 — Close PO</div>
+      <div class="journal">
+<span class="note">Step 1: Reverse ALL Phase 1 entries</span>
+<span class="note">Step 2: Repost actual costs through WIP</span>
+<span class="dr">DR</span> 320 WIP             138,573  <span class="note">(actual wood)</span>
+  <span class="cr">CR</span> 300 RM Bois       138,573
+<span class="dr">DR</span> 320 WIP              60,178  <span class="note">(actual mix)</span>
+  <span class="cr">CR</span> 301 RM Chimie      60,178
+<span class="note">[...conversion same amounts...]</span>
+<span class="note">Step 3: Flush WIP → P&amp;L</span>
+<span class="dr">DR</span> 604 Écart prod.      252,182  <span class="note">(actual)</span>
+  <span class="cr">CR</span> 320 WIP            252,182
+<span class="note">Step 4: Capitalise FG</span>
+<span class="dr">DR</span> 330 Produits finis   259,726  <span class="note">(standard)</span>
+  <span class="cr">CR</span> 714 Var.stocks     259,726</div>
+
+      <div class="callout info" style="margin-top:8px;">
+        <strong>Variance:</strong> Standard 259,726 − Actual 252,182 = <strong>+7,544 NOK favourable</strong>
+      </div>
+
+      <div class="section-label red" style="margin-top:8px;">Key Limitations</div>
+      <table class="compact">
+        <thead><tr>
+<th>Problem</th>
+<th>Impact</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>Fixed standard % for COGS split</td>
+<td>Drifts from reality — different products have different cost structures</td>
+</tr>
+          <tr>
+<td>Cost detail lost in FG stock</td>
+<td>Only the MO retains actual breakdown</td>
+</tr>
+          <tr>
+<td>Variance accounts are opaque</td>
+<td>No product or lot traceability</td>
+</tr>
+          <tr>
+<td>Standard revision is manual</td>
+<td>Inventory valuation drifts between revisions</td>
+</tr>
+          <tr>
+<td>Two-phase doubles journal volume</td>
+<td>Reverse + repost creates 2× the entries</td>
+</tr>
+          <tr>
+<td>Single Kebony hour hides stage drivers</td>
+<td>Cannot see cost by production stage</td>
+</tr>
+        </tbody>
+      </table>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">3 / 15</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 4: AS-IS → TARGET DESIGN CHANGES                         -->
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">3</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Napoleonic → Anglo-Saxon: The Fundamental Switch</h1>
+  <p class="subtitle">From "conversion costs expensed at production" to "full absorption — costs only hit P&amp;L when sold"</p>
+
+  <div class="cols-2" style="gap:20px; margin-top:6px;">
+    <div>
+      <div class="section-label red">Napoleonic (AX Today)</div>
+      <table class="compact" style="font-size:10px;">
+        <thead><tr>
+<th>Step</th>
+<th>Account</th>
+<th>Where</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>RM → WIP</td>
+<td>DR 320 / CR 300, 301</td>
+<td>BS → BS</td>
+</tr>
+          <tr class="danger-row">
+<td>Conversion costs</td>
+<td>DR 320bis WIP-IC / CR P&amp;L (ICP, IC, DC)</td>
+<td>BS transit → <strong>P&amp;L</strong>
+</td>
+</tr>
+          <tr class="danger-row">
+<td>PO close: flush WIP</td>
+<td>DR <strong>604</strong> Écart / CR 320, 320bis</td>
+<td><strong>P&amp;L immediately</strong></td>
+</tr>
+          <tr>
+<td>FG at standard</td>
+<td>DR 330 / CR <strong>714</strong> Var.stocks</td>
+<td>BS (budget value)</td>
+</tr>
+          <tr>
+<td>Sale: COGS</td>
+<td>DR 600 / CR 330</td>
+<td>P&amp;L (standard)</td>
+</tr>
+        </tbody>
+      </table>
+      <div class="callout danger" style="margin-top:6px; font-size:10px;">
+        <strong>Result:</strong> Conversion costs hit P&amp;L at production time. FG on BS = standard (budget). COGS = standard. Per-product profitability = impossible without MO drill-down.
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label green">Anglo-Saxon (Odoo Target)</div>
+      <table class="compact" style="font-size:10px;">
+        <thead><tr>
+<th>Step</th>
+<th>Account</th>
+<th>Where</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>RM → WIP</td>
+<td>DR 320 / CR 300, 301</td>
+<td>BS → BS</td>
+</tr>
+          <tr class="success-row">
+<td>Conversion absorbed</td>
+<td>DR 320 WIP / CR <strong>791</strong> Absorbed</td>
+<td><strong>BS (stays!)</strong></td>
+</tr>
+          <tr class="success-row">
+<td>MO completion: FG</td>
+<td>DR 330 / CR 320</td>
+<td>BS → BS (actual cost)</td>
+</tr>
+          <tr>
+<td>Sale: COGS</td>
+<td>DR 600 / CR 330</td>
+<td>P&amp;L (actual cost)</td>
+</tr>
+          <tr>
+<td>Unabsorbed variance</td>
+<td>791 balance ≠ actual GL spend</td>
+<td>P&amp;L at EOM</td>
+</tr>
+        </tbody>
+      </table>
+      <div class="callout success" style="margin-top:6px; font-size:10px;">
+        <strong>Result:</strong> All production costs stay on BS until sale. FG = real cost. COGS = real cost. Per-product profitability = <strong>automatic</strong>.
+      </div>
+    </div>
+
+  <div class="cols-2" style="gap:20px; margin-top:8px;">
+    <div>
+      <div class="section-label">Chart of Accounts Impact</div>
+      <table class="compact" style="font-size:10px;">
+        <thead><tr>
+<th>Account</th>
+<th>Change</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>320 WIP</td>
+<td>Scope expanded: now includes conversion costs</td>
+</tr>
+          <tr class="danger-row">
+<td>320bis WIP-IC</td>
+<td>
+<strong>REMOVED</strong> — merged into 320</td>
+</tr>
+          <tr class="danger-row">
+<td>330bis FG offset</td>
+<td>
+<strong>REMOVED</strong> — no two-phase</td>
+</tr>
+          <tr class="danger-row">
+<td>714 Variation stocks</td>
+<td>
+<strong>REMOVED</strong> — no standard revaluation</td>
+</tr>
+          <tr class="danger-row">
+<td>604 Écart production</td>
+<td>
+<strong>NOT USED (Option B)</strong> — RDK settles to 330/600 at actual</td>
+</tr>
+          <tr class="success-row">
+<td><strong>791 Absorbed</strong></td>
+<td>
+<strong>NEW</strong> — WC contra-account</td>
+</tr>
+          <tr>
+<td>300, 301, 330, 600</td>
+<td>Unchanged (but carry actual cost, not standard)</td>
+</tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div>
+      <div class="section-label">Legal &amp; Transition</div>
+      <table class="compact" style="font-size:10px;">
+        <thead><tr>
+<th>Aspect</th>
+<th>Answer</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>Belgian GAAP</td>
+<td>
+<span class="tag green">Allowed</span> — KB 30/01/2001, art. 3:15. Policy choice. Disclose in notes.</td>
+</tr>
+          <tr>
+<td>IFRS alignment</td>
+<td>
+<span class="tag green">Required</span> by IAS 2. Switch aligns statutory ↔ IFRS.</td>
+</tr>
+          <tr>
+<td>Auditor</td>
+<td>
+<span class="tag green">Positive</span> — prefers full absorption. Will scrutinise WC rates.</td>
+</tr>
+          <tr>
+<td>Tax impact</td>
+<td>
+<span class="tag orange">Higher short-term</span> — costs deferred to BS = higher taxable profit</td>
+</tr>
+          <tr>
+<td>Transition</td>
+<td>Apply <strong>prospectively</strong> from July 1 (Odoo go-live). Old FG at AX standard. New FG at full actual.</td>
+</tr>
+        </tbody>
+      </table>
+    </div>
+
+  <div class="decision-box" style="margin-top:8px;">
+    <h3>This Switch is the Prerequisite</h3>
+    <p>Anglo-Saxon full absorption is <strong>required</strong> for FIFO or Weighted Average to deliver per-product profitability. Without it, conversion costs bypass inventory entirely — no valuation method can fix that.</p>
+  </div>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">4 / 15</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 5: LEVEL 2 ANALYTICAL DECOMPOSITION                      -->
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">4</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Level 2 Analytical Decomposition — The Core Improvement</h1>
+  <p class="subtitle">Shared by all options — replaces fixed % with actual MO cost breakdown on every COGS line</p>
+
+  <div class="cols-2">
+    <div>
+      <div class="section-label">What Changes?</div>
+      <div class="callout info">
+        <strong>Level 1</strong> (AX today) = fixed standard % for all products in a category.<br>
+        <strong>Level 2</strong> (Odoo target) = actual % per product, per lot, traced from the Manufacturing Order.<br><br>
+        When goods are sold, the system traces the delivered lot back to its MO. The MO's <strong>actual</strong> cost breakdown provides the <strong>real percentage split</strong>, applied as the analytical distribution on the COGS journal entry.<br><br>
+        <strong>This is implemented regardless of BS valuation choice.</strong>
+      </div>
+
+      <div class="section-label" style="margin-top:12px;">Traceability Chain</div>
+      <div class="flow-diagram" style="font-size:10px; padding: 12px 16px;">
+<span class="label">Sale Delivery</span> (stock.picking)
+  └─ stock.move.line → <span class="green">lot_id</span>
+       └─ stock.lot → producing MO
+            └─ mrp.production
+                 └─ <span class="green">Actual cost breakdown:</span>
+                      Wood:        54.3%  → <span class="account">CM: Material</span>
+                      Chemical:    11.1%  → <span class="account">CM: Material</span>
+                      Conversion:  16.7%  → <span class="account">CM: Conversion</span>
+                      Machining:   17.8%  → <span class="account">CM: Direct Cost</span>
+</div>
+
+      <div class="callout warning" style="margin-top:8px;">
+        <strong>Fallback:</strong> If no producing MO is found (purchased FG, consignment, legacy stock), system falls back to standard % from the planning family.
+      </div>
+
+    <div>
+      <div class="section-label green">Before vs. After</div>
+      <table class="compact">
+        <thead>
+          <tr>
+<th>Criterion</th>
+<th>AX (Level 1)</th>
+<th>Odoo (Level 2)</th>
+</tr>
+        </thead>
+        <tbody>
+          <tr>
+<td>COGS split method</td>
+<td><span class="tag red">Fixed %</span></td>
+<td><span class="tag green">Actual % from MO</span></td>
+</tr>
+          <tr>
+<td>Granularity</td>
+<td>Same % for all products</td>
+<td>Per product, per lot</td>
+</tr>
+          <tr>
+<td>Drift over time</td>
+<td>Diverges from reality</td>
+<td>Always current</td>
+</tr>
+          <tr>
+<td>Margin variance</td>
+<td>Cannot isolate driver</td>
+<td>Wood vs conv vs mach visible</td>
+</tr>
+          <tr>
+<td>Works with all options?</td>
+<td class="muted">n/a</td>
+<td><span class="tag blue">Yes — shared</span></td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="section-label" style="margin-top:14px;">Analytical Distribution Mapping</div>
+      <table class="compact">
+        <thead>
+          <tr>
+<th>Cost Component</th>
+<th>CM Level</th>
+<th>Source</th>
+</tr>
+        </thead>
+        <tbody>
+          <tr>
+<td><strong>Wood</strong></td>
+<td>Material</td>
+<td>MO component cost (FIFO)</td>
+</tr>
+          <tr>
+<td><strong>Chemical</strong></td>
+<td>Material</td>
+<td>MO component cost (FIFO)</td>
+</tr>
+          <tr>
+<td><strong>Conversion</strong></td>
+<td>Conversion</td>
+<td>MO work centre cost (rate × hours)</td>
+</tr>
+          <tr>
+<td><strong>Machining</strong></td>
+<td>Direct Cost</td>
+<td>MO subcontracting cost (std, then settled)</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="decision-box" style="margin-top:14px;">
+        <h3>Key Insight</h3>
+        <p>Level 2 is the <strong>minimum improvement</strong> regardless of BS valuation choice. Even keeping standard cost on the balance sheet (Option A), COGS analytical distribution uses <strong>actual MO percentages</strong> instead of fixed ones.</p>
+      </div>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">5 / 15</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 6: OPTION A — STANDARD COST                               -->
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">5</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Option A — Standard Cost Inventory</h1>
+  <p class="subtitle">FG and WIP valued at standard cost · Familiar (AX-equivalent) · 4 variance accounts</p>
+
+  <div class="cols-2 wide-left">
+    <div>
+      <div class="section-label">Accounting Flows</div>
+
+      <h2 style="margin-top:6px;">Raw Material Reception</h2>
+      <div class="journal">
+<span class="dr">DR</span>  300  Matières premières – Bois blanc     <span class="note">(FIFO purchase price)</span>
+    <span class="cr">CR</span>  444  Factures à recevoir (GRNI)</div>
+
+      <h2>MO Consumption (RM at FIFO)</h2>
+      <div class="journal">
+<span class="dr">DR</span>  320  En-cours de fabrication (WIP)        <span class="note">(FIFO actual cost)</span>
+    <span class="cr">CR</span>  300  Matières premières – Bois blanc
+    <span class="cr">CR</span>  310  Matières premières – Chimie</div>
+
+      <h2>MO Completion (FG at Standard)</h2>
+      <div class="journal">
+<span class="dr">DR</span>  330  Produits finis                       <span class="note">(STANDARD cost)</span>
+    <span class="cr">CR</span>  320  En-cours de fabrication (WIP)     <span class="note">(actual accumulated)</span>
+<span class="dr">DR</span>/<span class="cr">CR</span> 604  Écart de production               <span class="note">(variance = actual − standard)</span>
+</div>
+
+      <h2>Sale Delivery — COGS at Standard</h2>
+      <div class="journal">
+<span class="dr">DR</span>  600  Coût des ventes (COGS)               <span class="note">(STANDARD cost)</span>
+    <span class="cr">CR</span>  330  Produits finis
+    <span class="note">Analytical distribution: actual % from MO (Level 2)</span>
+</div>
+
+    <div>
+      <div class="section-label">Valuation Rules</div>
+      <table class="compact">
+        <thead><tr>
+<th>Stage</th>
+<th>Method</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>Raw Materials</td>
+<td>FIFO (actual purchase price per lot)</td>
+</tr>
+          <tr>
+<td>Ready-Mix</td>
+<td>FIFO (actual component cost)</td>
+</tr>
+          <tr>
+<td>WIP</td>
+<td><strong>Standard</strong></td>
+</tr>
+          <tr>
+<td>Finished Goods</td>
+<td><strong>Standard</strong></td>
+</tr>
+          <tr>
+<td>Semi-FG</td>
+<td><strong>Standard</strong></td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="section-label red" style="margin-top:12px;">4 Variance Accounts</div>
+      <table class="compact">
+        <thead><tr>
+<th>Account</th>
+<th>Content</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>604₁ Écart matières</td>
+<td>FIFO actual − standard (wood + chem)</td>
+</tr>
+          <tr>
+<td>604₂ Écart conversion</td>
+<td>WC actual − standard</td>
+</tr>
+          <tr>
+<td>604₃ Écart machinage</td>
+<td>RDK actual − standard absorbed</td>
+</tr>
+          <tr>
+<td>714 Variation stocks PF</td>
+<td>Revaluation at std revision</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="section-label" style="margin-top:12px;">P&amp;L Presentation</div>
+      <div class="pl-block" style="font-size:10px;">Revenue                     100 000
+COGS (standard)              -72 000  ← <span style="color:#0f3460;">stable, predictable</span>
+                             ───────
+Gross Margin (standard)       28 000  (28.0%)
+
+Variances:
+  Wood (604₁)                 -1 200
+  Chemical (604₁)               -300
+  Conversion (604₂)             -150
+  Machining (604₃)              -500
+                             ───────
+Gross Margin (actual)         25 850  (25.9%)</div>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">6 / 15</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 7: OPTION B — FULL FIFO                                   -->
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">6</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Option B — Full FIFO Inventory</h1>
+  <p class="subtitle">FG valued at actual FIFO cost per lot · No permanent variance accounts · Odoo 19 native</p>
+
+  <div class="cols-2 wide-left">
+    <div>
+      <div class="section-label green">Accounting Flows</div>
+
+      <h2 style="margin-top:6px;">MO Consumption (identical to Option A)</h2>
+      <div class="journal">
+<span class="dr">DR</span>  320  En-cours de fabrication (WIP)        <span class="note">(FIFO actual cost)</span>
+    <span class="cr">CR</span>  300  Matières premières – Bois blanc
+    <span class="cr">CR</span>  310  Matières premières – Chimie</div>
+
+      <h2>Work Centre Cost Absorption</h2>
+      <div class="journal">
+<span class="dr">DR</span>  320  En-cours de fabrication (WIP)        <span class="note">(standard WC rate × <strong>actual</strong> hours)</span>
+    <span class="cr">CR</span>  791  Production costs absorbed</div>
+
+      <h2>MO Completion — FG at Actual (NO Variance)</h2>
+      <div class="journal">
+<span class="dr">DR</span>  330  Produits finis                       <span class="note">(ACTUAL cost from WIP)</span>
+    <span class="cr">CR</span>  320  En-cours de fabrication (WIP)     <span class="note">(actual accumulated)</span>
+
+    <span class="note">⟵ No variance entry — actual cost flows directly into FG</span>
+    <span class="note">   Each lot holds its own actual cost</span>
+</div>
+
+      <h2>Sale Delivery — COGS at Actual FIFO</h2>
+      <div class="journal">
+<span class="dr">DR</span>  600  Coût des ventes (COGS)               <span class="note">(ACTUAL FIFO cost of lot)</span>
+    <span class="cr">CR</span>  330  Produits finis
+    <span class="note">Analytical distribution: actual % from MO (Level 2)</span>
+</div>
+
+    <div>
+      <div class="section-label green">Valuation Rules</div>
+      <table class="compact">
+        <thead><tr>
+<th>Stage</th>
+<th>Method</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>Raw Materials</td>
+<td>FIFO (actual purchase price per lot)</td>
+</tr>
+          <tr>
+<td>Ready-Mix</td>
+<td>FIFO (actual component cost)</td>
+</tr>
+          <tr class="success-row">
+<td>WIP</td>
+<td>
+<strong>Actual</strong> (FIFO materials + std rate × actual hours)</td>
+</tr>
+          <tr class="success-row">
+<td>Finished Goods</td>
+<td>
+<strong>Actual</strong> (FIFO per lot)</td>
+</tr>
+          <tr class="success-row">
+<td>Semi-FG</td>
+<td>
+<strong>Actual</strong> (flows from WIP)</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="section-label green" style="margin-top:12px;">No Permanent Variance Accounts</div>
+      <div class="callout success" style="margin-top:6px;">
+        <strong>Materials</strong>: actual FIFO. <strong>Conversion</strong>: actual hours × standard WC rate (only €/hour is budgeted). <strong>Machining (RDK)</strong>: provisional standard at MO close, settled to actual when vendor bill arrives — updates FG valuation layer and COGS, no 604 variance account needed.
+      </div>
+
+      <div class="section-label green" style="margin-top:10px;">P&amp;L Presentation</div>
+      <div class="pl-block" style="font-size:10px;">Revenue                     100 000
+COGS (actual FIFO)           -73 650  ← <span style="color:#2e7d32;">real cost, lot by lot</span>
+                             ───────
+Gross Margin                  26 350  (26.4%)
+
+  Analytical decomposition (actual % from MO):
+    Wood:           40 200  (54.6%)
+    Chemical:        8 100  (11.0%)
+    Conversion:     12 500  (17.0%)
+    Machining:      12 850  (17.5%)
+
+<span class="note">RDK cost included in COGS at actual (after vendor bill settlement)</span>
+<span class="note">Conversion: actual hours × std rate. Only €/hour is budgeted.</span>
+</div>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">7 / 15</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 8: THREE METHODS COMPARISON                                -->
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">7</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>The Three Valuation Methods — What They Really Mean</h1>
+  <p class="subtitle">Standard = blind · Weighted Average = smooth but irreversible · FIFO = traceable truth</p>
+
+  <table class="compact" style="font-size:10.5px; margin-top:10px;">
+    <thead>
+      <tr>
+        <th style="width:22%;">Criterion</th>
+        <th style="width:26%;">Standard Cost <span class="tag red" style="font-size:7px; vertical-align:middle;">TODAY</span>
+</th>
+        <th style="width:26%;">FIFO (Lot-Based Real Cost)</th>
+        <th style="width:26%;">Weighted Average</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>What you know per invoice</strong></td>
+        <td>Budget number (same for every lot)</td>
+        <td>
+<span class="tag green">Real cost</span> of the specific lot shipped</td>
+        <td>Blended average across all lots on hand</td>
+      </tr>
+      <tr>
+        <td><strong>Per-product profitability</strong></td>
+        <td>
+<span class="tag red">NO</span> — only by product group. Per-product requires opening every MO + manual variance allocation</td>
+        <td>
+<span class="tag green">YES</span> — automatic, per lot</td>
+        <td>
+<span class="tag green">YES</span> — automatic, per SKU</td>
+      </tr>
+      <tr>
+        <td><strong>Lot traceability</strong></td>
+        <td>Lost — all FG at same standard</td>
+        <td>
+<span class="tag green">Preserved</span> — lot → MO → cost breakdown</td>
+        <td>
+<span class="tag red">Destroyed</span> — averaged away, can never be reconstructed</td>
+      </tr>
+      <tr>
+        <td><strong>Reconciliation &amp; audit</strong></td>
+        <td>4 variance accounts, monthly allocation, auditor must trust your standard</td>
+        <td>
+<span class="tag green">Self-reconciling</span> — GL = reality. No permanent variance accounts (RDK settles to actual). Auditor’s preferred method</td>
+        <td>No variance accounts, but values are approximate — never exactly traceable to a specific lot</td>
+      </tr>
+      <tr>
+        <td><strong>Cross-market fairness</strong></td>
+        <td>Fair (same standard everywhere)</td>
+        <td>
+<span class="tag orange">Noisy</span> at single-invoice level</td>
+        <td>Fair (same product = same cost)</td>
+      </tr>
+      <tr>
+        <td><strong>Where errors hide</strong></td>
+        <td>
+<span class="tag red">Always</span> — standard masks reality until quarterly revision</td>
+        <td>
+<span class="tag green">Never</span> — every lot individually visible</td>
+        <td>Sometimes — price swing shifts average for ALL stock</td>
+      </tr>
+      <tr>
+        <td><strong>EOM close effort</strong></td>
+        <td>High — 4 variance accounts to allocate, ~200 standards to maintain</td>
+        <td>
+<span class="tag green">Low</span> — no variance accounts. RDK settles to inventory/COGS at actual</td>
+        <td>Lowest</td>
+      </tr>
+      <tr>
+        <td><strong>Odoo 19 readiness</strong></td>
+        <td>Supported</td>
+        <td>
+<span class="tag green">Most mature</span> (lot_valuated)</td>
+        <td>Supported</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="cols-2" style="gap:20px; margin-top:10px;">
+    <div class="decision-box" style="border-color:#c62828; margin:0;">
+      <h3 style="color:#c62828;">The Punchline</h3>
+      <p style="font-size:11px;">Standard cost gives you a budget that hides reality. Weighted average gives you a smooth number that <strong>destroys traceability forever</strong>. FIFO gives you the truth — and from truth, you can always compute any smoothed view you want. <strong>You cannot go the other way.</strong></p>
+    </div>
+    <div class="decision-box" style="border-color:#2e7d32; margin:0;">
+      <h3 style="color:#2e7d32;">FIFO Self-Corrects Over Volume</h3>
+      <table class="compact" style="font-size:9.5px; margin:4px 0;">
+        <thead><tr>
+<th>Horizon</th>
+<th>Txns/SKU</th>
+<th>FIFO vs WA gap</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>Single invoice</td>
+<td>1 lot</td>
+<td><span class="tag orange">Visible</span></td>
+</tr>
+          <tr>
+<td>Monthly</td>
+<td>20–50</td>
+<td><span class="tag green">Negligible</span></td>
+</tr>
+          <tr>
+<td>Quarterly+</td>
+<td>60+</td>
+<td><span class="tag green">Zero</span></td>
+</tr>
+        </tbody>
+      </table>
+      <p style="font-size:10px; color:#555; margin-top:4px;">
+        Nobody makes business decisions on one invoice. At monthly+ level, FIFO and WA produce the <strong>same result</strong>.
+      </p>
+    </div>
+  </div>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">8 / 15</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 8b: WHAT "FIFO" REALLY MEANS AT KEBONY                    -->
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">8</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>What “FIFO” Really Means at Kebony</h1>
+  <p class="subtitle">Not textbook FIFO — lot-based specific identification with FIFO as the default reservation discipline</p>
+
+  <div class="cols-2" style="gap:24px; margin-top:10px;">
+    <div>
+      <div class="section-label">How It Works in Practice</div>
+      <table class="compact" style="font-size:10.5px;">
+        <thead>
+          <tr>
+<th style="width:20%;">Step</th>
+<th style="width:30%;">System Proposes (FIFO)</th>
+<th style="width:25%;">Operations May Override</th>
+<th style="width:25%;">Cost That Flows</th>
+</tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>MO consumption</strong></td>
+            <td>Oldest lot reserved first</td>
+            <td>Operator picks whichever lot suits the process (dimensions, drying state, proximity)</td>
+            <td>
+<span class="tag green">Actual cost</span> of the lot consumed</td>
+          </tr>
+          <tr>
+            <td><strong>Sales delivery</strong></td>
+            <td>Oldest lot reserved on pick</td>
+            <td>Warehouse ships whichever lot is operationally practical</td>
+            <td>
+<span class="tag green">Actual cost</span> of the lot shipped</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout info" style="margin-top:10px;">
+        <strong>Key point:</strong> The Odoo product category is set to “FIFO”, but because every lot has its own valuation layer (<code>stock.valuation.layer</code>), the <strong>actual cost flow is specific identification</strong> (IAS 2.23). FIFO only governs the <em>order in which lots are proposed</em>, not the <em>cost assigned</em>.
+      </div>
+
+      <div class="section-label" style="margin-top:12px;">In Accounting Terms</div>
+      <table class="compact" style="font-size:10.5px;">
+        <thead><tr>
+<th>Term</th>
+<th>What It Means at Kebony</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td><strong>FIFO setting</strong></td>
+<td>Default reservation order: propose oldest lot first</td>
+</tr>
+          <tr>
+<td><strong>Actual cost flow</strong></td>
+<td>Specific identification — real lot cost flows to WIP / COGS</td>
+</tr>
+          <tr>
+<td><strong>Valuation layer</strong></td>
+<td>One layer per lot, carrying that lot’s actual cost</td>
+</tr>
+        </tbody>
+      </table>
+
+    <div>
+      <div class="section-label green">Why This Is a Feature, Not a Bug</div>
+
+      <div class="mini-card" style="border-left:3px solid #2e7d32;">
+        <h4 style="color:#2e7d32;">1. Full Traceability</h4>
+        <p>Every COGS entry traces to a specific lot with a specific cost. No averaging, no abstraction. The GL is maximally truthful.</p>
+      </div>
+
+      <div class="mini-card" style="border-left:3px solid #0f3460;">
+        <h4>2. Slow-Mover Discipline</h4>
+        <p>FIFO as the default reservation forces visibility on slow movers. The system keeps proposing the oldest lot until someone deals with it — consumes it, downgrades it, or writes it off. <strong>Old stock cannot hide.</strong></p>
+      </div>
+
+      <div class="mini-card" style="border-left:3px solid #0f3460;">
+        <h4>3. Operational Freedom</h4>
+        <p>When an operator overrides FIFO, they make a <strong>conscious decision</strong>. The cost recorded is still the real cost of what was actually used. No precision is lost.</p>
+      </div>
+
+      <div class="decision-box" style="margin-top:10px; border-color:#2e7d32;">
+        <h3 style="color:#2e7d32;">IAS 2 Reference</h3>
+        <p style="font-size:10px;">IAS 2.23 allows <strong>specific identification</strong> for items that are not ordinarily interchangeable. Kebony’s lot-tracked lumber qualifies. FIFO (IAS 2.25) is the <em>reservation heuristic</em>, not the <em>cost formula</em>.</p>
+      </div>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">9 / 15</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 9: BELGIAN PCMN + ODOO CONFIG                             -->
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">9</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Belgian PCMN Account Mapping &amp; Odoo Configuration</h1>
+  <p class="subtitle">Chart of accounts mapping for both options · Product category setup in Odoo 19</p>
+
+  <div class="cols-2">
+    <div>
+      <div class="section-label">Balance Sheet — Class 3</div>
+      <table class="compact">
+        <thead><tr>
+<th>PCMN</th>
+<th>Description</th>
+<th>Used</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td><strong>300</strong></td>
+<td>Matières premières — Bois blanc</td>
+<td>Both</td>
+</tr>
+          <tr>
+<td><strong>301</strong></td>
+<td>Matières premières — Chimie</td>
+<td>Both</td>
+</tr>
+          <tr>
+<td><strong>302</strong></td>
+<td>Ready-Mix (intermediate)</td>
+<td>Both</td>
+</tr>
+          <tr>
+<td><strong>320</strong></td>
+<td>En-cours — Kébonisation (WIP)</td>
+<td>Both</td>
+</tr>
+          <tr>
+<td><strong>322</strong></td>
+<td>En-cours — Machinage (WIP-Mach)</td>
+<td>Both</td>
+</tr>
+          <tr>
+<td><strong>325</strong></td>
+<td>Semi-produits finis (Semi-FG)</td>
+<td>Both</td>
+</tr>
+          <tr>
+<td><strong>330</strong></td>
+<td>Produits finis (Finished Goods)</td>
+<td>Both</td>
+</tr>
+          <tr>
+<td><strong>360</strong></td>
+<td>Emballages commerciaux (Packaging)</td>
+<td>Both</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="section-label" style="margin-top:10px;">Clearing — Class 4</div>
+      <table class="compact">
+        <thead><tr>
+<th>PCMN</th>
+<th>Description</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td><strong>440</strong></td>
+<td>Fournisseurs (Trade Payables)</td>
+</tr>
+          <tr>
+<td><strong>444</strong></td>
+<td>Factures à recevoir — GRNI</td>
+</tr>
+          <tr>
+<td><strong>444x</strong></td>
+<td>Sous-traitance à recevoir (Machining GRNI)</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="section-label" style="margin-top:10px;">P&amp;L — Class 6 / 7</div>
+      <table class="compact">
+        <thead><tr>
+<th>PCMN</th>
+<th>Description</th>
+<th>Used</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td><strong>600</strong></td>
+<td>Coût des ventes (COGS)</td>
+<td>Both</td>
+</tr>
+          <tr>
+<td>604₁</td>
+<td>Écart matières (material var.)</td>
+<td>A only</td>
+</tr>
+          <tr>
+<td>604₂</td>
+<td>Écart conversion</td>
+<td>A only</td>
+</tr>
+          <tr>
+<td>604₃ / 604</td>
+<td>Écart machinage (A: permanent variance; B: not used — settles to 330/600)</td>
+<td>A only</td>
+</tr>
+          <tr>
+<td>613</td>
+<td>Loyers / Sous-traitance logistique</td>
+<td>Both</td>
+</tr>
+          <tr>
+<td><strong>700</strong></td>
+<td>Chiffre d'affaires (Revenue)</td>
+<td>Both</td>
+</tr>
+          <tr>
+<td>791</td>
+<td>Production costs absorbed (WC contra)</td>
+<td>B only</td>
+</tr>
+        </tbody>
+      </table>
+
+    <div>
+      <div class="section-label green">Product Category Config — Option B (FIFO)</div>
+      <table class="compact">
+        <thead><tr>
+<th>Category</th>
+<th>Costing</th>
+<th>Valuation</th>
+<th>Input</th>
+<th>Output</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>RM — Wood</td>
+<td>FIFO</td>
+<td>300</td>
+<td>444</td>
+<td>320</td>
+</tr>
+          <tr>
+<td>RM — Chemical</td>
+<td>FIFO</td>
+<td>301</td>
+<td>444</td>
+<td>320</td>
+</tr>
+          <tr>
+<td>Packaging</td>
+<td>FIFO</td>
+<td>360</td>
+<td>444</td>
+<td>320</td>
+</tr>
+          <tr>
+<td>Ready-Mix</td>
+<td>FIFO</td>
+<td>302</td>
+<td>320</td>
+<td>320</td>
+</tr>
+          <tr class="success-row">
+<td>Semi-FG</td>
+<td><strong>FIFO</strong></td>
+<td>325</td>
+<td>320</td>
+<td>322</td>
+</tr>
+          <tr class="success-row">
+<td>Finished Goods</td>
+<td><strong>FIFO</strong></td>
+<td>330</td>
+<td>320/322</td>
+<td>600</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="section-label" style="margin-top:12px;">Product Category Config — Option A (Standard)</div>
+      <table class="compact">
+        <thead><tr>
+<th>Category</th>
+<th>Costing</th>
+<th>Valuation</th>
+<th>Input</th>
+<th>Output</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>RM — Wood</td>
+<td>FIFO</td>
+<td>300</td>
+<td>444</td>
+<td>320</td>
+</tr>
+          <tr>
+<td>RM — Chemical</td>
+<td>FIFO</td>
+<td>301</td>
+<td>444</td>
+<td>320</td>
+</tr>
+          <tr>
+<td>Packaging</td>
+<td>FIFO</td>
+<td>360</td>
+<td>444</td>
+<td>320</td>
+</tr>
+          <tr>
+<td>Ready-Mix</td>
+<td>FIFO</td>
+<td>302</td>
+<td>320</td>
+<td>320</td>
+</tr>
+          <tr class="highlight-row">
+<td>Semi-FG</td>
+<td><strong>Standard</strong></td>
+<td>325</td>
+<td>320</td>
+<td>322</td>
+</tr>
+          <tr class="highlight-row">
+<td>Finished Goods</td>
+<td><strong>Standard</strong></td>
+<td>330</td>
+<td>320/322</td>
+<td>600</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="callout info" style="margin-top:12px;">
+        <strong>Only difference:</strong> The costing method on Semi-FG and FG product categories changes from <strong>Standard</strong> to <strong>FIFO</strong>. All accounts remain the same.
+      </div>
+
+      <div class="decision-box" style="margin-top:10px;">
+        <h3>FIFO Requires</h3>
+        <p><code>lot_valuated = True</code> on all FG and Semi-FG product categories. Each lot holds its own actual cost. This is Odoo 19's most mature and tested valuation mode.</p>
+      </div>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">10 / 15</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 10: PACKAGING, TRANSFER & WAREHOUSING                     -->
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">10</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Packaging, Transfer &amp; Warehousing Costs</h1>
+  <p class="subtitle">5th cost component (packaging) · Transfer costs capitalised (IAS 2.11) · Warehousing = period expense (IAS 2.16b)</p>
+
+  <div class="cols-2">
+    <div>
+      <div class="section-label green">Packaging Material — FIFO (Decided)</div>
+      <div class="callout success">
+        Packaging materials are inventorised at <strong>FIFO purchase price</strong>, consumed in the MO as a BOM component, and flow into FG cost alongside wood and chemicals.
+      </div>
+
+      <table class="compact">
+        <thead><tr>
+<th>Aspect</th>
+<th>Treatment</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td><strong>Valuation</strong></td>
+<td>FIFO (actual purchase price per lot)</td>
+</tr>
+          <tr>
+<td><strong>PCMN account</strong></td>
+<td>360 Emballages commerciaux</td>
+</tr>
+          <tr>
+<td><strong>BOM treatment</strong></td>
+<td>Consumed as component in MO</td>
+</tr>
+          <tr>
+<td><strong>CM Level</strong></td>
+<td>Material (grouped with wood + chemicals)</td>
+</tr>
+          <tr>
+<td><strong>Odoo config</strong></td>
+<td>FIFO, Val: 360, In: 444, Out: 320</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="callout info" style="margin-top:8px;">
+        <strong>Analytical split:</strong> For go-live, packaging is grouped under the <strong>Material</strong> CM level. The MO cost breakdown still shows packaging as a separate line — it can be split out as a distinct cost group post go-live if needed.
+      </div>
+
+      <div class="section-label" style="margin-top:12px;">Transfer Costs — Capitalised (IAS 2.11)</div>
+      <div class="callout info">
+        <em>"The cost of purchase comprises the purchase price, import duties and other taxes, and <strong>transport, handling and other costs directly attributable</strong> to the acquisition."</em>
+      </div>
+
+      <table class="compact">
+        <thead><tr>
+<th>Scenario</th>
+<th>Implementation</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td><strong>Supplier → Plant</strong></td>
+<td>
+<span class="tag green">Landed cost</span> on PO receipt — adds freight to RM FIFO layer automatically</td>
+</tr>
+          <tr>
+<td><strong>Supplier → Ext. WH</strong></td>
+<td>
+<span class="tag green">Landed cost</span> on PO receipt — same mechanism</td>
+</tr>
+          <tr>
+<td><strong>Ext. WH → Plant</strong></td>
+<td>
+<span class="tag blue">BOM service line</span> at standard €/m³ — absorbed at MO, settle periodically (like RDK)</td>
+</tr>
+        </tbody>
+      </table>
+
+    <div>
+      <div class="section-label red">External Warehousing — Period Expense (IAS 2.16b)</div>
+      <div class="callout danger">
+        <em>"Storage costs are excluded from inventory cost, <strong>unless those costs are necessary in the production process prior to a further production stage</strong>."</em>
+      </div>
+
+      <table class="compact">
+        <thead><tr>
+<th>Aspect</th>
+<th>Treatment</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td><strong>BS treatment</strong></td>
+<td>
+<span class="tag red">Not capitalised</span> — period expense</td>
+</tr>
+          <tr>
+<td><strong>PCMN account</strong></td>
+<td>613 Loyers / 615 Sous-traitance logistique</td>
+</tr>
+          <tr>
+<td><strong>Posting</strong></td>
+<td>Monthly warehouse invoice → expense</td>
+</tr>
+          <tr>
+<td><strong>Analytical</strong></td>
+<td>Tagged by product family + warehouse</td>
+</tr>
+          <tr>
+<td><strong>Margin impact</strong></td>
+<td>Below gross margin (SG&amp;A / logistics)</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="callout warning" style="margin-top:8px;">
+        <strong>Exception:</strong> If specific storage is <em>necessary prior to a further production stage</em> (e.g., wood acclimatisation before kébonisation), that portion could be capitalised as conversion cost. Narrow exception — not recommended for general external warehousing.
+      </div>
+
+      <div class="section-label" style="margin-top:12px;">Summary: Cost Treatment by Type</div>
+      <table class="compact">
+        <thead><tr>
+<th>Cost Type</th>
+<th>BS / P&amp;L</th>
+<th>Mechanism</th>
+</tr></thead>
+        <tbody>
+          <tr class="success-row">
+<td>Packaging material</td>
+<td>
+<strong>BS</strong> (FIFO)</td>
+<td>BOM component, 360</td>
+</tr>
+          <tr class="success-row">
+<td>Freight: supplier → plant</td>
+<td>
+<strong>BS</strong> (landed)</td>
+<td>Landed cost on PO</td>
+</tr>
+          <tr class="success-row">
+<td>Freight: supplier → WH</td>
+<td>
+<strong>BS</strong> (landed)</td>
+<td>Landed cost on PO</td>
+</tr>
+          <tr class="success-row">
+<td>Freight: WH → plant</td>
+<td>
+<strong>BS</strong> (BOM)</td>
+<td>BOM service line, std/m³</td>
+</tr>
+          <tr class="danger-row">
+<td>External storage</td>
+<td><strong>P&amp;L</strong></td>
+<td>613/615, analytical by family</td>
+</tr>
+        </tbody>
+      </table>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">11 / 15</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 11: RDK SETTLEMENT + AUTOMATION                           -->
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">11</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>RDK Settlement &amp; Automation Components</h1>
+  <p class="subtitle">Two-step machining cost: standard at MO close, actual at vendor bill · Automation roadmap for go-live</p>
+
+  <div class="cols-2">
+    <div>
+      <div class="section-label">RDK Machining Settlement — Two-Step Cost Update</div>
+      <div class="flow-diagram" style="font-size:10px; padding:12px 16px;">
+<span class="label">Step 1</span>  Semi-FG transferred to RDK subcontractor location
+         <span class="dr">DR</span> 322 WIP-Machinage / <span class="cr">CR</span> 325 Semi-produits finis
+
+<span class="label">Step 2</span>  MO completed — FG at <span class="highlight">provisional</span> standard machining
+         <span class="dr">DR</span> 330 Produits finis <span class="note">(material + std machining)</span>
+             <span class="cr">CR</span> 322 WIP-Machinage <span class="note">(material portion)</span>
+             <span class="cr">CR</span> 444x Sous-traitance à recevoir <span class="note">(std machining)</span>
+
+<span class="label">Step 3</span>  PO generated to RDK <span class="note">(no accounting entry)</span>
+
+<span class="label">Step 4</span>  Vendor bill arrives — <span class="green">update FG valuation with actual</span>
+         <span class="dr">DR</span> 444x Sous-traitance à recevoir <span class="note">(clear std amount)</span>
+             <span class="cr">CR</span> 440 Fournisseurs <span class="note">(actual invoice)</span>
+         <span class="dr">DR</span>/<span class="cr">CR</span> 330 Produits finis <span class="note">(adjust lot: actual − std)</span>
+         <span class="note">If lot already sold:</span>
+         <span class="dr">DR</span>/<span class="cr">CR</span> 600 COGS adjustment <span class="note">(prorate by m³)</span>
+</div>
+
+      <div class="cols-2" style="gap:12px; margin-top:8px;">
+        <div class="mini-card">
+          <h4>Not a Variance — a Cost Update</h4>
+          <p>The actual machining cost <strong>replaces</strong> the standard estimate on the FG valuation layer. If lot is on hand → adjust 330. If already sold → adjust 600 COGS. <strong>No permanent 604 account.</strong></p>
+        </div>
+        <div class="mini-card">
+          <h4>Standard Rate Source</h4>
+          <p>Volume-dependent price list (cost/m³ decreases at higher volumes). Rate is a <strong>provisional estimate</strong> until vendor bill arrives.</p>
+        </div>
+      </div>
+
+      <div class="callout success" style="margin-top:8px;">
+        <strong>Go-live requirement:</strong> RDK settlement automation must match vendor bill to MOs, allocate actual cost back to FG lots (by m³), and adjust COGS for lots already sold.
+      </div>
+
+    <div>
+      <div class="section-label green">Automation Components — Effort Roadmap</div>
+
+      <div class="mini-card" style="border-left:3px solid #c62828;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h4>1. COGS Analytical Distribution</h4>
+          <div>
+<span class="tag red">Must-Have</span> <span class="tag grey">5 days</span>
+</div>
+        </div>
+        <p>Sale delivery → COGS journal entry. Traces lot to producing MO, reads actual cost breakdown, applies as analytical distribution on COGS line. Fallback to standard % from planning family if no MO found.</p>
+      </div>
+
+      <div class="mini-card" style="border-left:3px solid #e65100;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h4>2. Standard Cost Monitor</h4>
+          <div>
+<span class="tag orange">Should-Have</span> <span class="tag grey">3 days</span>
+</div>
+        </div>
+        <p>Accounting Hub → "Cost Monitoring" tab. Compares weighted-avg actual MO cost vs <code>standard_price</code>. Flags deviations &gt;5%. "Propose Revaluation" button. Required for Option A, useful for B.</p>
+      </div>
+
+      <div class="mini-card" style="border-left:3px solid #e65100;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h4>3. RDK Settlement Automation</h4>
+          <div>
+<span class="tag orange">Should-Have</span> <span class="tag grey">3 days</span>
+</div>
+        </div>
+        <p>RDK vendor bill validated → matches PO lines to subcontracting MOs → computes actual vs standard → updates FG lot valuation (330) and COGS (600) if lot already sold. No 604 variance posting.</p>
+      </div>
+
+      <div class="mini-card" style="border-left:3px solid #e65100;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h4>4. Margin by Product Report</h4>
+          <div>
+<span class="tag orange">Should-Have</span> <span class="tag grey">2 days</span>
+</div>
+        </div>
+        <p>Analytical pivot on COGS. Dimensions: product/family, customer/area, period. Revenue, COGS decomposed (wood, chem, conv, mach), GM, variance.</p>
+      </div>
+
+      <div style="display:flex; gap:12px; margin-top:10px; justify-content:center;">
+        <div style="text-align:center;">
+          <div class="big-num">13</div>
+          <div class="big-label">Total Dev Days</div>
+        </div>
+        <div style="text-align:center; padding-left:24px; border-left:1px solid #ddd;">
+          <div class="big-num">5</div>
+          <div class="big-label">Must-Have</div>
+        </div>
+        <div style="text-align:center; padding-left:24px; border-left:1px solid #ddd;">
+          <div class="big-num">8</div>
+          <div class="big-label">Should-Have</div>
+        </div>
+      </div>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">12 / 15</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 12: CONVERSION VARIANCE + PRECISION                       -->
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">12</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Conversion Variance Tracking &amp; Precision Enhancements</h1>
+  <p class="subtitle">How to track conversion variance in both options · Optional post-go-live improvements</p>
+
+  <div class="cols-2">
+    <div>
+      <div class="section-label">Conversion Variance — Tracking Approach</div>
+      <div class="callout info">
+        Conversion costs are absorbed via Work Centre rates (<strong>standard €/hour × actual hours</strong>). The <strong>hours are actual</strong> (captured from production). Only the <strong>€/hour rate is budgeted</strong> (annual cost pool ÷ capacity). The variance arises because actual spend per hour differs from the budgeted rate — this is the <strong>only non-actual element</strong> in the FIFO valuation layer (~17% of total cost).
+      </div>
+
+      <table class="compact">
+        <thead><tr>
+<th>Step</th>
+<th>Description</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td><strong>1</strong></td>
+<td>
+<strong>Actual spend</strong> — GL accounts track real costs per cost pool (Stacking, Autoclave, Dryer): salaries, energy, maintenance, depreciation</td>
+</tr>
+          <tr>
+<td><strong>2</strong></td>
+<td>
+<strong>Absorbed amount</strong> — sum of (WC rate × actual hours) across all MOs in the period, posted via account 791</td>
+</tr>
+          <tr>
+<td><strong>3</strong></td>
+<td><strong>Variance = Actual spend − Absorbed</strong></td>
+</tr>
+          <tr>
+<td><strong>4</strong></td>
+<td>Report in <strong>absolute</strong> (pragmatic) or divide by budget hours for a <strong>rate variance</strong>
+</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="section-label" style="margin-top:12px;">Option A vs. Option B Treatment</div>
+      <div class="cols-2" style="gap:10px;">
+        <div class="mini-card" style="border-left:3px solid #666;">
+          <h4 style="color:#666;">Option A</h4>
+          <p>Conversion variance explicitly posted to <strong>604₂</strong> at each MO completion. Straightforward but per-MO. Sum of 604₂ = total variance.</p>
+        </div>
+        <div class="mini-card" style="border-left:3px solid #2e7d32;">
+          <h4 style="color:#2e7d32;">Option B</h4>
+          <p>No per-MO variance. Tracked at <strong>period level</strong>: actual cost pool GL vs. sum of absorbed (791). Monthly GL comparison.</p>
+        </div>
+      </div>
+
+      <div class="callout warning" style="margin-top:8px;">
+        <strong>Practical note:</strong> Not easy to track with full precision. The absolute comparison (actual GL vs absorbed per period) is a pragmatic first step — already a significant improvement over AX.
+      </div>
+
+    <div>
+      <div class="section-label orange">Post Go-Live — Precision Questions</div>
+
+      <div class="mini-card" style="border-left:3px solid #e65100;">
+        <h4>Monthly WC Rate Revision</h4>
+        <table class="compact" style="margin:4px 0;">
+          <tbody>
+            <tr>
+<td style="width:25%;"><strong>What</strong></td>
+<td>Review conversion cost rates monthly instead of annually. Push revised rates into stock valuation.</td>
+</tr>
+            <tr>
+<td><strong>Gain</strong></td>
+<td>Higher accuracy on BS valuation of conversion portion (~17% of total cost). Marginal if production is stable month-to-month.</td>
+</tr>
+            <tr>
+<td><strong>Cost</strong></td>
+<td>Monthly close task: recompute rates, update WC config, potential revaluation entries.</td>
+</tr>
+            <tr>
+<td><strong>Verdict</strong></td>
+<td>
+<span class="tag orange">Worth it if</span> conversion costs are volatile (e.g., energy prices). Otherwise annual is sufficient.</td>
+</tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mini-card" style="border-left:3px solid #e65100;">
+        <h4>Exploding Cost Groups Further</h4>
+        <table class="compact" style="margin:4px 0;">
+          <tbody>
+            <tr>
+<td style="width:25%;"><strong>What</strong></td>
+<td>Split beyond 4 groups. E.g., separate Stacking / Autoclave / Dryer instead of one "Conversion".</td>
+</tr>
+            <tr>
+<td><strong>Gain</strong></td>
+<td>Finer margin analysis. But: 1 cost group = 1 margin level. More groups = more complexity for marginal insight.</td>
+</tr>
+            <tr>
+<td><strong>Cost</strong></td>
+<td>More WC config, more analytical accounts, more lines in margin report, more complexity in Level 2 logic.</td>
+</tr>
+            <tr>
+<td><strong>Verdict</strong></td>
+<td>
+<span class="tag orange">Diminishing returns</span> beyond 4 groups. Finer splits can be added incrementally post go-live.</td>
+</tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="decision-box" style="margin-top:12px;">
+        <h3>Principle</h3>
+        <p>Start with <strong>4 cost groups</strong> at go-live (Wood, Chemical, Conversion, Machining). Level 2 actual % already captures the real cost structure per lot. Finer splits are additive and can be phased in without re-architecture.</p>
+      </div>
+
+      <div class="section-label" style="margin-top:12px;">Standard Cost Maintenance Summary</div>
+      <table class="compact">
+        <thead><tr>
+<th>Component</th>
+<th>Option A</th>
+<th>Option B</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>Wood</td>
+<td>Quarterly revision</td>
+<td><span class="tag green">Auto (FIFO)</span></td>
+</tr>
+          <tr>
+<td>Chemicals</td>
+<td>Quarterly revision</td>
+<td><span class="tag green">Auto (FIFO)</span></td>
+</tr>
+          <tr>
+<td>Conversion (WC)</td>
+<td>Annual</td>
+<td>Annual</td>
+</tr>
+          <tr>
+<td>Machining (RDK)</td>
+<td>Annual / renegotiation</td>
+<td>Annual / renegotiation</td>
+</tr>
+        </tbody>
+      </table>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">13 / 15</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 14: OPTION B+ — THE RECOMMENDATION                        -->
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">13</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Option B+ — FIFO + Quarterly SKU Margin Averaging</h1>
+  <p class="subtitle"><span class="tag green">DECIDED — SteerCo 23 March 2026</span> · You can always smooth truth. You cannot un-smooth an average.</p>
+
+  <div class="cols-2" style="gap:24px; margin-top:8px;">
+    <div>
+      <div class="section-label green">Layer 1 — The Books (Statutory GL)</div>
+      <div class="flow-diagram" style="font-size:10.5px; padding:12px 16px;">
+<span class="green">FIFO: actual lot cost flows to COGS</span>
+Every invoice shows the <span class="green">real margin</span> for the lot shipped
+Full traceability: lot → MO → cost breakdown
+IAS 2 gold standard — auditor’s preferred method
+
+<span class="label">Who uses this:</span> CFO, Controller, Auditor
+<span class="label">What they see:</span> The truth, lot by lot</div>
+
+      <div class="section-label" style="margin-top:10px;">Layer 2 — The View (Reporting Query)</div>
+      <div class="flow-diagram" style="font-size:10.5px; padding:12px 16px;">
+<span class="blue">For each SKU, for each quarter:</span>
+  Avg margin = Σ(revenue − COGS) / Σ(qty sold)
+
+Same product shows <span class="blue">same average margin</span> across all markets
+No lot-to-lot noise
+<span class="highlight">No journal entries</span> — it’s a GROUP BY on existing FIFO data
+
+<span class="label">Who uses this:</span> CEO, Sales, Commercial team
+<span class="label">What they see:</span> Fair, smoothed, comparable numbers</div>
+
+    <div>
+      <div class="section-label">Why Option B+ Wins</div>
+      <table class="compact" style="font-size:10.5px;">
+        <thead><tr>
+<th>Question</th>
+<th>Answer</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>Does it require journal entries?</td>
+<td>
+<span class="tag green">No</span> — pure reporting layer</td>
+</tr>
+          <tr>
+<td>Does it require a management ledger?</td>
+<td>
+<span class="tag green">No</span> — just a query</td>
+</tr>
+          <tr>
+<td>Does it touch the statutory books?</td>
+<td>
+<span class="tag green">No</span> — GL stays at FIFO</td>
+</tr>
+          <tr>
+<td>How hard is it to build?</td>
+<td>
+<span class="tag green">Trivial</span> — computed column in margin report</td>
+</tr>
+          <tr>
+<td>When does it become available?</td>
+<td>After 1 quarter of FIFO data (Q4 2026)</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="section-label" style="margin-top:12px;">Why Not Weighted Average in the GL Instead?</div>
+      <table class="compact" style="font-size:10px;">
+        <thead><tr>
+<th></th>
+<th>WA in GL</th>
+<th>Option B+ (FIFO + report)</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td><strong>Statutory books</strong></td>
+<td>Averaged (less precise)</td>
+<td><span class="tag green">Actual FIFO</span></td>
+</tr>
+          <tr>
+<td><strong>Lot traceability</strong></td>
+<td><span class="tag red">Lost forever</span></td>
+<td><span class="tag green">Preserved</span></td>
+</tr>
+          <tr>
+<td><strong>Cross-market fairness</strong></td>
+<td>Built-in</td>
+<td>Via quarterly averaging</td>
+</tr>
+          <tr>
+<td><strong>Reconciliation</strong></td>
+<td>Cannot trace to lot</td>
+<td><span class="tag green">Every line traceable</span></td>
+</tr>
+          <tr>
+<td><strong>Flexibility</strong></td>
+<td>Locked into one view</td>
+<td><span class="tag green">Both views</span></td>
+</tr>
+          <tr>
+<td><strong>Reversibility</strong></td>
+<td>Cannot reconstruct FIFO</td>
+<td><span class="tag green">Can always compute WA</span></td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="callout warning" style="margin-top:8px; font-size:10px;">
+        <strong>Phase 3 (on demand):</strong> If the CEO ever needs a <em>full smoothed P&amp;L</em> (not just a margin report), the VVF multi-ledger can produce one with adjustment JEs. Available but <strong>probably unnecessary</strong> — the quarterly SKU margin report covers 99% of the need.
+      </div>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">14 / 15</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 15: IMPLEMENTATION TIMELINE                                -->
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">14</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Implementation Timeline</h1>
+  <p class="subtitle">Path to July 1 go-live · <span class="tag green">Option B+ confirmed at SteerCo 23 March 2026</span></p>
+
+  <div class="cols-2 wide-left">
+    <div>
+      <div class="section-label">Go-Live Roadmap</div>
+      <table class="compact timeline">
+        <thead><tr>
+<th>#</th>
+<th>Component</th>
+<th>Effort</th>
+<th>Priority</th>
+</tr></thead>
+        <tbody>
+          <tr class="success-row">
+<td>1</td>
+<td><s>CEO/CFO confirm: Anglo-Saxon + FIFO (Option B+)</s></td>
+<td>—</td>
+<td>
+<span class="tag green">Done</span> 23 Mar</td>
+</tr>
+          <tr>
+<td>2</td>
+<td>Product category setup (FIFO, valuation accts)</td>
+<td>Config</td>
+<td><span class="tag red">Must</span></td>
+</tr>
+          <tr>
+<td>3</td>
+<td>Work centre rate configuration</td>
+<td>Config</td>
+<td><span class="tag red">Must</span></td>
+</tr>
+          <tr>
+<td>4</td>
+<td>RDK price list / provisional rate setup</td>
+<td>Config</td>
+<td><span class="tag red">Must</span></td>
+</tr>
+          <tr>
+<td>5</td>
+<td>COGS analytical distribution (code)</td>
+<td>5 days</td>
+<td><span class="tag red">Must</span></td>
+</tr>
+          <tr>
+<td>6</td>
+<td>RDK settlement automation (code)</td>
+<td>3 days</td>
+<td><span class="tag red">Must</span></td>
+</tr>
+          <tr>
+<td>7</td>
+<td>Margin by Product report (incl. SKU avg column)</td>
+<td>3 days</td>
+<td><span class="tag orange">Should</span></td>
+</tr>
+          <tr class="highlight-row">
+<td>8</td>
+<td>UAT with finance team</td>
+<td>—</td>
+<td><span class="tag red">Must</span></td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="section-label" style="margin-top:14px;">Phasing</div>
+      <table class="compact" style="font-size:10.5px;">
+        <thead><tr>
+<th>Phase</th>
+<th>What</th>
+<th>When</th>
+</tr></thead>
+        <tbody>
+          <tr class="success-row">
+<td><strong>Go-live</strong></td>
+<td>FIFO as system of record. Per-lot margin on every invoice.</td>
+<td>July 1, 2026</td>
+</tr>
+          <tr class="highlight-row">
+<td><strong>Q4 2026</strong></td>
+<td>Quarterly SKU margin averaging column in margin report. Trivial — just a GROUP BY on existing FIFO data.</td>
+<td>After first full quarter</td>
+</tr>
+          <tr>
+<td><strong>On demand</strong></td>
+<td>Management ledger (VVF multi-ledger) for full smoothed P&amp;L. Only if CEO explicitly needs separate books.</td>
+<td>Unlikely to be needed</td>
+</tr>
+        </tbody>
+      </table>
+
+    <div>
+      <div class="section-label green">Option B+ — Summary</div>
+      <div class="cols-3" style="margin-top:4px; gap:10px;">
+        <div class="mini-card" style="border-left:3px solid #2e7d32;">
+          <h4 style="color:#2e7d32;">Anglo-Saxon</h4>
+          <p>Full absorption. Conversion on BS until sold. <strong>Prerequisite.</strong></p>
+        </div>
+        <div class="mini-card" style="border-left:3px solid #2e7d32;">
+          <h4 style="color:#2e7d32;">FIFO (Layer 1)</h4>
+          <p>Per-lot margin, automatic. Full traceability. No permanent variance accounts.</p>
+        </div>
+        <div class="mini-card" style="border-left:3px solid #0f3460;">
+          <h4>SKU Avg (Layer 2)</h4>
+          <p>Quarterly averaging for CEO/sales. No JEs. Just a report.</p>
+        </div>
+      </div>
+
+      <ul class="check-list" style="margin-top:10px;">
+        <li class="ok">
+<strong>Auditor gets FIFO</strong> — maximum accuracy, full lot traceability</li>
+        <li class="ok">
+<strong>CEO gets smoothed view</strong> — fair cross-market comparison per SKU</li>
+        <li class="ok">
+<strong>Operations get slow-mover discipline</strong> — FIFO proposals force visibility</li>
+        <li class="ok">
+<strong>Controller gets reconciliation</strong> — every COGS line traces to a lot and its MO</li>
+        <li class="ok">
+<strong>Both views from one GL</strong> — no data loss, no compromise, fully reversible</li>
+      </ul>
+
+      <div style="background:#0f3460; color:#fff; border-radius:6px; padding:14px 18px; margin-top:12px; text-align:center;">
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; opacity:0.7; margin-bottom:6px;">Decision — SteerCo 23 March 2026</div>
+        <div style="font-size:18px; font-weight:700;">Option B+ Confirmed</div>
+        <div style="font-size:14px; font-weight:500; margin-top:4px;">FIFO + Anglo-Saxon COGS · Reporting layer if needed</div>
+        <div style="font-size:11px; margin-top:6px; opacity:0.8;">Truth for the auditor. Fairness for the CEO. No data destroyed.</div>
+      </div>
+
+  <div class="footer"><span>VVF Consulting · Confidential</span></div>
+  <div class="page-num">15 / 15</div>
+
+</div>
+</div>
+</div>
+
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">15</div>
+  </div>
+</div>
+
+footer"&gt;
+
+</body>
+</html>

@@ -1,0 +1,9 @@
+id,name,location_id/.id,usage,company_id/.id
+loc_raw_prime,Raw - Prime,47,internal,3
+loc_raw_bgrade,Raw - B-Grade,47,internal,3
+loc_wip_kebonisation,WIP - Kebonisation,47,internal,3
+loc_wip_clear,WIP - Clear,47,internal,3
+loc_wip_readymix,WIP - Ready-Mix,47,internal,3
+loc_fg_character,FG - Character,47,internal,3
+loc_fg_clear,FG - Clear,47,internal,3
+loc_rdk_machining,RDK - Machining,47,supplier,3

@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0">
+<title>IT Budget Impact — Run Rate Comparison</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    body { background: none; padding: 0; min-height: auto; }
+    .slide { box-shadow: none; border-radius: 0; margin: 0;
+             page-break-inside: avoid; page-break-after: always; }
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f5f5f5;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  .slide {
+    width: 1280px;
+    height: 720px;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    padding: 40px 50px 36px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
+
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+    letter-spacing: -0.3px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 18px;
+    font-weight: 400;
+  }
+
+  .content-grid {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #0f3460;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid #0f3460;
+    display: inline-block;
+  }
+
+  .section-label.green { color: #2e7d32; border-color: #2e7d32; }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10.5px;
+  }
+
+  th {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #888;
+    text-align: right;
+    padding: 2px 6px 4px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  th:first-child { text-align: left; }
+
+  /* Super-header row */
+  th.super {
+    font-size: 9px;
+    font-weight: 700;
+    color: #0f3460;
+    text-align: center;
+    border-bottom: 2px solid #0f3460;
+    padding: 4px 6px 3px;
+    letter-spacing: 0.8px;
+  }
+
+  th.super-empty {
+    border-bottom: none;
+  }
+
+  /* Vertical separator between Yearly Run Rate and 2026 groups */
+  td:nth-child(5), th:nth-child(5), th.super.col-2026 {
+    border-left: 2px solid #ccc;
+  }
+
+  td {
+    padding: 3px 6px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #333;
+    font-variant-numeric: tabular-nums;
+  }
+
+  td:first-child { font-weight: 400; }
+  td:not(:first-child) { text-align: right; }
+
+  /* Section sub-header */
+  tr.section-row td {
+    font-weight: 600;
+    color: #1a1a2e;
+    padding-top: 8px;
+    font-size: 10px;
+    border-bottom: 1px solid #ccc;
+    background: #fafafa;
+  }
+
+  /* Subtotals */
+  tr.subtotal-row td {
+    font-weight: 600;
+    border-top: 1px solid #999;
+    color: #1a1a2e;
+    padding-top: 4px;
+    border-bottom: 2px solid #ddd;
+  }
+
+  /* Grand total */
+  tr.grand-total td {
+    font-weight: 700;
+    font-size: 11.5px;
+    border-top: 2px solid #1a1a2e;
+    border-bottom: none;
+    color: #1a1a2e;
+    padding-top: 6px;
+  }
+
+  .muted { color: #bbb; }
+
+  /* Delta column */
+  .delta-pos { color: #c62828; font-weight: 600; }
+  .delta-neg { color: #2e7d32; font-weight: 600; }
+  .delta-zero { color: #bbb; }
+
+  /* ── Right-side comparison ── */
+  .comparison-table td { padding: 5px 8px; }
+  .comparison-table td:first-child { font-weight: 500; }
+
+  .saving-row td {
+    font-weight: 700 !important;
+    color: #2e7d32;
+    border-top: 2px solid #2e7d32;
+    border-bottom: none;
+    padding-top: 8px;
+    font-size: 12px;
+  }
+
+  /* ── Callout cards ── */
+  .callout-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  .callout {
+    border-radius: 6px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+
+  .callout.neutral { background: #f8f9fb; }
+  .callout.warning { background: #fff3e0; }
+  .callout.saving { background: #e8f5e9; }
+
+  .callout .num {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .callout .num.red { color: #c62828; }
+  .callout .num.green { color: #2e7d32; }
+  .callout .num.dark { color: #1a1a2e; }
+
+  .callout .label {
+    font-size: 8px;
+    color: #888;
+    margin-top: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-weight: 500;
+  }
+
+  /* ── Insight ── */
+  .insight {
+    margin-top: 14px;
+    padding: 8px 12px;
+    background: #fff8e1;
+    border-left: 3px solid #f9a825;
+    border-radius: 0 4px 4px 0;
+    font-size: 10.5px;
+    color: #555;
+    line-height: 1.5;
+  }
+
+  .insight strong { color: #1a1a2e; }
+
+  /* ── Footer ── */
+  .footer {
+    position: absolute;
+    bottom: 14px;
+    left: 50px;
+    right: 50px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #bbb;
+  }
+  .slide-number { font-size: 10px; color: #bbb; }
+  /* ── Logo ── */
+  .logo-title {
+    position: absolute; top: 30px; right: 40px;
+    height: 80px; opacity: 0.9;
+  }
+  .slide-footer {
+    position: absolute; bottom: 10px; left: 20px; right: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .prepared-by {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .prepared-by span {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+  .prepared-by img {
+    height: 22px; opacity: 0.7;
+  }
+  .footer-project {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<div class="slide">
+
+  <h1>IT OPEX 2026 — Impact of Delayed Go-Live</h1>
+  <p class="subtitle">Kebony · Delaying Belgium go-live from April to July 2026 extends existing tool costs · March 2026</p>
+
+  <div class="content-grid">
+
+<!-- LEFT: Combined IT OPEX table -->
+    <div>
+      <div class="section-label">IT OPEX 2026 — Full Application Landscape</div>
+      <table>
+        <thead>
+
+<!-- Super-header row -->
+          <tr>
+            <th class="super-empty"></th>
+            <th class="super" colspan="3">Yearly Run Rate</th>
+            <th class="super col-2026" colspan="3">2026</th>
+          </tr>
+
+<!-- Column headers -->
+          <tr>
+            <th>Application</th>
+            <th>Licensing</th>
+            <th>Maint.</th>
+            <th>Annual</th>
+            <th>BP</th>
+            <th>FCT</th>
+            <th>Δ</th>
+          </tr>
+        </thead>
+        <tbody>
+
+<!-- AS IS section -->
+          <tr class="section-row"><td colspan="7">AS IS — Legacy Applications</td></tr>
+          <tr>
+            <td>AX 2012</td>
+            <td>43,000</td>
+            <td>50,000</td>
+            <td>93,000</td>
+            <td>46,500</td>
+            <td>69,750</td>
+            <td class="delta-pos">+23,250</td>
+          </tr>
+          <tr>
+            <td>Dynamics 365 (CRM)</td>
+            <td>38,400</td>
+            <td>10,000</td>
+            <td>48,400</td>
+            <td>24,200</td>
+            <td>36,300</td>
+            <td class="delta-pos">+12,100</td>
+          </tr>
+          <tr>
+            <td>PIM (Perfion)</td>
+            <td>7,500</td>
+            <td>10,000</td>
+            <td>17,500</td>
+            <td>17,500</td>
+            <td>17,500</td>
+            <td class="delta-zero">—</td>
+          </tr>
+          <tr>
+            <td>Onstro</td>
+            <td>50,000</td>
+            <td class="muted">—</td>
+            <td>50,000</td>
+            <td>25,000</td>
+            <td>37,500</td>
+            <td class="delta-pos">+12,500</td>
+          </tr>
+          <tr>
+            <td>DocuSign</td>
+            <td>1,500</td>
+            <td class="muted">—</td>
+            <td>1,500</td>
+            <td>1,500</td>
+            <td>1,500</td>
+            <td class="delta-zero">—</td>
+          </tr>
+          <tr>
+            <td>Officient</td>
+            <td>5,460</td>
+            <td class="muted">—</td>
+            <td>5,460</td>
+            <td>2,730</td>
+            <td>4,095</td>
+            <td class="delta-pos">+1,365</td>
+          </tr>
+          <tr>
+            <td>Active Campaign</td>
+            <td>2,000</td>
+            <td class="muted">—</td>
+            <td>2,000</td>
+            <td>2,000</td>
+            <td>1,500</td>
+            <td class="delta-neg">−500</td>
+          </tr>
+          <tr>
+            <td>Web Site Management</td>
+            <td>5,000</td>
+            <td>40,000</td>
+            <td>45,000</td>
+            <td>45,000</td>
+            <td>45,000</td>
+            <td class="delta-zero">—</td>
+          </tr>
+          <tr>
+            <td>Salesforce US</td>
+            <td>14,400</td>
+            <td class="muted">—</td>
+            <td>14,400</td>
+            <td>14,400</td>
+            <td>14,400</td>
+            <td class="delta-zero">—</td>
+          </tr>
+          <tr>
+            <td>Infrastructure (Citrix)</td>
+            <td>138,000</td>
+            <td class="muted">—</td>
+            <td class="muted">—</td>
+            <td>69,000</td>
+            <td>103,500</td>
+            <td class="delta-pos">+34,500</td>
+          </tr>
+          <tr class="subtotal-row">
+            <td>Subtotal AS IS</td>
+            <td>167,260</td>
+            <td>110,000</td>
+            <td>277,260</td>
+            <td>247,830</td>
+            <td>331,045</td>
+            <td class="delta-pos">+83,215</td>
+          </tr>
+
+<!-- Odoo section -->
+          <tr class="section-row"><td colspan="7">Odoo — Target Applications</td></tr>
+          <tr>
+            <td>Odoo</td>
+            <td>34,000</td>
+            <td>60,000</td>
+            <td>94,000</td>
+            <td>64,000</td>
+            <td>49,000</td>
+            <td class="delta-neg">−15,000</td>
+          </tr>
+          <tr>
+            <td>Digitalization + Avatax</td>
+            <td>5,000</td>
+            <td class="muted">—</td>
+            <td>5,000</td>
+            <td>5,000</td>
+            <td>5,000</td>
+            <td class="delta-zero">—</td>
+          </tr>
+          <tr>
+            <td>PIM (Perfion)</td>
+            <td>7,500</td>
+            <td>10,000</td>
+            <td>17,500</td>
+            <td>17,500</td>
+            <td>17,500</td>
+            <td class="delta-zero">—</td>
+          </tr>
+          <tr>
+            <td>Web Site Management</td>
+            <td>5,000</td>
+            <td>40,000</td>
+            <td>45,000</td>
+            <td>45,000</td>
+            <td>45,000</td>
+            <td class="delta-zero">—</td>
+          </tr>
+          <tr class="subtotal-row">
+            <td>Subtotal Odoo</td>
+            <td>51,500</td>
+            <td>110,000</td>
+            <td>161,500</td>
+            <td>131,500</td>
+            <td>116,500</td>
+            <td class="delta-neg">−15,000</td>
+          </tr>
+
+<!-- Grand total -->
+          <tr class="grand-total">
+            <td>Total IT OPEX 2026</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>379,330</td>
+            <td>447,545</td>
+            <td class="delta-pos">+68,215</td>
+          </tr>
+        </tbody>
+      </table>
+
+<!-- RIGHT: Comparison + callouts -->
+    <div>
+      <div class="section-label green">Annual Run Rate</div>
+      <table class="comparison-table">
+        <tbody>
+          <tr>
+            <td>AS IS</td>
+            <td style="font-weight:600;">277,260</td>
+          </tr>
+          <tr>
+            <td>Odoo</td>
+            <td style="font-weight:600; color:#2e7d32;">161,500</td>
+          </tr>
+          <tr class="saving-row">
+            <td>Saving</td>
+            <td>−115,760</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout-stack">
+        <div class="callout neutral">
+          <div class="num dark">€379k</div>
+          <div class="label">IT OPEX 2026 (BP)</div>
+        </div>
+        <div class="callout warning">
+          <div class="num red">€448k</div>
+          <div class="label">IT OPEX 2026 (FCT)</div>
+        </div>
+        <div class="callout warning">
+          <div class="num red">+€68k</div>
+          <div class="label">Overrun from delay</div>
+        </div>
+
+      </div>
+
+<!-- Insight -->
+  <div class="insight">
+    <strong>Key takeaway:</strong> Delaying Belgium go-live from April to July extends licence &amp; maintenance on legacy tools (AX, Dynamics, Onstro, Citrix).
+    The Odoo target landscape reduces the annual run rate by <strong>€116k/year</strong>, but each quarter of delay costs ~<strong>€68k</strong> in additional legacy spend.
+  </div>
+
+  <div class="footer">
+    <span>VVF Consulting · Confidential</span>
+    <span>Prepared March 2026</span>
+
+  </div>
+
+</div>
+</div>
+</div>
+
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">1</div>
+  </div>
+</div>
+
+</body>
+</html>

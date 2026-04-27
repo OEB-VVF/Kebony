@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0">
+<title>Security Architecture — BU-Based Access Control</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    body { background: none; padding: 0; gap: 0; }
+    .slide { box-shadow: none; border-radius: 0; margin: 0; page-break-inside: avoid; page-break-after: always; }
+  }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #f5f5f5; display: flex; flex-direction: column; align-items: center; padding: 20px; gap: 30px; }
+  .slide { width: 1280px; min-height: 720px; max-height: 720px; background: #fff; border-radius: 4px; box-shadow: 0 2px 20px rgba(0,0,0,0.08); padding: 38px 50px 36px; position: relative; overflow: hidden; page-break-after: always; }
+  .slide::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); }
+  .slide.title-slide { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
+  .slide.title-slide::before { height: 8px; }
+  .slide.title-slide h1 { font-size: 36px; line-height: 1.2; margin-bottom: 8px; }
+  .slide.title-slide .subtitle { font-size: 16px; color: #555; margin-bottom: 32px; }
+  .slide.title-slide .meta { font-size: 12px; color: #999; line-height: 1.8; }
+  h1 { font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  h2 { font-size: 15px; font-weight: 600; color: #0f3460; margin-bottom: 10px; margin-top: 14px; }
+  h3 { font-size: 12px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  .subtitle { font-size: 12px; color: #888; margin-bottom: 16px; }
+  .section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: #0f3460; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 2px solid #0f3460; display: inline-block; }
+  .section-label.red { color: #c62828; border-color: #c62828; }
+  .section-label.green { color: #2e7d32; border-color: #2e7d32; }
+  .section-label.orange { color: #e65100; border-color: #e65100; }
+  .section-label.purple { color: #6a1b9a; border-color: #6a1b9a; }
+  .flow-diagram { background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px 20px; margin: 8px 0; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 10.5px; line-height: 1.55; color: #333; white-space: pre; overflow-x: auto; }
+  .flow-diagram .label { color: #0f3460; font-weight: 700; }
+  .flow-diagram .highlight { color: #c62828; font-weight: 600; }
+  .flow-diagram .green { color: #2e7d32; font-weight: 600; }
+  .flow-diagram .blue { color: #0f3460; font-weight: 600; }
+  .flow-diagram .dim { color: #aaa; }
+  .flow-diagram .orange { color: #e65100; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; margin: 6px 0; }
+  th { background: #f8f9fa; padding: 6px 10px; text-align: left; font-weight: 600; color: #1a1a2e; border-bottom: 2px solid #dee2e6; }
+  td { padding: 5px 10px; border-bottom: 1px solid #eee; color: #333; vertical-align: top; }
+  tr:hover td { background: #f8f9fa; }
+  table.compact { font-size: 10px; }
+  table.compact th, table.compact td { padding: 3px 6px; }
+  .tag { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 9px; font-weight: 600; letter-spacing: 0.3px; }
+  .tag.green { background: #e8f5e9; color: #2e7d32; }
+  .tag.red { background: #ffebee; color: #c62828; }
+  .tag.orange { background: #fff3e0; color: #e65100; }
+  .tag.blue { background: #e3f2fd; color: #1565c0; }
+  .tag.purple { background: #f3e5f5; color: #6a1b9a; }
+  .tag.grey { background: #f5f5f5; color: #616161; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .card { background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 8px; padding: 14px 16px; }
+  .card h3 { margin-bottom: 6px; }
+  .callout { margin-top: 10px; padding: 8px 12px; font-size: 10.5px; border-radius: 4px; }
+  .callout.blue { background: #e3f2fd; border-left: 3px solid #1565c0; }
+  .callout.green { background: #e8f5e9; border-left: 3px solid #2e7d32; }
+  .callout.orange { background: #fff3e0; border-left: 3px solid #e65100; }
+  .callout.red { background: #ffebee; border-left: 3px solid #c62828; }
+  .callout.purple { background: #f3e5f5; border-left: 3px solid #6a1b9a; }
+  .slide-number { font-size: 10px; color: #bbb; }
+  /* ── Logo ── */
+  .logo-title {
+    position: absolute; top: 30px; right: 40px;
+    height: 80px; opacity: 0.9;
+  }
+  .slide-footer {
+    position: absolute; bottom: 10px; left: 20px; right: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .prepared-by {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .prepared-by span {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+  .prepared-by img {
+    height: 22px; opacity: 0.7;
+  }
+  .footer-project {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+  ul { font-size: 11px; line-height: 1.6; padding-left: 16px; }
+  ul li { margin-bottom: 3px; }
+  p { font-size: 11px; line-height: 1.6; color: #444; }
+  td.check { text-align: center; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1 — TITLE -->
+
+<div class="slide title-slide">
+
+  <img src="VVF-logo.png" alt="VVF" class="logo-title">
+  <h1>Security Architecture</h1>
+  <div class="subtitle">BU-Based Access Control — Kebony Odoo 19</div>
+  <div class="meta">
+    Version 1.0 — March 2026<br>
+    Audience: IT, Management, Department Heads<br>
+    Scope: User profiles, access rights, data visibility across all Kebony entities
+
+</div>
+
+<!-- SLIDE 2 — THE CONCEPT -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">1</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>The Security Concept</h1>
+  <div class="subtitle">Two independent dimensions: what you CAN DO vs what you CAN SEE</div>
+
+  <div class="flow-diagram">
+<span class="label">DIMENSION 1: FUNCTIONAL RIGHTS</span>  (what you can DO)
+<span class="dim">═══════════════════════════════════════════════════════════</span>
+  Controlled by: <span class="blue">Business Unit Group</span> (one per user)
+
+  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐
+  │ 10 Manage- │ │ 15 Finance │ │ 20 Ware-   │ │ 21 Plan-   │
+  │ ment       │ │ &amp; Admin    │ │ house      │ │ ning       │
+  └────────────┘ └────────────┘ └────────────┘ └────────────┘
+  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐
+  │ 30 Produc- │ │ 50/52      │ │ 60 Market- │ │ 70 R&amp;D     │
+  │ tion       │ │ Sales      │ │ ing        │ │            │
+  └────────────┘ └────────────┘ └────────────┘ └────────────┘
+
+<span class="label">DIMENSION 2: DATA VISIBILITY</span>  (what you can SEE)
+<span class="dim">═══════════════════════════════════════════════════════════</span>
+  Controlled by: <span class="green">Company Assignment</span> (native Odoo multi-company)
+
+  ┌────────┐ ┌────────┐ ┌──────────┐ ┌────────┐ ┌────────┐
+  │INC (US)│ │BNV (BE)│ │Holding   │ │KAS (NO)│ │NAS (NO)│
+  │        │ │        │ │(BE)      │ │        │ │        │
+  └────────┘ └────────┘ └──────────┘ └────────┘ └────────┘</div>
+
+  <div class="callout blue">
+    <strong>Key principle:</strong> A Finance user at INC and a Finance user at BNV have the <strong>same functional rights</strong> — they just see different company data. One group per BU, not per BU per entity.
+
+</div>
+
+<!-- SLIDE 3 — BU GROUPS -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">2</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Business Unit Groups</h1>
+  <div class="subtitle">Each group automatically inherits the correct Odoo permissions</div>
+
+  <table>
+    <thead>
+      <tr>
+<th>Code</th>
+<th>Business Unit</th>
+<th>Inherits (auto-granted)</th>
+<th>Key Capabilities</th>
+</tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>10</strong></td>
+<td>Management</td>
+        <td><span class="tag grey">Base user only</span></td>
+        <td>Read-only oversight of all areas</td>
+      </tr>
+      <tr>
+        <td><strong>15</strong></td>
+<td>Finance &amp; Administration</td>
+        <td>
+<span class="tag blue">Accounting Manager</span> <span class="tag blue">Purchase Manager</span>
+</td>
+        <td>Full accounting, vendor bills, EOM accruals, margin, cost versions</td>
+      </tr>
+      <tr>
+        <td><strong>20</strong></td>
+<td>Storing, Shipping &amp; Handling</td>
+        <td>
+<span class="tag green">Stock Manager</span> <span class="tag blue">Purchase User</span>
+</td>
+        <td>Warehouse ops, receipts, transfers, pack reservation</td>
+      </tr>
+      <tr>
+        <td><strong>21</strong></td>
+<td>Planning &amp; Order</td>
+        <td>
+<span class="tag green">Stock User</span> <span class="tag orange">MRP User</span>
+</td>
+        <td>Sales orders, planning families, MRP visibility</td>
+      </tr>
+      <tr>
+        <td><strong>30</strong></td>
+<td>Production</td>
+        <td>
+<span class="tag orange">MRP Manager</span> <span class="tag green">Stock User</span>
+</td>
+        <td>Manufacturing orders, dryer loads, autoclave, process packs</td>
+      </tr>
+      <tr>
+        <td><strong>50/52</strong></td>
+<td>Sales (Nordic + International)</td>
+        <td>
+<span class="tag grey">Base user</span> <span class="tag purple">+ Sales/CRM (TBD)</span>
+</td>
+        <td>Sales orders, CRM, quotations, customer contacts</td>
+      </tr>
+      <tr>
+        <td><strong>60</strong></td>
+<td>Marketing</td>
+        <td>
+<span class="tag grey">Base user</span> <span class="tag purple">+ CRM (TBD)</span>
+</td>
+        <td>CRM contacts, basic sales visibility, campaigns</td>
+      </tr>
+      <tr>
+        <td><strong>70</strong></td>
+<td>R&amp;D</td>
+        <td>
+<span class="tag orange">MRP User</span> <span class="tag green">Stock User</span>
+</td>
+        <td>Product development, BOM management, stock visibility</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout orange">
+    <strong>Note:</strong> Sales and CRM implied groups are pending Odoo 19 XML ID discovery. BU 50/52 and 60 currently only inherit base user rights. Sales/CRM permissions will be added once the correct Odoo 19 group references are confirmed.
+
+</div>
+
+<!-- SLIDE 4 — CUSTOM MODEL MATRIX -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">3</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Access Matrix — Custom Kebony Models</h1>
+  <div class="subtitle">R = Read only, RWC = Read + Write + Create, CRUD = Full access, — = No access</div>
+
+  <table>
+    <thead>
+      <tr>
+<th>Model</th>
+<th>10 Mgmt</th>
+<th>15 Finance</th>
+<th>20 WH</th>
+<th>21 Plan</th>
+<th>30 Prod</th>
+<th>50 Sales</th>
+<th>60 Mktg</th>
+<th>70 R&amp;D</th>
+</tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+<strong>Cost Versions</strong><br><span style="color:#888; font-size:9px;">kebony.cost.version</span>
+</td>
+        <td class="check"><span class="tag grey">R</span></td>
+        <td class="check"><span class="tag green">CRUD</span></td>
+        <td class="check">—</td>
+        <td class="check"><span class="tag grey">R</span></td>
+        <td class="check">—</td>
+        <td class="check">—</td>
+        <td class="check">—</td>
+        <td class="check">—</td>
+      </tr>
+      <tr>
+        <td>
+<strong>Planning Families</strong><br><span style="color:#888; font-size:9px;">kebony.planning.family</span>
+</td>
+        <td class="check"><span class="tag grey">R</span></td>
+        <td class="check"><span class="tag grey">R</span></td>
+        <td class="check">—</td>
+        <td class="check"><span class="tag green">CRUD</span></td>
+        <td class="check"><span class="tag grey">R</span></td>
+        <td class="check">—</td>
+        <td class="check">—</td>
+        <td class="check"><span class="tag grey">R</span></td>
+      </tr>
+      <tr>
+        <td>
+<strong>Dryer Loads</strong><br><span style="color:#888; font-size:9px;">kebony.dryer.load</span>
+</td>
+        <td class="check"><span class="tag grey">R</span></td>
+        <td class="check">—</td>
+        <td class="check">—</td>
+        <td class="check"><span class="tag blue">RWC</span></td>
+        <td class="check"><span class="tag green">CRUD</span></td>
+        <td class="check">—</td>
+        <td class="check">—</td>
+        <td class="check">—</td>
+      </tr>
+      <tr>
+        <td>
+<strong>Autoclave Batches</strong><br><span style="color:#888; font-size:9px;">kebony.autoclave.batch</span>
+</td>
+        <td class="check"><span class="tag grey">R</span></td>
+        <td class="check">—</td>
+        <td class="check">—</td>
+        <td class="check"><span class="tag blue">RWC</span></td>
+        <td class="check"><span class="tag green">CRUD</span></td>
+        <td class="check">—</td>
+        <td class="check">—</td>
+        <td class="check">—</td>
+      </tr>
+      <tr>
+        <td>
+<strong>Process Packs</strong><br><span style="color:#888; font-size:9px;">kebony.process.pack</span>
+</td>
+        <td class="check"><span class="tag grey">R</span></td>
+        <td class="check">—</td>
+        <td class="check">—</td>
+        <td class="check"><span class="tag blue">RWC</span></td>
+        <td class="check"><span class="tag green">CRUD</span></td>
+        <td class="check">—</td>
+        <td class="check">—</td>
+        <td class="check">—</td>
+      </tr>
+      <tr>
+        <td>
+<strong>Accounting Hub</strong><br><span style="color:#888; font-size:9px;">kebony.accounting.hub</span>
+</td>
+        <td class="check"><span class="tag grey">R</span></td>
+        <td class="check"><span class="tag green">CRUD</span></td>
+        <td class="check">—</td>
+        <td class="check">—</td>
+        <td class="check">—</td>
+        <td class="check">—</td>
+        <td class="check">—</td>
+        <td class="check">—</td>
+      </tr>
+      <tr>
+        <td>
+<strong>Consignment Prices</strong><br><span style="color:#888; font-size:9px;">stock.consignment.price</span>
+</td>
+        <td class="check"><span class="tag grey">R</span></td>
+        <td class="check"><span class="tag green">CRUD</span></td>
+        <td class="check">—</td>
+        <td class="check">—</td>
+        <td class="check">—</td>
+        <td class="check"><span class="tag grey">R</span></td>
+        <td class="check">—</td>
+        <td class="check">—</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout green">
+    <strong>Design principle:</strong> Planning creates and manages schedules. Production executes and owns the operational records. Finance owns cost data and accounting tools. Management sees everything but changes nothing.
+
+</div>
+
+<!-- SLIDE 5 — STANDARD ODOO APP MATRIX -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">4</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Access Matrix — Standard Odoo Applications</h1>
+  <div class="subtitle">Controlled via implied groups (automatic when BU is assigned)</div>
+
+  <table class="compact">
+    <thead>
+      <tr>
+<th>Application / Feature</th>
+<th>10 Mgmt</th>
+<th>15 Finance</th>
+<th>20 WH</th>
+<th>21 Plan</th>
+<th>30 Prod</th>
+<th>50 Sales</th>
+<th>60 Mktg</th>
+<th>70 R&amp;D</th>
+</tr>
+    </thead>
+    <tbody>
+      <tr>
+<td>Sales Orders</td>
+<td>R</td>
+<td>R</td>
+<td>R</td>
+<td><strong>Full</strong></td>
+<td>—</td>
+<td><strong>Full</strong></td>
+<td>R</td>
+<td>—</td>
+</tr>
+      <tr>
+<td>Customer Invoices</td>
+<td>R</td>
+<td><strong>Full</strong></td>
+<td>—</td>
+<td>R</td>
+<td>—</td>
+<td>R</td>
+<td>—</td>
+<td>—</td>
+</tr>
+      <tr>
+<td>Vendor Bills</td>
+<td>R</td>
+<td><strong>Full</strong></td>
+<td>R</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+      <tr>
+<td>Purchase Orders</td>
+<td>R</td>
+<td><strong>Full</strong></td>
+<td>RWC</td>
+<td>RWC</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+      <tr>
+<td>Inventory / Stock</td>
+<td>R</td>
+<td>R</td>
+<td><strong>Full</strong></td>
+<td>RW</td>
+<td>RW</td>
+<td>R</td>
+<td>—</td>
+<td>R</td>
+</tr>
+      <tr>
+<td>Manufacturing Orders</td>
+<td>R</td>
+<td>R</td>
+<td>—</td>
+<td>RW</td>
+<td><strong>Full</strong></td>
+<td>—</td>
+<td>—</td>
+<td>R</td>
+</tr>
+      <tr>
+<td>Bills of Materials</td>
+<td>R</td>
+<td>R</td>
+<td>—</td>
+<td>RW</td>
+<td>RW</td>
+<td>—</td>
+<td>—</td>
+<td><strong>Full</strong></td>
+</tr>
+      <tr>
+<td>Products</td>
+<td>R</td>
+<td>R</td>
+<td>R</td>
+<td>R</td>
+<td>R</td>
+<td>R</td>
+<td>R</td>
+<td><strong>Full</strong></td>
+</tr>
+      <tr>
+<td>CRM / Contacts</td>
+<td>R</td>
+<td>R</td>
+<td>R</td>
+<td>R</td>
+<td>—</td>
+<td><strong>Full</strong></td>
+<td><strong>Full</strong></td>
+<td>—</td>
+</tr>
+      <tr>
+<td>Reports (BOL, etc.)</td>
+<td>R</td>
+<td><strong>Full</strong></td>
+<td><strong>Full</strong></td>
+<td>R</td>
+<td>—</td>
+<td><strong>Full</strong></td>
+<td>—</td>
+<td>—</td>
+</tr>
+      <tr style="background:#fff3e0;">
+<td>Accounting Hub (EOM)</td>
+<td>R</td>
+<td><strong>Full</strong></td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+      <tr style="background:#fff3e0;">
+<td>Margin Recompute</td>
+<td>R</td>
+<td><strong>Full</strong></td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>R</td>
+<td>—</td>
+<td>—</td>
+</tr>
+      <tr>
+<td>Pack Reservation</td>
+<td>R</td>
+<td>—</td>
+<td><strong>Full</strong></td>
+<td><strong>Full</strong></td>
+<td>—</td>
+<td>RW</td>
+<td>—</td>
+<td>—</td>
+</tr>
+      <tr style="background:#ffebee;">
+<td>Settings / Configuration</td>
+<td>—</td>
+<td><strong>Full</strong></td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+    </tbody>
+  </table>
+
+  <div class="callout red">
+    <strong>Administrator override:</strong> Users with Admin rights (base.group_system) bypass all restrictions. The matrix above applies to non-admin users only.
+
+</div>
+
+<!-- SLIDE 6 — BUTTON & MENU RESTRICTIONS -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">5</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Button &amp; Menu Restrictions</h1>
+  <div class="subtitle">Sensitive operations are hidden from unauthorized BUs
+
+  <div class="two-col">
+    <div>
+      <div class="section-label red">Finance-Only Buttons</div>
+      <table class="compact">
+        <thead><tr>
+<th>Button / Action</th>
+<th>Location</th>
+<th>Visible to</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td><strong>Run EoM Accruals</strong></td>
+<td>Accounting Hub</td>
+<td><span class="tag blue">15 Finance</span></td>
+</tr>
+          <tr>
+<td><strong>Generate Consignment PO</strong></td>
+<td>Accounting Hub</td>
+<td><span class="tag blue">15 Finance</span></td>
+</tr>
+          <tr>
+<td><strong>Recompute Margin</strong></td>
+<td>Invoice form</td>
+<td>
+<span class="tag blue">15 Finance</span> <span class="tag green">50 Sales</span>
+</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="section-label green" style="margin-top:16px;">Operational Buttons</div>
+      <table class="compact">
+        <thead><tr>
+<th>Button / Action</th>
+<th>Location</th>
+<th>Visible to</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td><strong>Select Packs</strong></td>
+<td>Sales Order</td>
+<td>
+<span class="tag green">20 WH</span> <span class="tag orange">21 Plan</span> <span class="tag green">50 Sales</span>
+</td>
+</tr>
+        </tbody>
+      </table>
+
+    <div>
+      <div class="section-label">Menu Visibility</div>
+      <table class="compact">
+        <thead><tr>
+<th>Menu</th>
+<th>Visible to</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td><strong>Kebony Accounting Hub</strong></td>
+<td>Accounting users (implied by BU 15)</td>
+</tr>
+          <tr>
+<td><strong>Manufacturing menus</strong></td>
+<td>MRP users (implied by BU 21, 30, 70)</td>
+</tr>
+          <tr>
+<td><strong>Inventory menus</strong></td>
+<td>Stock users (implied by BU 20, 21, 30, 70)</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="callout purple" style="margin-top:16px;">
+        <strong>How it works:</strong> Odoo hides buttons and menus based on the <code>groups=</code> attribute in the XML view definition. If a user's BU group doesn't match, the button simply doesn't appear — no error, no confusion.
+
+      </div>
+
+<!-- SLIDE 7 — DATA VISIBILITY -->
+</div>
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">6</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Data Visibility — Multi-Company</h1>
+  <div class="subtitle">Which entities a user can see is controlled by their company assignment
+
+  <div class="two-col">
+    <div>
+      <div class="section-label">How it works
+      <ul>
+        <li>Each user has a list of <strong>Allowed Companies</strong> on their profile</li>
+        <li>Record rules filter data to only show records from those companies</li>
+        <li>Users can switch between their allowed companies via the company switcher</li>
+        <li>This is <strong>native Odoo</strong> — no custom code needed</li>
+      </ul>
+
+      <div class="section-label" style="margin-top:16px;">Entity Map
+      <table class="compact">
+        <thead><tr>
+<th>Entity</th>
+<th>Code</th>
+<th>Location</th>
+<th>Type</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>Kebony Inc.</td>
+<td>INC</td>
+<td>US</td>
+<td>Trader</td>
+</tr>
+          <tr>
+<td>Kebony BNV</td>
+<td>BNV</td>
+<td>Belgium</td>
+<td>Manufacturer</td>
+</tr>
+          <tr>
+<td>Kebony Holding</td>
+<td>Holding</td>
+<td>Belgium</td>
+<td>Holding</td>
+</tr>
+          <tr>
+<td>Kebony KAS</td>
+<td>KAS</td>
+<td>Norway</td>
+<td>Manufacturer</td>
+</tr>
+          <tr>
+<td>Kebony Norge AS</td>
+<td>NAS</td>
+<td>Norway</td>
+<td>Operations</td>
+</tr>
+        </tbody>
+      </table>
+
+    <div>
+      <div class="section-label green">Example Assignments
+      <div class="flow-diagram" style="font-size:10px;">
+<span class="label">User: Sarah (US Finance)</span>
+  BU Group:  <span class="blue">15 – Finance &amp; Administration</span>
+  Companies: <span class="green">INC only</span>
+  → Sees only Kebony Inc. data
+  → Full accounting rights
+
+<span class="label">User: Erik (Norway Production)</span>
+  BU Group:  <span class="blue">30 – Production</span>
+  Companies: <span class="green">KAS + NAS</span>
+  → Sees both Norwegian entities
+  → Full manufacturing rights
+
+<span class="label">User: Marc (Group CFO)</span>
+  BU Group:  <span class="blue">15 – Finance &amp; Administration</span>
+  Companies: <span class="green">ALL (INC + BNV + Holding + KAS + NAS)</span>
+  → Sees all entities
+  → Full accounting rights everywhere
+
+      <div class="callout blue" style="margin-top:8px;">
+        <strong>Same BU, different visibility:</strong> Sarah and Marc are both BU 15, but Sarah sees only INC while Marc sees everything. The BU defines <em>what</em> they can do. The company list defines <em>where</em>.
+
+<!-- SLIDE 8 — HOW TO ASSIGN -->
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">7</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>How to Assign a User</h1>
+  <div class="subtitle">Step-by-step procedure for IT / HR
+
+  <div class="two-col">
+    <div>
+      <div class="section-label green">New User Setup
+</div>
+</div>
+</div>
+
+      <ol style="font-size:11px; line-height:1.8; padding-left:16px;">
+        <li>Go to <strong>Settings → Users &amp; Companies → Users</strong>
+</li>
+        <li>Create new user (name, email, login)</li>
+        <li>Scroll to <strong>"Kebony Business Units"</strong> section</li>
+        <li>Select the appropriate BU from the dropdown</li>
+        <li>Set <strong>Allowed Companies</strong> (which entities they need)</li>
+        <li>Set <strong>Default Company</strong> (their primary entity)</li>
+        <li>Save — all implied permissions are set automatically</li>
+      </ol>
+
+      <div class="callout green" style="margin-top:12px;">
+        <strong>That's it.</strong> No need to manually set Accounting Manager, Stock User, MRP User, etc. The BU group handles it all via implied groups.
+
+    <div>
+      <div class="section-label orange">Changing a User's BU
+      <ol style="font-size:11px; line-height:1.8; padding-left:16px;">
+        <li>Open user form</li>
+        <li>Change BU group in the dropdown</li>
+        <li>Save — old permissions removed, new ones applied</li>
+      </ol>
+
+      <div class="section-label red" style="margin-top:16px;">Things to NOT do
+      <ul>
+        <li>
+<strong>Don't</strong> manually add standard Odoo groups — the BU handles it</li>
+        <li>
+<strong>Don't</strong> give Admin rights unless truly needed</li>
+        <li>
+<strong>Don't</strong> assign multiple BU groups to one user — pick one</li>
+        <li>
+<strong>Don't</strong> use Studio to create new groups — use the code</li>
+      </ul>
+
+      <div class="callout red" style="margin-top:12px;">
+        <strong>Admin = God mode.</strong> Admin users bypass ALL restrictions. Only give Admin to IT administrators who need system configuration access.
+
+<!-- SLIDE 9 — AUDIT CHECKLIST -->
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">8</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Monthly Security Audit Checklist</h1>
+  <div class="subtitle">Review quarterly (or after any org change)
+
+  <div class="two-col">
+    <div>
+      <div class="section-label">User Review
+      <table class="compact">
+        <thead><tr>
+<th>#</th>
+<th>Check</th>
+<th>Action if failed</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>1</td>
+<td>All active users have a BU group assigned</td>
+<td>Assign appropriate BU</td>
+</tr>
+          <tr>
+<td>2</td>
+<td>No user has multiple BU groups</td>
+<td>Remove extra groups</td>
+</tr>
+          <tr>
+<td>3</td>
+<td>Leavers are deactivated (not deleted)</td>
+<td>Archive user</td>
+</tr>
+          <tr>
+<td>4</td>
+<td>Admin count is minimal (max 2-3)</td>
+<td>Downgrade to BU group</td>
+</tr>
+          <tr>
+<td>5</td>
+<td>Company assignments match org structure</td>
+<td>Update allowed companies</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="section-label" style="margin-top:16px;">Access Review
+      <table class="compact">
+        <thead><tr>
+<th>#</th>
+<th>Check</th>
+<th>Action if failed</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>6</td>
+<td>Sensitive buttons (EOM, margin) only visible to Finance</td>
+<td>Check groups= in views</td>
+</tr>
+          <tr>
+<td>7</td>
+<td>Manufacturing data not accessible to Sales</td>
+<td>Check ir.model.access</td>
+</tr>
+          <tr>
+<td>8</td>
+<td>No orphaned Studio groups overriding BU</td>
+<td>Remove Studio groups</td>
+</tr>
+        </tbody>
+      </table>
+
+    <div>
+      <div class="section-label purple">Where to Check
+      <div class="card">
+        <h3>User List</h3>
+        <p>Settings → Users &amp; Companies → Users<br>Filter by "Kebony Business Unit" column</p>
+
+      <div class="card" style="margin-top:8px;">
+        <h3>Group Members</h3>
+        <p>Settings → Technical → Groups<br>Search "Kebony" → click group → Users tab</p>
+
+      <div class="card" style="margin-top:8px;">
+        <h3>Access Rights</h3>
+        <p>Settings → Technical → Security → Access Rights<br>Filter by group to see all model permissions</p>
+
+      <div class="card" style="margin-top:8px;">
+        <h3>Record Rules</h3>
+        <p>Settings → Technical → Security → Record Rules<br>Verify company isolation rules are active</p>
+
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">9</div>
+  </div>
+</div>
+div class="prepared-by"&gt;<span>Prepared by</span><img src="VVF-logo.png" alt="VVF">
+
+red by<img src="VVF-logo.png" alt="VVF">
+
+pared-by"&gt;<span>Prepared by</span><img src="VVF-logo.png" alt="VVF">
+
+</body>
+</html>

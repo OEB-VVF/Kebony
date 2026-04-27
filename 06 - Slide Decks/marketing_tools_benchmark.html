@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kebony — Marketing Tools Benchmark: Odoo vs. Specialists</title>
+<style>
+  :root {
+    --kebony-dark: #2C3E50;
+    --kebony-brown: #6B4226;
+    --kebony-green: #27AE60;
+    --kebony-red: #E74C3C;
+    --kebony-orange: #F39C12;
+    --kebony-blue: #2980B9;
+    --kebony-light: #F8F9FA;
+    --kebony-border: #DEE2E6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #333; line-height: 1.6; background: #fff; }
+
+  .header { background: var(--kebony-dark); color: white; padding: 40px; text-align: center; }
+  .header h1 { font-size: 2em; margin-bottom: 8px; }
+  .header .subtitle { font-size: 1.1em; opacity: 0.85; }
+  .header .date { font-size: 0.85em; opacity: 0.6; margin-top: 12px; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 30px 40px; }
+
+  .exec-summary { background: var(--kebony-light); border-left: 4px solid var(--kebony-blue); padding: 24px; margin: 30px 0; border-radius: 4px; }
+  .exec-summary h2 { color: var(--kebony-blue); margin-bottom: 12px; }
+
+  h2 { color: var(--kebony-dark); font-size: 1.5em; margin: 40px 0 16px; border-bottom: 2px solid var(--kebony-border); padding-bottom: 8px; }
+  h3 { color: var(--kebony-brown); font-size: 1.15em; margin: 20px 0 10px; }
+
+  .module-card { border: 1px solid var(--kebony-border); border-radius: 8px; margin: 20px 0; overflow: hidden; }
+  .module-card .card-header { padding: 16px 20px; font-weight: 700; font-size: 1.1em; color: white; }
+  .module-card .card-body { padding: 20px; }
+
+  .bg-email { background: #3498DB; }
+  .bg-automation { background: #9B59B6; }
+  .bg-sms { background: #1ABC9C; }
+  .bg-social { background: #E67E22; }
+  .bg-events { background: #E74C3C; }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.9em; }
+  th { background: var(--kebony-dark); color: white; padding: 10px 14px; text-align: left; font-weight: 600; }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--kebony-border); vertical-align: top; }
+  tr:nth-child(even) { background: #F8F9FA; }
+
+  .verdict { padding: 12px 16px; border-radius: 6px; margin: 12px 0; font-weight: 600; }
+  .verdict-good { background: #D5F5E3; color: #1E8449; border-left: 4px solid var(--kebony-green); }
+  .verdict-ok { background: #FEF9E7; color: #9A7D0A; border-left: 4px solid var(--kebony-orange); }
+  .verdict-weak { background: #FADBD8; color: #922B21; border-left: 4px solid var(--kebony-red); }
+
+  .pro { color: var(--kebony-green); }
+  .con { color: var(--kebony-red); }
+  .neutral { color: var(--kebony-orange); }
+
+  ul { margin: 8px 0 8px 20px; }
+  li { margin-bottom: 4px; }
+
+  .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+  .pricing-box { border: 1px solid var(--kebony-border); border-radius: 8px; padding: 20px; }
+  .pricing-box h4 { margin-bottom: 8px; }
+  .pricing-box .price { font-size: 1.8em; font-weight: 700; color: var(--kebony-dark); }
+  .pricing-box .price-note { font-size: 0.8em; color: #777; }
+  .pricing-box.highlight { border-color: var(--kebony-green); background: #F0FFF4; }
+
+  .recommendation { background: linear-gradient(135deg, #2C3E50, #34495E); color: white; padding: 30px; border-radius: 8px; margin: 30px 0; }
+  .recommendation h2 { color: white; border-bottom-color: rgba(255,255,255,0.3); }
+  .recommendation ul { margin-left: 20px; }
+  .recommendation li { margin-bottom: 6px; }
+
+  .video-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .video-card { border: 1px solid var(--kebony-border); border-radius: 8px; padding: 16px; }
+  .video-card h4 { font-size: 0.95em; margin-bottom: 4px; }
+  .video-card a { color: var(--kebony-blue); text-decoration: none; font-size: 0.85em; }
+  .video-card a:hover { text-decoration: underline; }
+  .video-card .duration { font-size: 0.8em; color: #999; }
+
+  .footer { text-align: center; padding: 30px; color: #999; font-size: 0.85em; border-top: 1px solid var(--kebony-border); margin-top: 40px; }
+
+  @media print { .container { padding: 20px; } .header { padding: 20px; } }
+  @media (max-width: 768px) { .pricing-grid, .video-grid { grid-template-columns: 1fr; } .container { padding: 16px; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Marketing Tools Benchmark</h1>
+  <div class="subtitle">Odoo 19 Marketing Suite vs. Specialist Software — Honest Assessment</div>
+  <div class="date">Prepared for Kebony CMO — March 2026 | Confidential</div>
+</div>
+
+<div class="container">
+
+<!-- EXECUTIVE SUMMARY -->
+<div class="exec-summary">
+  <h2>Executive Summary</h2>
+  <p>Odoo 19 includes five marketing modules (Email, Automation, SMS, Social, Events) bundled at no extra cost with the ERP. For a <strong>B2B manufacturer/distributor</strong> like Kebony, they cover 70–80% of typical marketing needs. The remaining 20–30% — advanced automation workflows, email deliverability, social listening, and multi-touch attribution — require specialist tools if the marketing team's ambitions go beyond newsletters and event management.</p>
+  <p style="margin-top:12px;"><strong>Bottom line:</strong> Start with Odoo. Add specialists only where you hit a concrete wall — not on speculation.</p>
+</div>
+
+<!-- 1. EMAIL MARKETING -->
+<div class="module-card">
+  <div class="card-header bg-email">📧 Email Marketing</div>
+  <div class="card-body">
+    <h3>What Odoo 19 Can Do</h3>
+    <ul>
+      <li>Drag-and-drop email builder with mobile-responsive templates</li>
+      <li>AI-powered subject line and content suggestions (new in v19)</li>
+      <li>A/B testing on subject lines and content</li>
+      <li>Advanced segmentation based on behaviour, demographics, purchase history</li>
+      <li>Real-time stats: open rate, bounce rate, CTR, revenue tracking</li>
+      <li>Link Tracker with UTM parameters</li>
+      <li>GDPR-compliant unsubscribe and opt-in management</li>
+      <li><strong>Native CRM/Sales integration</strong> — leads, orders, revenue per campaign tracked automatically</li>
+    </ul>
+
+    <h3>Where Specialists Are Better</h3>
+    <table>
+      <tr><th>Capability</th><th>Odoo</th><th>Mailchimp</th><th>ActiveCampaign</th><th>HubSpot</th></tr>
+      <tr><td>Template library</td><td class="neutral">Basic (~20)</td><td class="pro">300+ templates</td><td class="pro">250+ templates</td><td class="pro">200+ templates</td></tr>
+      <tr><td>Deliverability infrastructure</td><td class="con">Shared, reports of spam issues</td><td class="pro">Dedicated, best-in-class</td><td class="pro">Dedicated IP option</td><td class="pro">Dedicated IP option</td></tr>
+      <tr><td>Send-time optimisation</td><td class="con">None</td><td class="pro">AI-based per recipient</td><td class="pro">ML-based</td><td class="pro">ML-based</td></tr>
+      <tr><td>Multi-touch attribution</td><td class="con">None</td><td class="neutral">Basic</td><td class="neutral">Basic</td><td class="pro">Full revenue attribution</td></tr>
+      <tr><td>Third-party integrations</td><td class="con">Odoo ecosystem only</td><td class="pro">300+ native</td><td class="pro">900+ native</td><td class="pro">500+ native</td></tr>
+      <tr><td>CRM/ERP integration</td><td class="pro">Native (same database)</td><td class="con">API sync needed</td><td class="neutral">Native CRM, no ERP</td><td class="neutral">Native CRM, no ERP</td></tr>
+    </table>
+
+    <div class="verdict verdict-ok">
+      <strong>Verdict: Good Enough for Kebony</strong> — Adequate for distributor newsletters, product announcements, and event invitations. The native CRM/ERP integration is a genuine advantage. Consider Mailchimp or ActiveCampaign only if deliverability becomes a measurable problem (emails consistently landing in spam).
+    </div>
+  </div>
+</div>
+
+<!-- 2. MARKETING AUTOMATION -->
+<div class="module-card">
+  <div class="card-header bg-automation">⚙️ Marketing Automation</div>
+  <div class="card-body">
+    <h3>What Odoo 19 Can Do</h3>
+    <ul>
+      <li>Visual workflow builder with drag-and-drop</li>
+      <li>Activities: Email, SMS, Server Action (update records, assign leads)</li>
+      <li>Conditional branching: Opened / Not Opened / Replied / Clicked / Bounced</li>
+      <li>Timing delays: hours, days, weeks, months</li>
+      <li>CRM integration: auto-assign leads, move pipeline stages, update records</li>
+      <li>Lead scoring based on demographic and behavioural criteria</li>
+      <li>Test mode before activation</li>
+    </ul>
+
+    <h3>Where Specialists Are Better</h3>
+    <table>
+      <tr><th>Capability</th><th>Odoo</th><th>HubSpot</th><th>ActiveCampaign</th></tr>
+      <tr><td>Activity types</td><td class="con">3 (Email, SMS, Server Action)</td><td class="pro">20+ (incl. tasks, Slack, webhooks)</td><td class="pro">15+ (incl. webhooks, site events)</td></tr>
+      <tr><td>Workflow templates</td><td class="con">6 starter templates</td><td class="pro">200+ pre-built</td><td class="pro">900+ recipes</td></tr>
+      <tr><td>Website behaviour triggers</td><td class="con">None</td><td class="pro">Page views, form fills, scroll depth</td><td class="pro">Site tracking, event tracking</td></tr>
+      <tr><td>Goal-based campaigns</td><td class="con">None</td><td class="pro">Auto-remove on conversion</td><td class="pro">Goal tracking per workflow</td></tr>
+      <tr><td>A/B testing in workflows</td><td class="con">Not available</td><td class="pro">Native</td><td class="pro">Split actions</td></tr>
+      <tr><td>Predictive lead scoring</td><td class="con">Manual rules only</td><td class="pro">ML-based</td><td class="pro">ML-based</td></tr>
+      <tr><td>Multi-channel orchestration</td><td class="neutral">Email + SMS only</td><td class="pro">Email + SMS + push + in-app + ads</td><td class="pro">Email + SMS + site messages</td></tr>
+    </table>
+
+    <div class="verdict verdict-weak">
+      <strong>Verdict: Basic — Sufficient for Simple Nurture</strong> — Works for straightforward sequences (welcome series, event follow-up, distributor onboarding). Not suitable for complex B2B buyer journeys with multiple touchpoints, conditional paths, and behavioural triggers. If the marketing team wants sophisticated automation, HubSpot or ActiveCampaign is significantly more capable.
+    </div>
+  </div>
+</div>
+
+<!-- 3. SMS MARKETING -->
+<div class="module-card">
+  <div class="card-header bg-sms">💬 SMS Marketing</div>
+  <div class="card-body">
+    <h3>What Odoo 19 Can Do</h3>
+    <ul>
+      <li>Campaign creation with dynamic placeholders</li>
+      <li>A/B testing for SMS campaigns</li>
+      <li>Scheduling, opt-out compliance, blacklist management</li>
+      <li>Link tracking with revenue attribution</li>
+      <li>Credit-based pricing (~$0.033/SMS to US)</li>
+      <li>Integrated with email and social campaigns</li>
+    </ul>
+
+    <h3>What Odoo Lacks</h3>
+    <ul>
+      <li class="con">No two-way SMS conversations (reply handling)</li>
+      <li class="con">No keyword-based auto-responses</li>
+      <li class="con">No MMS support (images/media)</li>
+      <li class="con">No BYO-carrier option (locked to Odoo gateway)</li>
+      <li class="con">Per-credit pricing can be expensive at scale vs. volume contracts</li>
+    </ul>
+
+    <div class="verdict verdict-ok">
+      <strong>Verdict: Adequate for B2B</strong> — SMS is rarely a primary channel for B2B timber distribution. Odoo's SMS module covers what Kebony would need (delivery notifications, event reminders, urgent customer alerts). Two-way SMS and MMS are nice-to-haves, not must-haves in this context.
+    </div>
+  </div>
+</div>
+
+<!-- 4. SOCIAL MEDIA -->
+<div class="module-card">
+  <div class="card-header bg-social">📱 Social Media Marketing</div>
+  <div class="card-body">
+    <h3>What Odoo 19 Can Do</h3>
+    <ul>
+      <li>Centralised dashboard: Facebook, Instagram, LinkedIn, Twitter/X, YouTube</li>
+      <li>Multi-platform post scheduling and publishing</li>
+      <li>Reply to comments/messages from within Odoo</li>
+      <li>Lead generation from social comments (Create Lead button)</li>
+      <li>Link tracking with revenue attribution</li>
+      <li>Push Notifications as a channel</li>
+      <li>Kanban, calendar, list, and pivot views</li>
+    </ul>
+
+    <h3>Where Specialists Are Better</h3>
+    <table>
+      <tr><th>Capability</th><th>Odoo</th><th>Hootsuite</th><th>Buffer</th><th>Sprout Social</th></tr>
+      <tr><td>Social listening</td><td class="con">None</td><td class="pro">Brand monitoring, trends</td><td class="con">None</td><td class="pro">Sentiment analysis</td></tr>
+      <tr><td>Competitive benchmarking</td><td class="con">None</td><td class="pro">Yes</td><td class="con">None</td><td class="pro">Detailed reports</td></tr>
+      <tr><td>Optimal posting time</td><td class="con">None</td><td class="pro">AI-recommended</td><td class="pro">AI-recommended</td><td class="pro">Data-driven</td></tr>
+      <tr><td>Ad management</td><td class="con">None</td><td class="pro">Boost posts</td><td class="con">None</td><td class="pro">Paid campaign mgmt</td></tr>
+      <tr><td>Approval workflows</td><td class="con">None</td><td class="pro">Team review</td><td class="pro">Approval flow</td><td class="pro">Full workflow</td></tr>
+      <tr><td>Content calendar (drag &amp; drop)</td><td class="con">Basic calendar only</td><td class="pro">Full drag-and-drop</td><td class="pro">Visual calendar</td><td class="pro">Full calendar</td></tr>
+      <tr><td>Pricing (per year)</td><td class="pro">Included in Odoo</td><td class="con">$3K–15K+</td><td class="pro">~$1,200</td><td class="con">$18K+ (5 users)</td></tr>
+    </table>
+
+    <div class="verdict verdict-ok">
+      <strong>Verdict: Basic Scheduler — Fine for Kebony's Needs</strong> — Adequate for scheduling LinkedIn posts, project updates, and product content. If the CMO wants social listening or competitive monitoring, add <strong>Buffer ($100/mo)</strong> as a lightweight supplement — it's cheap and simple. Avoid Hootsuite/Sprout Social pricing unless there's a dedicated social team.
+    </div>
+  </div>
+</div>
+
+<!-- 5. EVENTS -->
+<div class="module-card">
+  <div class="card-header bg-events">🎪 Events</div>
+  <div class="card-body">
+    <h3>What Odoo 19 Can Do</h3>
+    <ul>
+      <li>Full event lifecycle: creation, ticketing, registration, promotion, follow-up</li>
+      <li>Multi-slot scheduling (attendees pick specific sessions)</li>
+      <li>Schedule &amp; Tracks management (talks, demos, workshops)</li>
+      <li>Live broadcast via YouTube integration</li>
+      <li>Online exhibitors and sponsor showcase</li>
+      <li>Virtual conferencing via Jitsi integration</li>
+      <li>Booth management with tiered pricing</li>
+      <li>Barcode/QR code attendance scanning</li>
+      <li>Event gamification with quizzes</li>
+      <li>Native CRM integration (leads from events)</li>
+      <li>Automated triggers: before/after event start (new in v19)</li>
+    </ul>
+
+    <h3>What Specialists Offer Extra</h3>
+    <ul>
+      <li><strong>Cvent</strong> ($15–50K/yr): RFID/NFC badge tracking, venue sourcing, lead retrieval for exhibitors, branded mobile app</li>
+      <li><strong>Eventbrite</strong> (pay-per-ticket): Massive public discovery marketplace (millions of visitors)</li>
+      <li><strong>Bizzabo</strong>: AI-powered attendee networking/matching, hybrid event platform</li>
+    </ul>
+
+    <div class="verdict verdict-good">
+      <strong>Verdict: Genuinely Strong</strong> — Odoo Events is the best module in the marketing suite. For Kebony's needs (distributor days, trade shows, training events, product launches), it's fully capable. The native CRM integration means event leads flow directly into the sales pipeline. No specialist needed unless running 1000+ person conferences.
+    </div>
+  </div>
+</div>
+
+<!-- PRICING -->
+<h2>💰 Cost Comparison</h2>
+<p>Based on Kebony's profile: ~50 ERP users, 5–10 active marketing users, B2B context.</p>
+
+<div class="pricing-grid">
+  <div class="pricing-box highlight">
+    <h4>Odoo 19 (All-in-One)</h4>
+    <div class="price">€0 extra</div>
+    <div class="price-note">Marketing modules included in existing Odoo subscription</div>
+    <ul style="margin-top:12px; font-size:0.9em;">
+      <li>Email Marketing ✓</li>
+      <li>Marketing Automation ✓</li>
+      <li>SMS Marketing ✓ (credits extra)</li>
+      <li>Social Media ✓</li>
+      <li>Events ✓</li>
+      <li>Already integrated with CRM, Sales, Inventory</li>
+    </ul>
+  </div>
+
+  <div class="pricing-box">
+    <h4>HubSpot Marketing Hub Professional</h4>
+    <div class="price">~€35K/yr</div>
+    <div class="price-note">$890/mo base + seat fees + onboarding $3K</div>
+    <ul style="margin-top:12px; font-size:0.9em;">
+      <li>Advanced automation ✓</li>
+      <li>Predictive lead scoring ✓</li>
+      <li>Revenue attribution ✓</li>
+      <li>A/B testing everywhere ✓</li>
+      <li>⚠️ Separate CRM (data sync with Odoo needed)</li>
+      <li>⚠️ Contact-based pricing adds up</li>
+    </ul>
+  </div>
+
+  <div class="pricing-box">
+    <h4>ActiveCampaign Pro</h4>
+    <div class="price">~€5–8K/yr</div>
+    <div class="price-note">Contact-based pricing, ~$149/mo for 10K contacts</div>
+    <ul style="margin-top:12px; font-size:0.9em;">
+      <li>900+ automation templates ✓</li>
+      <li>Best-in-class deliverability ✓</li>
+      <li>Site tracking ✓</li>
+      <li>Built-in CRM (basic) ✓</li>
+      <li>⚠️ No ERP integration (API sync needed)</li>
+      <li>⚠️ No events module</li>
+    </ul>
+  </div>
+
+  <div class="pricing-box">
+    <h4>Lightweight Stack</h4>
+    <div class="price">~€3–5K/yr</div>
+    <div class="price-note">Mailchimp Standard + Buffer + Eventbrite</div>
+    <ul style="margin-top:12px; font-size:0.9em;">
+      <li>Good email deliverability ✓</li>
+      <li>Simple social scheduling ✓</li>
+      <li>Pay-per-ticket events ✓</li>
+      <li>⚠️ Three separate tools to manage</li>
+      <li>⚠️ No CRM/ERP integration</li>
+      <li>⚠️ No unified campaign view</li>
+    </ul>
+  </div>
+</div>
+
+<!-- RECOMMENDATION -->
+<div class="recommendation">
+  <h2>🎯 Recommendation for Kebony</h2>
+
+  <h3 style="color: #27AE60; margin-top: 20px;">Phase 1 — Start with Odoo (Now)</h3>
+  <ul>
+    <li><strong>Email Marketing</strong> — distributor newsletters, product launches, customer communications</li>
+    <li><strong>Events</strong> — distributor days, trade shows, training sessions</li>
+    <li><strong>Social Media</strong> — LinkedIn scheduling, project showcases, product content</li>
+    <li><strong>Marketing Automation</strong> — welcome sequences, event follow-ups, simple lead nurture</li>
+    <li><strong>Benefit</strong>: zero additional cost, single source of truth with CRM/Sales/Inventory</li>
+  </ul>
+
+  <h3 style="color: #F39C12; margin-top: 20px;">Phase 2 — Add Supplements If Needed (3–6 months)</h3>
+  <ul>
+    <li><strong>If email deliverability is a problem</strong> → evaluate ActiveCampaign (~€5K/yr) or Mailchimp (~€2K/yr) for critical campaigns only</li>
+    <li><strong>If social needs grow</strong> → add Buffer (~€1.2K/yr) for optimal posting times and content calendar</li>
+    <li><strong>If marketing team demands complex automation</strong> → evaluate HubSpot Marketing Hub, but only with a clear ROI case (it's €35K+/yr)</li>
+  </ul>
+
+  <h3 style="color: #E74C3C; margin-top: 20px;">What NOT to Do</h3>
+  <ul>
+    <li>Don't buy HubSpot "just in case" — it's expensive and creates a data silo</li>
+    <li>Don't maintain two CRMs (Odoo + HubSpot) — that's a recipe for data chaos</li>
+    <li>Don't underestimate Odoo's native integration advantage — leads, orders, inventory, and marketing in one system is genuinely powerful for a manufacturer</li>
+  </ul>
+</div>
+
+<!-- VIDEOS -->
+<h2>🎬 Recommended Videos</h2>
+<p>For the CMO to evaluate Odoo marketing capabilities hands-on:</p>
+
+<div class="video-grid">
+  <div class="video-card">
+    <h4>📧 Email Marketing Essentials</h4>
+    <a href="https://www.odoo.com/slides/slide/email-marketing-essentials-989" target="_blank">Watch on Odoo eLearning →</a>
+    <div class="duration">Official tutorial — setup, templates, campaigns</div>
+  </div>
+  <div class="video-card">
+    <h4>📧 Email Campaigns &amp; A/B Testing</h4>
+    <a href="https://www.odoo.com/slides/slide/email-campaigns-2653" target="_blank">Watch on Odoo eLearning →</a>
+    <div class="duration">A/B testing, segmentation, analytics</div>
+  </div>
+  <div class="video-card">
+    <h4>⚙️ Marketing Automation Essentials</h4>
+    <a href="https://www.odoo.com/slides/slide/marketing-automation-essentials-991" target="_blank">Watch on Odoo eLearning →</a>
+    <div class="duration">Workflows, triggers, lead scoring</div>
+  </div>
+  <div class="video-card">
+    <h4>📱 Social Marketing Basics</h4>
+    <a href="https://www.odoo.com/slides/slide/social-marketing-basics-866" target="_blank">Watch on Odoo eLearning →</a>
+    <div class="duration">Multi-platform scheduling, engagement</div>
+  </div>
+  <div class="video-card">
+    <h4>📱 Social Marketing Campaigns</h4>
+    <a href="https://www.odoo.com/slides/slide/social-marketing-campaigns-979" target="_blank">Watch on Odoo eLearning →</a>
+    <div class="duration">Unified campaigns across channels</div>
+  </div>
+  <div class="video-card">
+    <h4>🎪 Events — Full Course (14 lessons)</h4>
+    <a href="https://www.odoo.com/slides/events-63" target="_blank">Watch on Odoo eLearning →</a>
+    <div class="duration">~1h50m — complete event management walkthrough</div>
+  </div>
+  <div class="video-card">
+    <h4>🎪 Business Flow: Events &amp; Marketing</h4>
+    <a href="https://www.odoo.com/slides/slide/business-flow-events-and-marketing-1139" target="_blank">Watch on Odoo eLearning →</a>
+    <div class="duration">End-to-end event + marketing workflow</div>
+  </div>
+  <div class="video-card">
+    <h4>📚 Full Marketing Course Hub</h4>
+    <a href="https://www.odoo.com/slides/marketing-27" target="_blank">Browse all marketing tutorials →</a>
+    <div class="duration">All Odoo marketing modules in one place</div>
+  </div>
+</div>
+
+<!-- SUMMARY TABLE -->
+<h2>📊 At-a-Glance Summary</h2>
+<table>
+  <tr>
+    <th>Module</th>
+    <th>Odoo Rating</th>
+    <th>Verdict</th>
+    <th>Specialist Needed?</th>
+  </tr>
+  <tr>
+    <td><strong>Email Marketing</strong></td>
+    <td style="color: var(--kebony-orange);">★★★☆☆</td>
+    <td>Good for B2B newsletters. Deliverability is the risk.</td>
+    <td>Only if spam issues measured</td>
+  </tr>
+  <tr>
+    <td><strong>Marketing Automation</strong></td>
+    <td style="color: var(--kebony-orange);">★★☆☆☆</td>
+    <td>Basic nurture sequences OK. Complex journeys: no.</td>
+    <td>If CMO wants advanced workflows</td>
+  </tr>
+  <tr>
+    <td><strong>SMS Marketing</strong></td>
+    <td style="color: var(--kebony-orange);">★★★☆☆</td>
+    <td>Adequate. SMS is secondary for B2B timber.</td>
+    <td>No</td>
+  </tr>
+  <tr>
+    <td><strong>Social Media</strong></td>
+    <td style="color: var(--kebony-orange);">★★☆☆☆</td>
+    <td>Basic scheduler. No listening or analytics.</td>
+    <td>Buffer ($100/mo) if team wants more</td>
+  </tr>
+  <tr>
+    <td><strong>Events</strong></td>
+    <td style="color: var(--kebony-green);">★★★★☆</td>
+    <td>Genuinely strong. Best module in the suite.</td>
+    <td>No (unless 1000+ person conferences)</td>
+  </tr>
+  <tr>
+    <td><strong>CRM/ERP Integration</strong></td>
+    <td style="color: var(--kebony-green);">★★★★★</td>
+    <td>Unbeatable. Single source of truth.</td>
+    <td>This is Odoo's killer advantage</td>
+  </tr>
+</table>
+
+</div>
+
+<div class="footer">
+  <p>Prepared by VVF Consulting — March 2026 | For internal Kebony decision-making only</p>
+  <p style="margin-top:4px;">Sources: Odoo 19 documentation, G2 reviews, vendor websites, independent benchmarks</p>
+</div>
+
+</body>
+</html>

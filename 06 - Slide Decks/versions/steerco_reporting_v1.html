@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0">
+<title>SteerCo — Analytical &amp; Management Reporting</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    body { background: none; padding: 0; gap: 0; }
+    .slide { box-shadow: none; border-radius: 0; margin: 0;
+             page-break-inside: avoid; page-break-after: always; }
+  }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f5f5f5; display: flex; flex-direction: column;
+    align-items: center; padding: 20px; gap: 30px;
+  }
+  .slide {
+    width: 1280px; min-height: 720px; max-height: 720px;
+    background: #fff; border-radius: 4px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    padding: 38px 50px 36px; position: relative; overflow: hidden;
+  }
+  .slide::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px;
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
+  .slide.title-slide {
+    display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
+  }
+  .slide.title-slide::before { height: 8px; }
+  .slide.title-slide h1 { font-size: 38px; line-height: 1.2; margin-bottom: 8px; }
+  .slide.title-slide .subtitle { font-size: 17px; color: #555; margin-bottom: 32px; }
+  .slide.title-slide .meta { font-size: 12px; color: #999; line-height: 1.8; }
+
+  h1 { font-size: 24px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  h2 { font-size: 16px; font-weight: 600; color: #0f3460; margin-bottom: 10px; margin-top: 14px; }
+  h3 { font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+  .subtitle { font-size: 12px; color: #888; margin-bottom: 18px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+  .four-col { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px; }
+
+  .card {
+    background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 8px;
+    padding: 16px 18px;
+  }
+
+  .callout {
+    margin-top: 12px; padding: 10px 14px; font-size: 11.5px; border-radius: 4px;
+  }
+  .callout.blue { background: #e3f2fd; border-left: 3px solid #1565c0; }
+  .callout.green { background: #e8f5e9; border-left: 3px solid #2e7d32; }
+  .callout.orange { background: #fff3e0; border-left: 3px solid #e65100; }
+
+  .tag {
+    display: inline-block; padding: 2px 8px; border-radius: 3px;
+    font-size: 10px; font-weight: 600;
+  }
+  .tag.green { background: #e8f5e9; color: #2e7d32; }
+  .tag.red { background: #ffebee; color: #c62828; }
+  .tag.blue { background: #e3f2fd; color: #1565c0; }
+  .tag.orange { background: #fff3e0; color: #e65100; }
+  .tag.grey { background: #f5f5f5; color: #616161; }
+  .tag.purple { background: #f3e5f5; color: #6a1b9a; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 8px 0; }
+  th { background: #f8f9fa; padding: 8px 12px; text-align: left; font-weight: 600;
+       color: #1a1a2e; border-bottom: 2px solid #dee2e6; }
+  td { padding: 7px 12px; border-bottom: 1px solid #eee; color: #333; vertical-align: top; }
+
+  ul { font-size: 12px; line-height: 1.7; padding-left: 18px; }
+  ul li { margin-bottom: 4px; }
+  p { font-size: 12px; line-height: 1.6; color: #444; }
+
+  .slide-number { font-size: 10px; color: #bbb; }
+  /* ── Logo ── */
+  .logo-title {
+    position: absolute; top: 30px; right: 40px;
+    height: 80px; opacity: 0.9;
+  }
+  .slide-footer {
+    position: absolute; bottom: 10px; left: 20px; right: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .prepared-by {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .prepared-by span {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+  .prepared-by img {
+    height: 22px; opacity: 0.7;
+  }
+  .footer-project {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+
+  .kpi-box {
+    background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 6px;
+    padding: 10px 12px; text-align: center;
+  }
+  .kpi-box .number { font-size: 24px; font-weight: 700; color: #0f3460; }
+  .kpi-box .label { font-size: 10px; color: #888; margin-top: 2px; }
+
+  .phase-bar {
+    display: flex; gap: 0; margin: 12px 0; border-radius: 6px; overflow: hidden;
+    height: 40px; font-size: 11px; font-weight: 600;
+  }
+  .phase-bar > div {
+    display: flex; align-items: center; justify-content: center; color: #fff;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ SLIDE 1 — TITLE ═══════════════════ -->
+
+<div class="slide title-slide">
+
+  <img src="VVF-logo.png" alt="VVF" class="logo-title">
+  <h1>Analytical &amp; Management Reporting</h1>
+  <div class="subtitle">KPI Framework, Data Stewardship &amp; Reporting Architecture</div>
+  <div class="meta">
+    Steering Committee — Executive Summary<br>
+    March 2026
+
+</div>
+
+<!-- ═══════════════════ SLIDE 2 — REPORTING LAYERS ═══════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">1</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Three Reporting Layers — One Version of the Truth</h1>
+  <div class="subtitle">Odoo native dashboards at Day 1, custom reports from Day 30, Fabric BI from Q4</div>
+
+  <div class="phase-bar">
+    <div style="flex: 3; background: #2e7d32;">Go-Live (Jul 2026) — Odoo Native</div>
+    <div style="flex: 2; background: #1565c0;">Phase 2 (Sep) — Custom SQL</div>
+    <div style="flex: 2; background: #6a1b9a;">Phase 3 (Q4) — Fabric + Power BI</div>
+  </div>
+
+  <div class="three-col" style="margin-top: 14px;">
+    <div class="card" style="border-top: 4px solid #2e7d32;">
+      <h3 style="color: #2e7d32;">Layer 1 — Odoo Native</h3>
+      <p><span class="tag green">Day 1</span> Available at go-live, zero custom dev</p>
+      <ul style="margin-top: 8px;">
+        <li>Invoice Analysis pivot (Revenue by area/month)</li>
+        <li>Sales Analysis (SO pipeline)</li>
+        <li>Inventory Valuation (stock by product/lot)</li>
+        <li>Aged Receivable / Payable</li>
+        <li>MRP Production Analysis</li>
+        <li>P&amp;L and Balance Sheet</li>
+        <li><strong>Margin by SKU, country, customer, product group</strong></li>
+      </ul>
+      <p style="margin-top: 6px; font-weight: 600; color: #2e7d32;">Covers ~80% of KPIs at go-live</p>
+    </div>
+
+    <div class="card" style="border-top: 4px solid #1565c0;">
+      <h3 style="color: #1565c0;">Layer 2 — Custom Odoo SQL</h3>
+      <p><span class="tag blue">Phase 2</span> Built in kebony_bol_report module</p>
+      <ul style="margin-top: 8px;">
+        <li>
+<strong>Sales Dashboard</strong> (pivot by Sales Area x Month)</li>
+        <li>Five metrics: Invoiced, To Invoice, To Cash In, Prepayments, Paid</li>
+        <li>Two views: Sales Pipeline + Cash Position</li>
+        <li>Volume m3, drill-down to customer/rep/invoice</li>
+        <li>
+<strong>Margin Report</strong> per invoice with COGS decomposition</li>
+        <li>EOM Accrual tracking &amp; liability balance</li>
+      </ul>
+      <p style="margin-top: 6px;">Entity-aware: US shows Sales Areas, BNV shows Countries</p>
+    </div>
+
+    <div class="card" style="border-top: 4px solid #6a1b9a;">
+      <h3 style="color: #6a1b9a;">Layer 3 — Microsoft Fabric</h3>
+      <p><span class="tag purple">Q4 2026</span> Enterprise BI platform</p>
+      <ul style="margin-top: 8px;">
+        <li>Fabric Data Factory → OneLake</li>
+        <li>Bronze / Silver / Gold medallion layers</li>
+        <li>Power BI dashboards for C-suite</li>
+        <li>Cross-entity consolidation</li>
+        <li>Blended KPIs (Odoo + AX + external)</li>
+        <li>Microsoft Purview for data governance</li>
+        <li>Copilot AI/ML for forecasting</li>
+      </ul>
+      <p style="margin-top: 6px;">Owned by CIO, data fed from Odoo API</p>
+    </div>
+
+  <div class="callout blue" style="margin-top: 10px;">
+    <strong>Key principle:</strong> Odoo is the system of record. Fabric consumes, never writes back. Every number in Power BI traces to an Odoo document.
+
+</div>
+
+<!-- ═══════════════════ SLIDE 3 — DATA STEWARDSHIP ═══════════════════ -->
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">2</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Data Stewardship — One Owner per KPI Family</h1>
+  <div class="subtitle">No KPI without an owner. No report without a source definition.</div>
+
+  <div class="two-col">
+    <div>
+      <table>
+        <thead>
+          <tr>
+<th>KPI Family</th>
+<th>Steward</th>
+<th>Source System</th>
+</tr>
+        </thead>
+        <tbody>
+          <tr>
+<td><strong>Revenue &amp; Invoicing</strong></td>
+<td>Controller</td>
+<td>Odoo Accounting</td>
+</tr>
+          <tr>
+<td><strong>Sales Pipeline</strong></td>
+<td>Sales Director</td>
+<td>Odoo Sales</td>
+</tr>
+          <tr>
+<td><strong>Cash &amp; Receivables</strong></td>
+<td>Controller</td>
+<td>Odoo Accounting</td>
+</tr>
+          <tr>
+<td><strong>COGS &amp; Margin</strong></td>
+<td>Controller</td>
+<td>Odoo (custom module)</td>
+</tr>
+          <tr>
+<td><strong>Inventory &amp; Stock</strong></td>
+<td>Warehouse Manager</td>
+<td>Odoo Inventory</td>
+</tr>
+          <tr>
+<td><strong>Production Output</strong></td>
+<td>Production Manager</td>
+<td>Odoo MRP</td>
+</tr>
+          <tr>
+<td><strong>Purchasing &amp; Spend</strong></td>
+<td>Purchasing Manager</td>
+<td>Odoo Purchase</td>
+</tr>
+          <tr>
+<td><strong>Quality &amp; Scrap</strong></td>
+<td>Quality Manager</td>
+<td>Odoo Quality</td>
+</tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div>
+      <h2>Steward Responsibilities</h2>
+      <div class="card" style="margin-bottom: 10px;">
+        <ul>
+          <li>
+<strong>Define:</strong> What exactly does this KPI measure?</li>
+          <li>
+<strong>Source:</strong> Which Odoo field / report is the single source?</li>
+          <li>
+<strong>Quality:</strong> Is the data complete, timely, accurate?</li>
+          <li>
+<strong>Cutoff:</strong> When is the month closed? No late changes.</li>
+          <li>
+<strong>Escalate:</strong> Flag data issues before they reach the board</li>
+        </ul>
+      </div>
+
+      <div class="callout green">
+        <strong>One version of the truth:</strong> If the Sales Director reports revenue by area, and the Controller reports revenue by area, they MUST match — because both pull from the same Odoo invoice pivot. Disagreements = data quality issue, not a reporting issue.
+      </div>
+
+      <div class="callout orange" style="margin-top: 8px;">
+        <strong>No more Excel kingdoms.</strong> Every operational KPI lives in Odoo. Personal spreadsheets are analysis tools, not source-of-truth systems.
+
+      </div>
+
+<!-- ═══════════════════ SLIDE 4 — SALES DASHBOARD PREVIEW ═══════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">3</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Custom Sales Dashboard — Already Built</h1>
+  <div class="subtitle">Native Odoo pivot report — live in the system today</div>
+
+  <div class="two-col">
+    <div>
+      <h2>Sales Pipeline View</h2>
+      <div class="card">
+        <table style="font-size: 11px;">
+          <thead>
+            <tr>
+<th>Sales Area</th>
+<th>Invoiced</th>
+<th>To Invoice</th>
+<th>Total Pipeline</th>
+</tr>
+          </thead>
+          <tbody>
+            <tr>
+<td>CENTRAL</td>
+<td style="text-align:right;">$142k</td>
+<td style="text-align:right;">$38k</td>
+<td style="text-align:right; font-weight:700;">$180k</td>
+</tr>
+            <tr>
+<td>EAST-CAN</td>
+<td style="text-align:right;">$98k</td>
+<td style="text-align:right;">$65k</td>
+<td style="text-align:right; font-weight:700;">$163k</td>
+</tr>
+            <tr>
+<td>NORTH-EAST</td>
+<td style="text-align:right;">$210k</td>
+<td style="text-align:right;">$22k</td>
+<td style="text-align:right; font-weight:700;">$232k</td>
+</tr>
+            <tr>
+<td>SOUTH-EAST</td>
+<td style="text-align:right;">$87k</td>
+<td style="text-align:right;">$41k</td>
+<td style="text-align:right; font-weight:700;">$128k</td>
+</tr>
+            <tr>
+<td>WEST</td>
+<td style="text-align:right;">$165k</td>
+<td style="text-align:right;">$55k</td>
+<td style="text-align:right; font-weight:700;">$220k</td>
+</tr>
+            <tr style="background:#f0f7ff; font-weight:700;">
+              <td>TOTAL</td>
+<td style="text-align:right;">$702k</td>
+<td style="text-align:right;">$221k</td>
+<td style="text-align:right;">$923k</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="margin-top:6px; font-size:10px; color:#888;">Rows = Sales Area | Columns = Metric | Drillable by Month, Customer, Rep</p>
+      </div>
+    </div>
+
+    <div>
+      <h2>Cash Position View</h2>
+      <div class="card">
+        <table style="font-size: 11px;">
+          <thead>
+            <tr>
+<th>Sales Area</th>
+<th>Paid</th>
+<th>To Cash In</th>
+<th>Prepayments</th>
+</tr>
+          </thead>
+          <tbody>
+            <tr>
+<td>CENTRAL</td>
+<td style="text-align:right;">$120k</td>
+<td style="text-align:right;">$22k</td>
+<td style="text-align:right;">$15k</td>
+</tr>
+            <tr>
+<td>EAST-CAN</td>
+<td style="text-align:right;">$75k</td>
+<td style="text-align:right;">$23k</td>
+<td style="text-align:right;">$8k</td>
+</tr>
+            <tr>
+<td>NORTH-EAST</td>
+<td style="text-align:right;">$185k</td>
+<td style="text-align:right;">$25k</td>
+<td style="text-align:right;">$12k</td>
+</tr>
+            <tr>
+<td>SOUTH-EAST</td>
+<td style="text-align:right;">$70k</td>
+<td style="text-align:right;">$17k</td>
+<td style="text-align:right;">$5k</td>
+</tr>
+            <tr>
+<td>WEST</td>
+<td style="text-align:right;">$140k</td>
+<td style="text-align:right;">$25k</td>
+<td style="text-align:right;">$18k</td>
+</tr>
+            <tr style="background:#f0f7ff; font-weight:700;">
+              <td>TOTAL</td>
+<td style="text-align:right;">$590k</td>
+<td style="text-align:right;">$112k</td>
+<td style="text-align:right;">$58k</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="margin-top:6px; font-size:10px; color:#888;">To Cash In = invoiced not yet paid | Prepayments = cash received, not yet delivered</p>
+      </div>
+    </div>
+
+  <div class="callout green" style="margin-top: 14px;">
+    <strong>No more excuses.</strong> This report runs live in Odoo under Accounting → Reporting → Sales Dashboard. Updated in real-time. Available for both Kebony Inc. (US — by Sales Area) and Kebony BNV (Belgium — by Country). Pivot, graph, and list views. Exportable to Excel with one click.
+
+</div>
+
+</div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">4</div>
+  </div>
+</div>
+</body></html>

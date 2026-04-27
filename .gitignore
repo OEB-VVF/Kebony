@@ -8,7 +8,13 @@
 # Credentials (NEVER commit)
 .env
 
+# Confidential documents (not for GitHub)
+candidate_briefing.html
+
 # OS
 .DS_Store
 .Trash-*
 Thumbs.db
+
+# Office lock files (transient, never commit)
+~$*

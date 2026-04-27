@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0">
+<title>Odoo Sign — Training Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    body { background: none; padding: 0; gap: 0; }
+    .slide { box-shadow: none; border-radius: 0; margin: 0;
+             page-break-inside: avoid; page-break-after: always; }
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    gap: 30px;
+  }
+
+  .slide {
+    width: 1280px;
+    min-height: 720px;
+    max-height: 720px;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    padding: 38px 50px 36px;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+  }
+
+  .slide::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
+
+  .slide.title-slide {
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: flex-start;
+  }
+  .slide.title-slide::before { height: 8px; }
+  .slide.title-slide h1 { font-size: 36px; line-height: 1.2; margin-bottom: 8px; }
+  .slide.title-slide .subtitle { font-size: 16px; color: #555; margin-bottom: 32px; }
+  .slide.title-slide .meta { font-size: 12px; color: #999; line-height: 1.8; }
+
+  h1 { font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  h2 { font-size: 15px; font-weight: 600; color: #0f3460; margin-bottom: 10px; margin-top: 14px; }
+  h3 { font-size: 12px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  .subtitle { font-size: 12px; color: #888; margin-bottom: 16px; }
+
+  .section-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1.2px; color: #0f3460; margin-bottom: 8px;
+    padding-bottom: 4px; border-bottom: 2px solid #0f3460; display: inline-block;
+  }
+  .section-label.green { color: #2e7d32; border-color: #2e7d32; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 11px; margin: 6px 0; }
+  th {
+    font-size: 9px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; color: #888; text-align: left;
+    padding: 4px 6px 5px; border-bottom: 2px solid #ddd;
+  }
+  td { padding: 4px 6px; border-bottom: 1px solid #f0f0f0; color: #333; vertical-align: top; }
+
+  .cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  .cols-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; align-items: start; }
+
+  .callout {
+    background: #fff8e1; border-left: 4px solid #ffa000;
+    padding: 10px 14px; font-size: 11px; line-height: 1.5;
+    margin: 8px 0; border-radius: 0 6px 6px 0;
+  }
+  .callout.blue { background: #e8eaf6; border-color: #3949ab; }
+  .callout.green { background: #e8f5e9; border-color: #2e7d32; }
+  .callout.red { background: #ffebee; border-color: #c62828; }
+
+  .badge {
+    display: inline-block; padding: 2px 10px; border-radius: 12px;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.3px;
+  }
+  .badge.green { background: #e8f5e9; color: #2e7d32; }
+  .badge.blue { background: #e8eaf6; color: #283593; }
+  .badge.orange { background: #fff3e0; color: #e65100; }
+
+  .step-box {
+    background: #fafbfc; border: 1px solid #e0e0e0;
+    border-radius: 8px; padding: 14px 16px; margin: 6px 0;
+  }
+  .step-box h3 { font-size: 12px; margin-bottom: 6px; color: #0f3460; }
+  .step-box p, .step-box li { font-size: 11px; line-height: 1.5; color: #444; }
+  .step-box ul { padding-left: 16px; }
+
+  ul.compact { padding-left: 16px; }
+  ul.compact li { font-size: 11px; line-height: 1.6; color: #444; }
+
+  /* ── Training-specific styles ── */
+  .step-number {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, #1a1a2e, #0f3460);
+    color: #fff; font-size: 16px; font-weight: 700;
+    margin-right: 12px; flex-shrink: 0;
+  }
+
+  .step-header {
+    display: flex; align-items: center; margin-bottom: 8px;
+  }
+
+  .step-title {
+    font-size: 16px; font-weight: 700; color: #1a1a2e;
+  }
+
+  .screen-mock {
+    background: #f8f9fa; border: 2px solid #dee2e6;
+    border-radius: 8px; padding: 16px; margin: 8px 0;
+    position: relative;
+  }
+
+  .screen-mock .mock-bar {
+    background: #714B67; color: #fff; font-size: 10px; font-weight: 600;
+    padding: 6px 12px; border-radius: 4px 4px 0 0;
+    margin: -16px -16px 12px -16px; letter-spacing: 0.3px;
+  }
+
+  .screen-mock .mock-content {
+    font-size: 11px; color: #444; line-height: 1.6;
+  }
+
+  .arrow-label {
+    display: inline-block; background: #c62828; color: #fff;
+    font-size: 9px; font-weight: 700; padding: 2px 8px;
+    border-radius: 3px; margin: 2px 4px;
+  }
+
+  .nav-path {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 11px; background: #f0f0f0; padding: 4px 10px;
+    border-radius: 4px; display: inline-block; margin: 4px 0;
+    color: #333; border: 1px solid #ddd;
+  }
+
+  .key {
+    font-family: 'SF Mono', monospace; font-size: 10px;
+    background: #f5f5f5; border: 1px solid #ddd;
+    padding: 1px 6px; border-radius: 3px; color: #333;
+  }
+
+  .field-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+  }
+  .field-item {
+    background: #e8eaf6; border-radius: 4px; padding: 6px 8px;
+    font-size: 10px; font-weight: 600; color: #283593; text-align: center;
+  }
+  .slide-number { font-size: 10px; color: #bbb; }
+  /* ── Logo ── */
+  .logo-title {
+    position: absolute; top: 30px; right: 40px;
+    height: 80px; opacity: 0.9;
+  }
+  .slide-footer {
+    position: absolute; bottom: 10px; left: 20px; right: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .prepared-by {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .prepared-by span {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+  .prepared-by img {
+    height: 22px; opacity: 0.7;
+  }
+  .footer-project {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 1 — Title -->
+
+<!-- ════════════════════════════════════════════════════════════ -->
+
+<div class="slide title-slide">
+
+  <img src="VVF-logo.png" alt="VVF" class="logo-title">
+  <h1>Odoo Sign</h1>
+  <div class="subtitle">Step-by-Step Training Guide</div>
+  <div class="meta">
+    Kebony — IT &amp; Digital Operations<br>
+    April 2026<br>
+    Replaces DocuSign for all electronic signature needs
+
+  </div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 2 — Overview -->
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">1</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>What You'll Learn</h1>
+  <div class="subtitle">Five steps from zero to signed document</div>
+
+  <div style="margin-top:12px;">
+    <div class="step-box" style="display:flex; align-items:center; gap:16px;">
+      <div class="step-number">1</div>
+      <div>
+<strong>Access Odoo Sign</strong> — Where to find it in the menu</div>
+    </div>
+    <div class="step-box" style="display:flex; align-items:center; gap:16px;">
+      <div class="step-number">2</div>
+      <div>
+<strong>Upload a PDF template</strong> — Upload any document and create a reusable template</div>
+    </div>
+    <div class="step-box" style="display:flex; align-items:center; gap:16px;">
+      <div class="step-number">3</div>
+      <div>
+<strong>Add signature fields</strong> — Drag fields onto the PDF (Signature, Name, Date, etc.)</div>
+    </div>
+    <div class="step-box" style="display:flex; align-items:center; gap:16px;">
+      <div class="step-number">4</div>
+      <div>
+<strong>Send for signature</strong> — Assign recipients and send the request</div>
+    </div>
+    <div class="step-box" style="display:flex; align-items:center; gap:16px;">
+      <div class="step-number">5</div>
+      <div>
+<strong>Track &amp; complete</strong> — Monitor status and download signed documents</div>
+    </div>
+  </div>
+
+  <div class="callout blue" style="margin-top:16px;">
+    <strong>Unlimited signatures</strong> — Odoo Sign is included in our Enterprise subscription. No per-document fees, no envelope limits. Use it as much as you need.
+
+  </div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 3 — Step 1: Access Sign -->
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">2</div>
+  </div>
+</div>
+<div class="slide">
+  <div class="step-header">
+    <div class="step-number">1</div>
+    <div class="step-title">Access Odoo Sign</div>
+  </div>
+  <div class="subtitle">Navigate to the Sign app from the Odoo home menu</div>
+
+  <div class="cols-2">
+    <div>
+      <h2>How to get there</h2>
+      <div class="step-box">
+        <h3>Option A — Home Menu</h3>
+        <ul class="compact">
+          <li>Click the <strong>grid icon</strong> (top-left) to open the Home Menu</li>
+          <li>Search for <strong>"Sign"</strong> or scroll to find the Sign app</li>
+          <li>Click on it to open</li>
+        </ul>
+      </div>
+      <div class="step-box">
+        <h3>Option B — Direct URL</h3>
+        <p>Bookmark: <span class="nav-path">kebonyprod.odoo.com/odoo/sign</span></p>
+      </div>
+
+      <h2>The Sign menu bar</h2>
+      <div class="screen-mock">
+        <div class="mock-bar">Sign   |   Documents   |   Templates   |   Reports   |   Configuration</div>
+        <div class="mock-content">
+          <strong>Documents</strong> — Signature requests sent &amp; received<br>
+          <strong>Templates</strong> — Reusable document templates<br>
+          <strong>Reports</strong> — Signing activity overview<br>
+          <strong>Configuration</strong> — Settings &amp; roles
+        </div>
+      </div>
+    </div>
+    <div>
+      <h2>What you'll see</h2>
+      <div class="screen-mock">
+        <div class="mock-bar">Sign &gt; Documents (empty state)</div>
+        <div class="mock-content" style="text-align:center; padding:30px 0;">
+          <div style="font-size:40px; margin-bottom:8px;">📄</div>
+          <p>The Documents view shows all signature requests.</p>
+          <p style="margin-top:8px; color:#888;">Empty at first — your signed documents will appear here.</p>
+        </div>
+      </div>
+
+      <div class="callout green" style="margin-top:12px;">
+        <strong>Two sub-menus under Documents:</strong><br>
+        • <strong>My Documents</strong> — requests you created<br>
+        • <strong>All Documents</strong> — all requests across the team
+
+      </div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 4 — Step 2: Upload Template -->
+
+<!-- ════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">3</div>
+  </div>
+</div>
+<div class="slide">
+  <div class="step-header">
+    <div class="step-number">2</div>
+    <div class="step-title">Upload a PDF Template</div>
+  </div>
+  <div class="subtitle">Create a reusable template from any PDF document</div>
+
+  <div class="cols-2">
+    <div>
+      <h2>Two ways to upload</h2>
+      <div class="step-box">
+        <h3>Drag &amp; Drop</h3>
+        <p>Drag a PDF file from your computer directly into the Templates view. The upload overlay appears automatically.</p>
+      </div>
+      <div class="step-box">
+        <h3>Click "Upload PDF"</h3>
+        <ul class="compact">
+          <li>Go to <span class="nav-path">Sign → Templates</span>
+</li>
+          <li>Click the <span class="arrow-label">Upload PDF</span> button (top-left)</li>
+          <li>Select your PDF file from the file picker</li>
+        </ul>
+      </div>
+
+      <div class="callout" style="margin-top:12px;">
+        <strong>Tip:</strong> Templates are reusable! Upload a contract, NDA, or policy once, then send it to different recipients each time.
+      </div>
+    </div>
+    <div>
+      <h2>What happens after upload</h2>
+      <div class="screen-mock">
+        <div class="mock-bar">Sign &gt; Templates &gt; Your Document.pdf</div>
+        <div class="mock-content">
+          <p>The <strong>Template Editor</strong> opens with your PDF displayed in the center.</p>
+          <p style="margin-top:8px;">On the left panel you'll see:</p>
+          <ul style="margin-top:6px; padding-left:16px;">
+            <li>
+<strong>Documents</strong> — your uploaded PDF(s)</li>
+            <li>
+<strong>Signers</strong> — roles for signing</li>
+            <li>
+<strong>Field palette</strong> — drag-and-drop fields</li>
+          </ul>
+          <p style="margin-top:8px;">At the top: <span class="arrow-label">Send</span> <span class="arrow-label" style="background:#0f3460;">Sign Now</span> <span class="arrow-label" style="background:#666;">Share</span></p>
+        </div>
+      </div>
+
+      <div class="callout blue" style="margin-top:12px;">
+        <strong>Multi-document:</strong> Click "Add" next to Documents to bundle multiple PDFs into a single signature request.
+
+      </div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 5 — Step 3: Add Fields -->
+
+<!-- ════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">4</div>
+  </div>
+</div>
+<div class="slide">
+  <div class="step-header">
+    <div class="step-number">3</div>
+    <div class="step-title">Add Signature Fields</div>
+  </div>
+  <div class="subtitle">Drag fields from the left panel onto the PDF where you need them</div>
+
+  <div class="cols-2" style="margin-top:4px;">
+    <div>
+      <h2>Available field types</h2>
+      <div class="field-grid">
+        <div class="field-item">✍ Signature</div>
+        <div class="field-item">✍ Initials</div>
+        <div class="field-item">👤 Name</div>
+        <div class="field-item">✉ Email</div>
+        <div class="field-item">📞 Phone</div>
+        <div class="field-item">🏢 Company</div>
+        <div class="field-item">A Text</div>
+        <div class="field-item">☰ Multiline</div>
+        <div class="field-item">☑ Checkbox</div>
+        <div class="field-item">◎ Radio</div>
+        <div class="field-item">↓ Selection</div>
+        <div class="field-item">📅 Date</div>
+        <div class="field-item">✂ Strikethrough</div>
+        <div class="field-item">🔒 Stamp</div>
+      </div>
+
+      <h2 style="margin-top:16px;">How to place a field</h2>
+      <div class="step-box">
+        <ol class="compact" style="padding-left:16px;">
+          <li>Select a <strong>Signer role</strong> (left panel, under "Signers")</li>
+          <li>
+<strong>Drag</strong> a field type from the palette onto the PDF</li>
+          <li>
+<strong>Position</strong> and <strong>resize</strong> the field on the document</li>
+          <li>Repeat for each field you need</li>
+        </ol>
+      </div>
+    </div>
+    <div>
+      <h2>Signers (roles)</h2>
+      <div class="step-box">
+        <h3>What are signers?</h3>
+        <p>Each field belongs to a <strong>signer role</strong>. When you send the document, each role is assigned to a real person.</p>
+        <p style="margin-top:6px;">Example: "Signer 1" = the customer, "Signer 2" = the Kebony representative.</p>
+      </div>
+      <div class="step-box">
+        <h3>Add a second signer</h3>
+        <ul class="compact">
+          <li>Click <span class="arrow-label" style="background:#0f3460;">Add</span> next to "Signers"</li>
+          <li>A new signer role appears (e.g. "Signer 2")</li>
+          <li>Fields assigned to Signer 2 will show in a different color</li>
+        </ul>
+      </div>
+
+      <div class="callout" style="margin-top:12px;">
+        <strong>Signing order:</strong> Signers sign in order. Signer 2 receives their request only after Signer 1 has completed signing.
+      </div>
+
+      <div class="callout green" style="margin-top:8px;">
+        <strong>Smart prefill:</strong> Name, Email, Company, and Address fields auto-populate from the recipient's Odoo contact record.
+
+      </div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 6 — Step 4: Send -->
+
+<!-- ════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">5</div>
+  </div>
+</div>
+<div class="slide">
+  <div class="step-header">
+    <div class="step-number">4</div>
+    <div class="step-title">Send for Signature</div>
+  </div>
+  <div class="subtitle">Assign recipients to each role and send the request</div>
+
+  <div class="cols-2" style="margin-top:4px;">
+    <div>
+      <h2>Sending a signature request</h2>
+      <div class="step-box">
+        <h3>Click "Send"</h3>
+        <ol class="compact" style="padding-left:16px;">
+          <li>Click the <span class="arrow-label">Send</span> button (top-left of template editor)</li>
+          <li>A dialog opens asking you to <strong>assign recipients</strong>
+</li>
+          <li>For each signer role, type a <strong>name or email</strong>
+</li>
+          <li>Odoo suggests existing contacts as you type</li>
+          <li>Optionally add a <strong>subject</strong> and <strong>message</strong>
+</li>
+          <li>Click <strong>"Send"</strong> to dispatch the request</li>
+        </ol>
+      </div>
+
+      <h2>Alternative: Sign Now</h2>
+      <div class="step-box">
+        <h3>For self-signing</h3>
+        <p>Click <span class="arrow-label" style="background:#0f3460;">Sign Now</span> if <em>you</em> are one of the signers. This opens the document for your immediate signature.</p>
+      </div>
+
+      <h2>Alternative: Share</h2>
+      <div class="step-box">
+        <h3>Share a link</h3>
+        <p>Click <span class="arrow-label" style="background:#666;">Share</span> to generate a signing link that you can copy and send via any channel (email, chat, etc.).</p>
+      </div>
+    </div>
+    <div>
+      <h2>What the recipient sees</h2>
+      <div class="screen-mock">
+        <div class="mock-bar">Email received by recipient</div>
+        <div class="mock-content">
+          <p><strong>Subject:</strong> Signature Request — [Document Name]</p>
+          <p style="margin-top:6px;"><strong>Body:</strong> "You have been requested to sign the following document..."</p>
+          <p style="margin-top:6px;">Contains a <span class="arrow-label" style="background:#2e7d32;">Review &amp; Sign</span> button linking to a secure signing page.</p>
+        </div>
+      </div>
+
+      <h2 style="margin-top:12px;">The signing experience</h2>
+      <div class="screen-mock">
+        <div class="mock-bar">Signing page (recipient's browser)</div>
+        <div class="mock-content">
+          <p>The recipient sees the PDF with highlighted fields to fill in:</p>
+          <ul style="padding-left:16px; margin-top:6px;">
+            <li>Click on a <strong>Signature field</strong> → draw, type, or upload</li>
+            <li>
+<strong>Name/Email/Date</strong> fields auto-fill when possible</li>
+            <li>All required fields must be completed</li>
+            <li>Click <span class="arrow-label" style="background:#2e7d32;">Validate &amp; Sign</span> to finalize</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout green" style="margin-top:12px;">
+        <strong>No Odoo account needed!</strong> Recipients sign via a secure web link. They don't need to log in or create an account.
+
+      </div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 7 — Step 5: Track & Complete -->
+
+<!-- ════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">6</div>
+  </div>
+</div>
+<div class="slide">
+  <div class="step-header">
+    <div class="step-number">5</div>
+    <div class="step-title">Track &amp; Complete</div>
+  </div>
+  <div class="subtitle">Monitor signing progress and download completed documents</div>
+
+  <div class="cols-2" style="margin-top:4px;">
+    <div>
+      <h2>Document status tracking</h2>
+      <div class="step-box">
+        <h3>Navigate to Documents</h3>
+        <p>Go to <span class="nav-path">Sign → Documents → All Documents</span></p>
+        <p style="margin-top:6px;">Each request shows its current status:</p>
+        <table style="margin-top:8px;">
+          <tr>
+<td><span class="badge orange">IN PROGRESS</span></td>
+<td>Waiting for one or more signers</td>
+</tr>
+          <tr>
+<td><span class="badge green">SIGNED</span></td>
+<td>All parties have signed</td>
+</tr>
+          <tr>
+<td><span class="badge" style="background:#ffebee; color:#c62828;">REFUSED</span></td>
+<td>A signer declined to sign</td>
+</tr>
+          <tr>
+<td><span class="badge" style="background:#f5f5f5; color:#666;">CANCELED</span></td>
+<td>Request was canceled</td>
+</tr>
+        </table>
+      </div>
+
+      <h2>Download the signed document</h2>
+      <div class="step-box">
+        <ul class="compact">
+          <li>Click on a completed (Signed) document</li>
+          <li>The signed PDF is available for download</li>
+          <li>A <strong>Certificate of Completion</strong> is attached — this is your audit trail</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <h2>Certificate of Completion</h2>
+      <div class="screen-mock">
+        <div class="mock-bar">Audit trail document</div>
+        <div class="mock-content">
+          The certificate includes:
+          <ul style="padding-left:16px; margin-top:6px;">
+            <li>
+<strong>Document ID</strong> — unique identifier</li>
+            <li>
+<strong>Signatory details</strong> — name, email, IP address</li>
+            <li>
+<strong>Timestamps</strong> — when each party signed</li>
+            <li>
+<strong>Cryptographic hash</strong> — proves document integrity</li>
+          </ul>
+          <p style="margin-top:8px; color:#2e7d32; font-weight:600;">Legally binding under eIDAS (EU) and ESIGN Act (US).</p>
+        </div>
+      </div>
+
+      <h2>Reminders &amp; follow-up</h2>
+      <div class="step-box">
+        <ul class="compact">
+          <li>Odoo can send <strong>automatic reminders</strong> to signers who haven't responded</li>
+          <li>You can also manually <strong>resend</strong> a request from the document view</li>
+          <li>Set <strong>validity periods</strong> on templates (e.g. expires in 14 days)</li>
+        </ul>
+      </div>
+
+      <div class="callout blue" style="margin-top:12px;">
+        <strong>All parties receive a copy.</strong> Once fully signed, every signer automatically receives the final signed PDF by email.
+
+      </div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 8 — Bonus: Sign from PO/SO -->
+
+<!-- ════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">7</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Bonus: Sign from a Purchase Order or Sale Order</h1>
+  <div class="subtitle">Request signatures directly from Odoo records</div>
+
+  <div class="cols-2" style="margin-top:8px;">
+    <div>
+      <h2>From a Purchase Order</h2>
+      <div class="step-box">
+        <ol class="compact" style="padding-left:16px;">
+          <li>Open the PO in <span class="nav-path">Purchase → Orders</span>
+</li>
+          <li>Click the <strong>⚙ Actions</strong> (gear) menu</li>
+          <li>Select <strong>"Request Signature"</strong>
+</li>
+          <li>Choose a template or let Odoo generate one from the PO</li>
+          <li>Assign the recipient (vendor/customer)</li>
+          <li>Click Send</li>
+        </ol>
+        <p style="margin-top:8px; font-size:10px; color:#888;">The signed document attaches to the PO record automatically.</p>
+      </div>
+
+      <h2>From a Sale Order / Quotation</h2>
+      <div class="step-box">
+        <h3>Option A: Portal signature (lightweight)</h3>
+        <p>Customer signs on the Odoo portal page to confirm the order. No separate document needed.</p>
+        <p style="margin-top:4px; font-size:10px; color:#888;">Enabled in Sales → Settings → Online Signature</p>
+      </div>
+      <div class="step-box">
+        <h3>Option B: Full Sign request</h3>
+        <p>Same as PO: <strong>⚙ Actions → Request Signature</strong> on the SO record.</p>
+      </div>
+    </div>
+    <div>
+      <h2>From any Odoo record</h2>
+      <div class="screen-mock">
+        <div class="mock-bar">⚙ Actions menu &gt; Request Signature</div>
+        <div class="mock-content" style="text-align:center; padding:20px;">
+          <p style="font-size:14px; font-weight:600; color:#0f3460;">Available on <em>any</em> Odoo record</p>
+          <p style="margin-top:8px;">Invoices, CRM opportunities, HR contracts, custom records — the gear icon always offers "Request Signature" when Sign is installed.</p>
+        </div>
+      </div>
+
+      <div class="callout green" style="margin-top:16px;">
+        <strong>Key benefit over DocuSign:</strong> The signed document automatically links back to the originating Odoo record (PO, SO, invoice). No manual filing needed.
+      </div>
+
+      <div class="callout" style="margin-top:8px;">
+        <strong>Database is neutralized for testing</strong> — no emails will actually be sent from the test environment. You can practice freely.
+
+      </div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 9 — Quick Reference -->
+
+<!-- ════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">8</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Quick Reference Card</h1>
+  <div class="subtitle">Keep this handy for your first week with Odoo Sign</div>
+
+  <div class="cols-3" style="margin-top:8px;">
+    <div>
+      <div class="section-label">Common tasks</div>
+      <table>
+        <tr>
+<th>I want to...</th>
+<th>Do this</th>
+</tr>
+        <tr>
+<td>Send a document for signature</td>
+<td>Templates → select template → Send</td>
+</tr>
+        <tr>
+<td>Upload a new document</td>
+<td>Templates → Upload PDF</td>
+</tr>
+        <tr>
+<td>Sign a document myself</td>
+<td>Template → Sign Now</td>
+</tr>
+        <tr>
+<td>Share a signing link</td>
+<td>Template → Share</td>
+</tr>
+        <tr>
+<td>Check if someone signed</td>
+<td>Documents → All Documents</td>
+</tr>
+        <tr>
+<td>Download signed PDF</td>
+<td>Click on completed document</td>
+</tr>
+        <tr>
+<td>Resend a reminder</td>
+<td>Open document → Resend</td>
+</tr>
+        <tr>
+<td>Sign a PO</td>
+<td>PO → ⚙ Actions → Request Signature</td>
+</tr>
+      </table>
+    </div>
+    <div>
+      <div class="section-label">Field types cheat sheet</div>
+      <table>
+        <tr>
+<th>Field</th>
+<th>When to use</th>
+</tr>
+        <tr>
+<td><strong>Signature</strong></td>
+<td>Full signature (required for legal docs)</td>
+</tr>
+        <tr>
+<td><strong>Initials</strong></td>
+<td>Short initial on each page</td>
+</tr>
+        <tr>
+<td><strong>Name</strong></td>
+<td>Auto-fills from contact record</td>
+</tr>
+        <tr>
+<td><strong>Date</strong></td>
+<td>Auto-fills with signing date</td>
+</tr>
+        <tr>
+<td><strong>Email</strong></td>
+<td>Auto-fills from contact</td>
+</tr>
+        <tr>
+<td><strong>Text</strong></td>
+<td>Free text input by signer</td>
+</tr>
+        <tr>
+<td><strong>Checkbox</strong></td>
+<td>Accept terms / confirm a clause</td>
+</tr>
+        <tr>
+<td><strong>Selection</strong></td>
+<td>Dropdown with predefined options</td>
+</tr>
+      </table>
+    </div>
+    <div>
+      <div class="section-label">Keyboard shortcuts</div>
+      <table>
+        <tr>
+<th>Shortcut</th>
+<th>Action</th>
+</tr>
+        <tr>
+<td>
+<span class="key">Ctrl</span>+<span class="key">S</span>
+</td>
+<td>Save template</td>
+</tr>
+        <tr>
+<td><span class="key">Del</span></td>
+<td>Remove selected field</td>
+</tr>
+        <tr>
+<td>Drag field</td>
+<td>Reposition on PDF</td>
+</tr>
+        <tr>
+<td>Resize handles</td>
+<td>Change field size</td>
+</tr>
+      </table>
+
+      <div class="section-label green" style="margin-top:16px;">Need help?</div>
+      <div class="step-box">
+        <ul class="compact">
+          <li>Contact: <strong>oeb@kebony.com</strong>
+</li>
+          <li>Send template PDFs to be set up for you</li>
+          <li>Odoo docs: <em>odoo.com/documentation/19.0/applications/productivity/sign</em>
+</li>
+        </ul>
+
+      </div>
+
+</div>
+</div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">9</div>
+  </div>
+</div>
+
+</body>
+</html>

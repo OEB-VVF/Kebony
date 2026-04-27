@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Quality Support Proposal — Kebony</title>
+<style>
+  @page { size: A4; margin: 20mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 11pt;
+    line-height: 1.55;
+    color: #1a1a1a;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 34px 44px;
+    background: #fafaf7;
+  }
+  h1, h2, h3 { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #0f2a4f; font-weight: 600; }
+  h1 { font-size: 22pt; margin: 0 0 4px 0; letter-spacing: -0.5px; }
+  .subtitle { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 11pt; color: #5a6b80; margin-bottom: 6px; }
+  .meta { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9pt; color: #7a8698; border-bottom: 1px solid #c8d1df; padding-bottom: 14px; margin-bottom: 24px; }
+  h2 { font-size: 14pt; margin: 28px 0 10px 0; border-bottom: 2px solid #0f2a4f; padding-bottom: 4px; }
+  h3 { font-size: 11.5pt; margin: 18px 0 6px 0; color: #2d4a73; }
+  p { margin: 8px 0; }
+  ul { margin: 6px 0; padding-left: 22px; }
+  li { margin: 3px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9.5pt; }
+  th { background: #0f2a4f; color: #fff; text-align: left; padding: 7px 10px; font-weight: 600; }
+  td { border-bottom: 1px solid #dbe2ec; padding: 6px 10px; vertical-align: top; }
+  tr:nth-child(even) td { background: #f2f4f9; }
+  .callout { background: #eaf2fb; border-left: 4px solid #2563a8; padding: 12px 16px; margin: 14px 0; font-style: italic; }
+  .next { background: #e7f3ec; border-left: 4px solid #2f855a; padding: 12px 16px; margin: 14px 0; }
+  .pill { display: inline-block; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 8.5pt; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+  .pill-green { background: #d7efe5; color: #065f46; }
+  .pill-amber { background: #fef0d4; color: #b45309; }
+  .pill-gray  { background: #e5e9f0; color: #3b4657; }
+  code { font-family: "SF Mono", Menlo, monospace; font-size: 9pt; background: #eef1f7; padding: 1px 5px; border-radius: 2px; }
+  .footer { margin-top: 40px; padding-top: 14px; border-top: 1px solid #c8d1df; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9pt; color: #7a8698; }
+  @media print { body { background: #fff; padding: 0; } .callout, .next { break-inside: avoid; } table { break-inside: avoid; } }
+</style>
+</head>
+<body>
+
+<h1>Quality — how the ERP can support you</h1>
+<div class="subtitle">A proposal from VVF Consulting to the new Kebony Quality Manager</div>
+<div class="meta">
+  2026-04-22 · Olivier Eberhard · VVF Consulting — ERP Implementation
+</div>
+
+<p>This note covers Odoo's native quality capabilities and their shortfalls, what Kebony has in place today, and a proposed direction for how we can support the quality function. It is a conversation starter, not a commitment — shape it to fit your priorities.</p>
+
+<h2>1. What Odoo gives you out of the box</h2>
+
+<p>Odoo has a native <strong>Quality</strong> app. It integrates with inventory, manufacturing and purchasing, and covers the operational layer of quality control.</p>
+
+<table>
+  <tr><th>Capability</th><th>What it does</th></tr>
+  <tr><td>Quality Control Points (QCP)</td><td>Rules that generate a quality check whenever a certain event happens — a receipt of a specific product, a given operation in a manufacturing order, a delivery. Measurement types: pass/fail, numeric range within tolerance, photo, text instruction, document capture.</td></tr>
+  <tr><td>Quality Checks</td><td>The actual check instances on real transactions. Operators complete them on shop-floor / warehouse tablets. An unfilled check blocks the operation.</td></tr>
+  <tr><td>Quality Alerts</td><td>Non-conformance records with stages (new → in progress → solved → cancelled), root cause, containment, corrective action, team assignment, attachments.</td></tr>
+  <tr><td>Quality Teams</td><td>Routing and assignment per company, per product category, per operation type.</td></tr>
+  <tr><td>IoT integration</td><td>Calipers, scales, cameras and barcode readers feed measurements directly into the check — no paper re-typing.</td></tr>
+  <tr><td>Dashboards + Spreadsheets</td><td>Pass rate, alert count, team workload, trend views; KPIs can be surfaced in the Odoo Spreadsheet module alongside the business dashboards.</td></tr>
+</table>
+
+<p>Where the native app <em>stops</em>:</p>
+<ul>
+  <li>Customer / supplier claims workflow — needs the Helpdesk app or a custom module</li>
+  <li>Full ISO 9001 document repository (procedures, manuals, training records)</li>
+  <li>Structured CAPA (8D, 5-why) beyond the basic stage model</li>
+  <li>Audit-grade, per-lot document trail tying raw material → finished product — a Kebony-specific need</li>
+</ul>
+
+<h2>2. What is already in place at Kebony</h2>
+
+<table>
+  <tr><th>Area</th><th>Status</th></tr>
+  <tr><td>Lot-level traceability for all wood products</td><td><span class="pill pill-green">In place</span> — every wood SKU is lot-tracked, no exceptions</td></tr>
+  <tr><td>FSC / PEFC chain of custody — per lot, with supplier evidence</td><td><span class="pill pill-amber">Architecture signed off</span> — workshop April 2026; build scheduled</td></tr>
+  <tr><td>Hard-block: no mixing of certifications in Kebonisation or RDK MOs</td><td><span class="pill pill-amber">Architecture signed off</span></td></tr>
+  <tr><td>Invoice = customer-facing proof of certification (scheme + claim + cert code)</td><td><span class="pill pill-amber">Architecture signed off</span></td></tr>
+  <tr><td>ICC-ES (US building-code compliance) at product level</td><td><span class="pill pill-amber">Added to roadmap</span></td></tr>
+  <tr><td>Supplier register with cert validity and evidence</td><td><span class="pill pill-amber">In design</span> — <code>partner.certificate</code> model</td></tr>
+  <tr><td>Nonconformity record linked to lot</td><td><span class="pill pill-amber">In design</span> — <code>cert.nonconformity</code> model</td></tr>
+</table>
+
+<p>The full architecture lives in the vault as <em>Chain of Custody Architecture</em> and is summarised in two companion documents: the <em>Certifications User Guide</em> (for day-to-day use) and the <em>Chain of Custody</em> slide deck (for walk-throughs).</p>
+
+<h2>3. What we propose to layer on top</h2>
+
+<p>Five concrete supports, each scoped so you can pick the ones you want to start with.</p>
+
+<h3>3.1 Reception quality gate</h3>
+<p>Deploy Odoo QCPs on every certified-relevant receipt: dimensional check, moisture content, visual condition, FSC/PEFC certificate presence + match, supplier cert validity. Failed check → lot goes to quarantine location, not to available stock. The receipt cannot close until the check is answered.</p>
+
+<h3>3.2 Production quality checkpoints</h3>
+<p>QCPs at the Kebonisation and RDK hand-over points: before loading the autoclave (input mix verification), at unloading (visual + moisture), at RDK receipt (subcontractor claim reconciled against inputs). Ties directly into the existing MO flow and the certification hard-block.</p>
+
+<h3>3.3 Customer claims workflow</h3>
+<p>Build a lightweight claim module on top of Helpdesk (or a dedicated addon, depending on volume). Each claim carries: invoice line, lot(s), root cause, category (dimensional, moisture, cert issue, shipping damage, packaging, other), financial impact, corrective action, stage. Feeds into a monthly claims dashboard.</p>
+
+<h3>3.4 Document trail, reception → claim</h3>
+<p>Extend the FSC/PEFC audit packet so any document (claim, nonconformity, inspection) can be reconstructed from the lot back to the receipt in one click — and forward to the shipping invoice. This is the trail your auditor and your customers expect, and the chain-of-custody module already lays most of the groundwork.</p>
+
+<h3>3.5 Quality KPI dashboard</h3>
+<p>Monthly pack: pass rate per operation, alert count per root cause, claim volume and cost, supplier performance index, FSC/PEFC certified share. Surfaces in the Odoo Spreadsheet module alongside the existing finance dashboards — no external BI needed at this stage.</p>
+
+<h2>4. What we need from you to shape this</h2>
+
+<ul>
+  <li>Your view of the two or three most painful quality issues today — these set the order of work</li>
+  <li>Current claim handling: who sees them, what's measured, what's missing</li>
+  <li>Any ISO / regulatory obligations we should design around from the start</li>
+  <li>Your appetite for shop-floor tablets — QCPs are most powerful when operators fill them in real time</li>
+</ul>
+
+<div class="next">
+  <strong>Suggested next step.</strong> A 90-minute working session to walk through the Odoo Quality app together, map it against your current process, and pick the two items from section 3 you want to start with. We bring the tool; you bring the priorities.
+</div>
+
+<div class="footer">
+  Olivier Eberhard · VVF Consulting · <code>olivier@vvf-consulting.com</code> · 2026-04-22
+  <br>
+  Companion documents in the vault: <em>Chain of Custody Architecture</em> · <em>Certifications User Guide</em>
+</div>
+
+</body>
+</html>

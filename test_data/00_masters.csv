@@ -1,0 +1,4 @@
+id,name,is_storable,tracking,uom_id,categ_id/.id,company_id/.id
+prod_master_1003,1003,1,lot,m,7,3
+prod_master_1929,1929,1,lot,m,7,3
+prod_master_1934,1934,1,lot,m,7,3

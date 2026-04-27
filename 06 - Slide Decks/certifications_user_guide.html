@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Wood Certifications — User Guide</title>
+<style>
+  @page { size: A4; margin: 20mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 11pt;
+    line-height: 1.55;
+    color: #1a1a1a;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 30px 40px;
+    background: #fafaf7;
+  }
+  h1, h2, h3, h4 {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: #0f2a4f;
+    font-weight: 600;
+  }
+  h1 { font-size: 24pt; margin: 0 0 4px 0; letter-spacing: -0.5px; }
+  .subtitle { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 11pt; color: #5a6b80; margin-bottom: 6px; }
+  .meta { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9pt; color: #7a8698; border-bottom: 1px solid #c8d1df; padding-bottom: 14px; margin-bottom: 26px; }
+  h2 { font-size: 16pt; margin: 36px 0 10px 0; border-bottom: 2px solid #0f2a4f; padding-bottom: 4px; }
+  h3 { font-size: 12.5pt; margin: 22px 0 8px 0; color: #2d4a73; }
+  h4 { font-size: 11pt; margin: 16px 0 6px 0; color: #2d4a73; font-style: italic; }
+  p { margin: 8px 0; }
+  ul, ol { margin: 6px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9.5pt; }
+  th { background: #0f2a4f; color: #fff; text-align: left; padding: 8px 10px; font-weight: 600; }
+  td { border-bottom: 1px solid #dbe2ec; padding: 7px 10px; vertical-align: top; }
+  tr:nth-child(even) td { background: #f2f4f9; }
+  .callout { background: #eaf2fb; border-left: 4px solid #2563a8; padding: 12px 16px; margin: 14px 0; font-style: italic; }
+  .warn { background: #fff4e5; border-left: 4px solid #d97706; padding: 12px 16px; margin: 14px 0; }
+  .block { background: #fde4e4; border-left: 4px solid #b00020; padding: 12px 16px; margin: 14px 0; }
+  .decided { background: #e7f3ec; border-left: 4px solid #2f855a; padding: 12px 16px; margin: 14px 0; }
+  code { font-family: "SF Mono", Menlo, monospace; font-size: 9pt; background: #eef1f7; padding: 1px 5px; border-radius: 2px; }
+  .axis-card { background: #fff; border: 1px solid #dbe2ec; border-left: 5px solid #0f2a4f; padding: 14px 18px; margin: 14px 0; border-radius: 2px; }
+  .axis-card h3 { margin-top: 0; color: #0f2a4f; }
+  .axis-card.icc { border-left-color: #b45309; }
+  .pill { display: inline-block; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 8.5pt; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+  .pill-green { background: #d7efe5; color: #065f46; }
+  .pill-amber { background: #fef0d4; color: #b45309; }
+  .pill-red   { background: #fde4e4; color: #b00020; }
+  .pill-gray  { background: #e5e9f0; color: #3b4657; }
+  .flow {
+    background: #0f2a4f;
+    color: #fff;
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 10pt;
+    padding: 16px 20px;
+    border-radius: 4px;
+    margin: 14px 0;
+    overflow-x: auto;
+  }
+  .flow .arrow { color: #9dc6ff; }
+  .flow .node { color: #ffd17c; font-weight: 700; }
+  .toc { background: #fff; border: 1px solid #dbe2ec; padding: 14px 20px; margin: 16px 0 28px 0; border-radius: 3px; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 10pt; }
+  .toc ol { margin: 6px 0; padding-left: 20px; }
+  .toc li { margin: 2px 0; }
+  .toc a { color: #2d4a73; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .footer { margin-top: 50px; padding-top: 14px; border-top: 1px solid #c8d1df; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9pt; color: #7a8698; }
+  @media print { body { background: #fff; padding: 0; } .axis-card, .callout, .warn, .block, .decided { break-inside: avoid; } table { break-inside: avoid; } }
+</style>
+</head>
+<body>
+
+<h1>Wood Certifications</h1>
+<div class="subtitle">User guide — FSC, PEFC and ICC-ES: what they are, how they flow, what users do</div>
+<div class="meta">
+  Version 1.0 · 2026-04-22 · Derived from <em>Chain of Custody Architecture</em> (vault) · Incorporates April 2026 workshop outcomes
+</div>
+
+<div class="toc">
+  <strong>Contents</strong>
+  <ol>
+    <li><a href="#why">Why we track certifications</a></li>
+    <li><a href="#axes">The two certification axes</a></li>
+    <li><a href="#flow">How the claim flows — receipt to invoice</a></li>
+    <li><a href="#mo">Manufacturing — Kebonisation and RDK</a></li>
+    <li><a href="#so">Sales orders — the certification toggle</a></li>
+    <li><a href="#rdk">RDK subcontract specifics</a></li>
+    <li><a href="#invoice">Invoice as proof of certification</a></li>
+    <li><a href="#icc">ICC-ES — US building-code certification</a></li>
+    <li><a href="#day">What users need to do</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="#decisions">Decisions made / pending</a></li>
+  </ol>
+</div>
+
+<h2 id="why">1. Why we track certifications</h2>
+
+<p>Kebony sells certified wood. Customers pay for the claim, and both FSC and PEFC require us to reconstruct — for any outbound shipment — which certified input lots came in, how they were transformed, and which sales document carried the claim out. Retention: <strong>5 years</strong>.</p>
+
+<p>Beyond chain-of-custody, <strong>US building codes</strong> require a separate approval: <em>ICC-ES</em>. This is not about the wood's provenance; it's about whether the finished product is code-legal for use in American buildings.</p>
+
+<p>Both must be in place before the invoice goes out. This guide covers what users need to know, with pointers into the canonical architecture document when you need the deeper detail.</p>
+
+<h2 id="axes">2. The two certification axes</h2>
+
+<div class="axis-card">
+  <h3><span class="pill pill-green">Live</span> FSC / PEFC — chain of custody</h3>
+  <p><strong>FSC</strong> = Forest Stewardship Council · <strong>PEFC</strong> = Programme for the Endorsement of Forest Certification. Both are required in practice at Kebony — never "just FSC".</p>
+  <p><strong>Carrier:</strong> the <strong>lot</strong>. Every incoming lot is tagged with scheme + claim + supplier certificate code + evidence.</p>
+  <p><strong>Current state:</strong> "FSC Mix 70%" and "PEFC Certified" — Kebony operates under the percentage method, transitioning toward 100% certified input.</p>
+</div>
+
+<div class="axis-card icc">
+  <h3><span class="pill pill-amber">New axis</span> ICC-ES — US building-code compliance</h3>
+  <p><strong>ICC-ES</strong> = ICC Evaluation Service. Issues <strong>ESRs</strong> (Evaluation Service Reports) — numbered approvals that confirm a product is code-legal under US building codes (IBC, IRC, IFC) for structural use, fire rating, decking load, cladding attachment, etc.</p>
+  <p><strong>Carrier:</strong> the <strong>product</strong> (SKU / product template). Not the lot.</p>
+  <p><strong>Market scope:</strong> US only. Irrelevant for European sales.</p>
+</div>
+
+<h3>How the two axes differ</h3>
+<table>
+  <tr><th>Dimension</th><th>FSC / PEFC</th><th>ICC-ES</th></tr>
+  <tr><td>What it certifies</td><td>Origin and handling of the wood</td><td>Performance of the finished product</td></tr>
+  <tr><td>Granularity</td><td>Per lot (<code>stock.lot</code>)</td><td>Per product template (<code>product.template</code>)</td></tr>
+  <tr><td>Can be contaminated by mixing?</td><td>Yes — mixing at MO contaminates the claim</td><td>No — it's a SKU attribute</td></tr>
+  <tr><td>Market scope</td><td>Global (customer-driven)</td><td>US only (code-driven)</td></tr>
+  <tr><td>Renewal</td><td>Annual chain-of-custody audit</td><td>Annual fee + retained testing evidence</td></tr>
+  <tr><td>Surfaced on</td><td>Invoice line: scheme + claim + cert code</td><td>Product spec sheet; submittals; invoice footer</td></tr>
+  <tr><td>Risk of loss</td><td>Contamination / missing evidence</td><td>ESR expiry / product recipe change</td></tr>
+</table>
+
+<h2 id="flow">3. How the claim flows — receipt to invoice</h2>
+
+<div class="flow">
+<pre>
+  <span class="node">Vendor docs</span>
+        <span class="arrow">│</span>
+        <span class="arrow">▼</span>
+  <span class="node">Purchase Order line</span>           (planned claim)
+        <span class="arrow">│</span>
+        <span class="arrow">▼</span>
+  <span class="node">Receipt picking</span>
+        <span class="arrow">│</span>
+        <span class="arrow">▼</span>
+  <span class="node">Lot created</span>                   (scheme + claim + supplier cert + evidence)
+        <span class="arrow">│</span>
+        <span class="arrow">▼</span>
+  <span class="node">Stock moves</span>                   (claim inherited — no retyping)
+        <span class="arrow">│</span>
+        <span class="arrow">▼</span>
+  <span class="node">Manufacturing Order</span>           (mixing block enforced for Kebo + RDK)
+        <span class="arrow">│</span>
+        <span class="arrow">▼</span>
+  <span class="node">Output lot</span>                    (claim validated against inputs)
+        <span class="arrow">│</span>
+        <span class="arrow">▼</span>
+  <span class="node">Delivery picking</span>              (certificate code printed on BOL)
+        <span class="arrow">│</span>
+        <span class="arrow">▼</span>
+  <span class="node">Invoice</span>                       (CUSTOMER-FACING PROOF — scheme, claim, cert code, ESR if US)
+</pre>
+</div>
+
+<p>The claim never skips a step. Every transformation is logged via <code>cert.trace.link</code>, so a single lot, MO, picking or invoice can be traced backwards to its vendor docs — and forwards to its customer.</p>
+
+<h2 id="mo">4. Manufacturing — Kebonisation and RDK</h2>
+
+<div class="block">
+  <strong>HARD BLOCK — no mixing of different certifications in the same MO.</strong><br>
+  Applies to both <strong>Kebonisation</strong> (in-house autoclave) and <strong>RDK</strong> (subcontract). All consumed input lots must share the same scheme and claim. Enforced in Python at MO confirm and done — no "override" flag.
+</div>
+
+<h3>Kebonisation MO</h3>
+<ul>
+  <li>At <strong>action_confirm</strong>: system reads the claim on every consumed lot. If any differ, MO cannot be confirmed.</li>
+  <li>At <strong>action_done</strong>: output lot inherits the uniform input claim.</li>
+  <li>If the user needs to run a different claim: create a separate MO.</li>
+</ul>
+
+<h3>RDK MO (subcontract)</h3>
+<ul>
+  <li>Primary control is <strong>contractual</strong>: the subcontract includes explicit no-mixing clauses and evidence requirements.</li>
+  <li>Technical layer: same input-side block as Kebonisation at <strong>action_confirm</strong>.</li>
+  <li>When output is received from the subcontractor, the claim they declare must match the claim their inputs supported. Mismatch → output is quarantined and a <code>cert.nonconformity</code> is logged automatically.</li>
+</ul>
+
+<div class="callout">
+  Non-Kebonisation / non-RDK MO types (repacks, grade-downs) keep the earlier policy: warn or block, configurable per product group. Only these two MO types have the hard block.
+</div>
+
+<h2 id="so">5. Sales orders — the certification toggle</h2>
+
+<p>New toggle on the sales order line, mirroring the existing <strong>minimum quantity guarantee</strong> toggle.</p>
+
+<table>
+  <tr><th>Field on SO line</th><th>Behaviour</th></tr>
+  <tr><td>Certification required (toggle)</td><td>Switches on the certification gate for this line</td></tr>
+  <tr><td>Scheme required (FSC / PEFC)</td><td>Which scheme the customer needs</td></tr>
+  <tr><td>Claim required</td><td>E.g. "FSC Mix 70%", "FSC 100%", "PEFC Certified"</td></tr>
+</table>
+
+<h3>Downstream effects</h3>
+<ol>
+  <li><strong>Planning / reservation:</strong> only lots matching the required scheme + claim are candidates for reservation on this line. If the product is US-bound, ICC-ES requirement is also checked (§8).</li>
+  <li><strong>Delivery control:</strong> the picking cannot be validated if any reserved lot fails the match. Error message is explicit — the user sees <em>which</em> lot fails and <em>why</em>.</li>
+  <li><strong>RDK fulfilment:</strong> if the line is fulfilled through an RDK subcontract, the certification requirement propagates into the subcontract PO, and is re-checked at receipt.</li>
+</ol>
+
+<h2 id="rdk">6. RDK subcontract specifics</h2>
+
+<p>RDK certification is enforced in three places:</p>
+<ol>
+  <li><strong>Contract</strong> — no-mixing clauses, supplier certificate evidence, claim declaration format.</li>
+  <li><strong>Inputs sent</strong> — same block as Kebonisation: all consumed input lots must share the same claim.</li>
+  <li><strong>Output received</strong> — the claim declared by the subcontractor on their delivery document must match what the inputs supported. Mismatch = quarantine + nonconformity record. Ops must clear the nonconformity before the goods can be used.</li>
+</ol>
+
+<p>Subcontractor's own certificate is tracked in the <code>partner.certificate</code> register alongside customers and suppliers.</p>
+
+<h2 id="invoice">7. Invoice as proof of certification</h2>
+
+<p><strong>The invoice is the customer-facing proof of certification.</strong> Every certified line carries:</p>
+<ul>
+  <li>Scheme — FSC or PEFC</li>
+  <li>Claim class — e.g. "FSC Mix 70%", "PEFC Certified", "FSC 100%"</li>
+  <li>Certificate number — company-level (e.g. FSC-Cxxxxxx) or per-lot where the scheme demands it</li>
+  <li>Where applicable: <strong>ESR number</strong> for US-bound product (see §8)</li>
+</ul>
+
+<p>The invoice → delivery → lot → claim chain must remain intact for the five-year retention horizon. This is the auditor's walking path: they pick an invoice and ask us to show the evidence back to the vendor document.</p>
+
+<h2 id="icc">8. ICC-ES — US building-code certification</h2>
+
+<p>A different animal from FSC / PEFC.</p>
+
+<h3>What ICC-ES is</h3>
+<ul>
+  <li><strong>ICC-ES</strong> — ICC Evaluation Service (a technical arm of the International Code Council)</li>
+  <li>Issues <strong>Evaluation Service Reports (ESRs)</strong> — numbered reports approving a product for use under IBC / IRC / IFC</li>
+  <li>Covers: structural use, fire rating, decking / stair loads, cladding attachment, fasteners, etc.</li>
+  <li>Architects, general contractors and building inspectors look up the ESR number to confirm a product is code-legal.</li>
+</ul>
+
+<h3>How it lives in Odoo</h3>
+<p>On the <code>product.template</code> (not on the lot):</p>
+<table>
+  <tr><th>Field</th><th>Purpose</th></tr>
+  <tr><td>ESR number</td><td>E.g. "ESR-3144"</td></tr>
+  <tr><td>ESR valid-to date</td><td>Expiry — triggers renewal alert 90 days before</td></tr>
+  <tr><td>Scope of ESR</td><td>Which use categories are covered (structural, decking, cladding, fire…)</td></tr>
+  <tr><td>ESR attachments</td><td>PDF report + underlying test reports</td></tr>
+  <tr><td>US-relevant flag</td><td>Only gate ICC checks for US-bound products</td></tr>
+</table>
+
+<h3>Where it surfaces</h3>
+<ul>
+  <li>Product form — dedicated "US Code Compliance" tab</li>
+  <li>Sales order — US customer + certification required → ESR must be present and not expired (hard block)</li>
+  <li>Invoice — ESR number in the footer or as a per-line note</li>
+  <li>Submittal PDF — generated on demand for architect / GC (not part of the invoice flow)</li>
+</ul>
+
+<div class="warn">
+  <strong>Governance alert.</strong> Expiry alert fires 90 days before ESR expiry. A lapsed ESR on a US-bound SO line hard-blocks shipment — this is a regulatory risk, not a commercial one.
+</div>
+
+<h2 id="day">9. What users need to do</h2>
+
+<table>
+  <tr><th>Role</th><th>Action</th></tr>
+  <tr><td>Procurement — receipt</td><td>Record scheme, claim, supplier certificate code on the receipt lot. Attach vendor doc. If anything is missing, mark as quarantine rather than accept.</td></tr>
+  <tr><td>Quality — supplier register</td><td>Maintain <code>partner.certificate</code> for each supplier (and RDK subcontractor): cert code, validity dates, scope, evidence.</td></tr>
+  <tr><td>Quality — ICC-ES</td><td>Own the ESR library. Update expiry dates, upload renewed reports. Respond to the 90-day alerts.</td></tr>
+  <tr><td>Planning — Kebonisation MO</td><td>Select consumed lots with care. System blocks mixed claims — no override.</td></tr>
+  <tr><td>Planning — RDK PO</td><td>Ensure the subcontract carries the certification clause. System enforces input-side block; subcontractor declares output claim.</td></tr>
+  <tr><td>Sales — new order</td><td>Set the certification toggle + scheme + claim if the customer contractually requires it. For US customers, confirm the product has a valid ESR.</td></tr>
+  <tr><td>Logistics — delivery</td><td>System prevents shipping lots that don't match the SO requirement. Fix at planning, not at the dock.</td></tr>
+  <tr><td>Accounting — invoice</td><td>Verify the certificate code + ESR print correctly. This is the customer's proof.</td></tr>
+</table>
+
+<h2 id="faq">10. FAQ</h2>
+
+<h3>Q. Why can't I override the MO mixing block just once?</h3>
+<p>Because the claim is a chain-of-custody promise we make to the auditor. A single mixed MO contaminates every downstream lot. If you genuinely need to consume two different claims, run two MOs — that's the correct approach.</p>
+
+<h3>Q. What if a customer asks for FSC but I only have PEFC in stock?</h3>
+<p>Answer the customer before the SO is confirmed. The certification toggle enforces what the <em>customer</em> contractually required. Switching schemes mid-order is a commercial conversation, not a system override.</p>
+
+<h3>Q. A subcontractor returned goods with a different claim from what the inputs supported. What happens?</h3>
+<p>System auto-quarantines the output and creates a nonconformity record. Quality must investigate before the goods can be used or shipped. Typical outcomes: (a) subcontractor corrects their paperwork, (b) goods are downgraded to non-certified, (c) the deviation is logged and the subcontractor is put on watch in <code>partner.certificate</code>.</p>
+
+<h3>Q. Our ESR is expiring next month. What do I do?</h3>
+<p>You should already have been alerted 90 days out. Steps: (1) Contact ICC-ES for renewal before expiry, (2) upload the renewed ESR PDF + extend the valid-to date in Odoo, (3) if renewal slips, US-bound SO lines for the affected product will hard-block — coordinate with Sales to hold or pre-ship before expiry.</p>
+
+<h3>Q. Does ICC apply to European sales?</h3>
+<p>No. ICC-ES is US-specific. European customers do not ask for it, and the SO validation only triggers when the product is US-relevant (flag on the product) and the customer is US-bound.</p>
+
+<h3>Q. Where does the customer see all this?</h3>
+<p>Delivery slip (BOL): scheme + claim + cert code. Invoice: scheme + claim + cert code + ESR number if US. Submittal PDF (on request for large US projects): full ESR document.</p>
+
+<h3>Q. How long must we keep the evidence?</h3>
+<p>Five years minimum for FSC / PEFC. ESRs should be retained for the life of any building they were used in — effectively forever. Archive attachments on the lot and the product template.</p>
+
+<h2 id="decisions">11. Decisions made / pending</h2>
+
+<h3>✅ Decided (April 2026 workshop)</h3>
+<ul>
+  <li>No mixing of certificates in Kebonisation or RDK MOs — <strong>hard block</strong>, no override.</li>
+  <li>RDK requires <strong>both</strong> contractual clause <em>and</em> technical check (inputs + output reconciliation).</li>
+  <li>Sales order gains a <strong>certification toggle</strong> parallel to the minimum-quantity-guarantee toggle.</li>
+  <li>Invoice is the <strong>customer-facing proof</strong> of certification. Must carry scheme + claim + cert code per certified line.</li>
+  <li>ICC-ES is added as a <strong>second certification axis</strong> at product level (not lot level), US market only.</li>
+</ul>
+
+<h3>⚠ Pending</h3>
+<ul>
+  <li>Exact PEFC claim labels mapping — align with our current suppliers' wording.</li>
+  <li>ICC-ES rollout per product: inventory of existing ESRs, missing ones, renewal calendar.</li>
+  <li>Scope categories for ESR (structural / decking / cladding / fire) — selection or many2many?</li>
+  <li>Non-regulated US use: is a missing ESR a hard block or a warn?</li>
+  <li>Subcontractor certificate verification frequency — annual, per shipment, or risk-based?</li>
+</ul>
+
+<div class="footer">
+  This guide is a user-facing summary. The complete architecture — including data model, control methods, report inventory and implementation phases — lives in <code>02 - General Topics / Chain of Custody Architecture.md</code> (Section 12 covers the April 2026 workshop outcomes).
+  <br>
+  Olivier Eberhard · VVF Consulting · 2026-04-22
+</div>
+
+</body>
+</html>

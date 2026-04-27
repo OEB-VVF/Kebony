@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Odoo Migration Playbook — BNV + Norway</title>
+<style>
+  @page { size: A4; margin: 22mm 20mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 11pt;
+    line-height: 1.5;
+    color: #1a1a1a;
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 30px 40px;
+    background: #fafaf7;
+  }
+  h1, h2, h3, h4 {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: #0f2a4f;
+    font-weight: 600;
+  }
+  h1 { font-size: 22pt; margin: 0 0 4px 0; letter-spacing: -0.5px; }
+  .subtitle { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 11pt; color: #5a6b80; margin-bottom: 6px; }
+  .meta { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9pt; color: #7a8698; border-bottom: 1px solid #c8d1df; padding-bottom: 14px; margin-bottom: 26px; }
+  h2 { font-size: 15pt; margin: 34px 0 10px 0; border-bottom: 2px solid #0f2a4f; padding-bottom: 4px; }
+  h3 { font-size: 12pt; margin: 22px 0 8px 0; color: #2d4a73; }
+  h4 { font-size: 11pt; margin: 16px 0 6px 0; color: #2d4a73; font-style: italic; }
+  p { margin: 8px 0; }
+  ul, ol { margin: 6px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 9.5pt;
+  }
+  th {
+    background: #0f2a4f;
+    color: #fff;
+    text-align: left;
+    padding: 8px 10px;
+    font-weight: 600;
+  }
+  td {
+    border-bottom: 1px solid #dbe2ec;
+    padding: 7px 10px;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #f2f4f9; }
+  .priority {
+    background: #fff4e5;
+    border-left: 4px solid #d97706;
+    padding: 14px 18px;
+    margin: 16px 0;
+    border-radius: 2px;
+  }
+  .priority .tag {
+    display: inline-block;
+    background: #d97706;
+    color: #fff;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 9pt;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 3px;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .callout {
+    background: #eaf2fb;
+    border-left: 4px solid #2563a8;
+    padding: 12px 16px;
+    margin: 14px 0;
+    font-style: italic;
+  }
+  .rag-red    { color: #b00020; font-weight: 600; }
+  .rag-amber  { color: #b45309; font-weight: 600; }
+  .rag-green  { color: #065f46; font-weight: 600; }
+  .pill {
+    display: inline-block;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 8.5pt;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .pill-red    { background: #fde4e4; color: #b00020; }
+  .pill-amber  { background: #fef0d4; color: #b45309; }
+  .pill-green  { background: #d7efe5; color: #065f46; }
+  .footer {
+    margin-top: 50px;
+    padding-top: 14px;
+    border-top: 1px solid #c8d1df;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 9pt;
+    color: #7a8698;
+  }
+  .gantt {
+    display: grid;
+    grid-template-columns: 180px repeat(8, 1fr);
+    gap: 2px;
+    margin: 12px 0;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 9pt;
+  }
+  .gantt .row-label { background: #f2f4f9; padding: 6px 8px; font-weight: 600; color: #2d4a73; }
+  .gantt .header { background: #0f2a4f; color: #fff; padding: 6px 4px; text-align: center; font-weight: 600; }
+  .gantt .cell { background: #fff; border: 1px solid #e5e9f0; padding: 6px 4px; text-align: center; min-height: 22px; }
+  .gantt .bar-prep  { background: #c5d7eb; color: #0f2a4f; }
+  .gantt .bar-build { background: #7ea9d4; color: #fff; }
+  .gantt .bar-test  { background: #f5c882; color: #7c4a0c; }
+  .gantt .bar-go    { background: #5fa672; color: #fff; font-weight: 700; }
+  .gantt .bar-hyper { background: #b8d1c0; color: #065f46; }
+  code { font-family: "SF Mono", Menlo, monospace; font-size: 9pt; background: #eef1f7; padding: 1px 5px; border-radius: 2px; }
+  .signature-block { margin-top: 40px; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9.5pt; color: #2d4a73; }
+  @media print { body { background: #fff; padding: 0; } .priority, .callout { break-inside: avoid; } table { break-inside: avoid; } }
+</style>
+</head>
+<body>
+
+<h1>Odoo Migration Playbook</h1>
+<div class="subtitle">BNV + two Norwegian entities · Dry-run 01-Jun-2026 · Go-live 01-Jul-2026</div>
+<div class="meta">
+  Version 1.0 · 2026-04-22 · Prepared by Olivier Eberhard (VVF Consulting) · For internal project team + auditor
+</div>
+
+<div class="priority">
+  <div class="tag">PRIORITY 1 · START NOW</div>
+  <strong>Norway Chart of Accounts + company settings.</strong>
+  Both Norwegian entities must be created in Odoo with their statutory CoA, currency (NOK), fiscal year, VAT settings, and localisation package <em>before any other workstream can progress</em>. This is the foundation on which every other step depends — opening balances, JEs, stock valuation, reports all reference account codes.
+  <br><br>
+  Deliverable by <strong>Week 1</strong>: BNV + NO #1 + NO #2 created in Odoo staging, CoA loaded, mapped to legacy accounts, signed off by controller.
+</div>
+
+<h2>1. Objective and timeline</h2>
+
+<p>Migrate BNV and two Norwegian entities from legacy accounting onto Odoo 19. Dry-run must be operational on <strong>01-June-2026</strong>. Go-live on <strong>01-July-2026</strong>, simultaneously with the reorganisation of commercial flows (see §5).</p>
+
+<div class="gantt">
+  <div class="row-label"></div>
+  <div class="header">April</div>
+  <div class="header">Early May</div>
+  <div class="header">Late May</div>
+  <div class="header">Early Jun</div>
+  <div class="header">Late Jun</div>
+  <div class="header">01-Jul</div>
+  <div class="header">Jul–Aug</div>
+  <div class="header">Sep+</div>
+
+  <div class="row-label">Norway CoA + cie (P1)</div>
+  <div class="cell bar-build">build</div>
+  <div class="cell bar-build">build</div>
+  <div class="cell bar-test">test</div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+
+  <div class="row-label">Master data</div>
+  <div class="cell bar-prep">prep</div>
+  <div class="cell bar-build">build</div>
+  <div class="cell bar-build">build</div>
+  <div class="cell bar-test">freeze</div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+
+  <div class="row-label">Opening BS + H1 JE</div>
+  <div class="cell"></div>
+  <div class="cell bar-prep">extract</div>
+  <div class="cell bar-build">load</div>
+  <div class="cell bar-test">recon</div>
+  <div class="cell bar-test">recon</div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+
+  <div class="row-label">Open AR / AP / PO / SO</div>
+  <div class="cell"></div>
+  <div class="cell bar-prep">extract</div>
+  <div class="cell bar-build">load</div>
+  <div class="cell bar-test">recon</div>
+  <div class="cell bar-test">refresh</div>
+  <div class="cell bar-go">cutover</div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+
+  <div class="row-label">Stock + SPA lots</div>
+  <div class="cell"></div>
+  <div class="cell bar-prep">count</div>
+  <div class="cell bar-build">load</div>
+  <div class="cell bar-test">recon</div>
+  <div class="cell bar-test">recount</div>
+  <div class="cell bar-go">cutover</div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+
+  <div class="row-label">Slow-mover per-lot</div>
+  <div class="cell"></div>
+  <div class="cell bar-prep">design</div>
+  <div class="cell bar-build">build</div>
+  <div class="cell bar-test">test</div>
+  <div class="cell bar-test">sign-off</div>
+  <div class="cell bar-go">live</div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+
+  <div class="row-label">Change mgmt (ext.)</div>
+  <div class="cell bar-prep">auditor</div>
+  <div class="cell bar-build">tax/legal</div>
+  <div class="cell bar-build">supplier</div>
+  <div class="cell bar-test">customer</div>
+  <div class="cell bar-test">reminders</div>
+  <div class="cell bar-go">cutover</div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+
+  <div class="row-label">Dry-run + go-live</div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+  <div class="cell bar-go">DRY</div>
+  <div class="cell bar-test">fix</div>
+  <div class="cell bar-go">GO</div>
+  <div class="cell bar-hyper">hypercare</div>
+  <div class="cell bar-hyper">rework H1</div>
+</div>
+
+<h2>2. Scope — entities and data</h2>
+
+<table>
+  <tr><th>Entity</th><th>Legal form</th><th>Role (H1 / H2)</th><th>Currency</th><th>Localisation</th></tr>
+  <tr><td>BNV</td><td>[legal form]</td><td>Buys from NO, sells to customers / <strong>From 01-Jul: buys, manufactures, sells directly</strong></td><td>EUR</td><td>BE</td></tr>
+  <tr><td>Norway entity #1</td><td>AS</td><td>Sells raw material to BNV via SPA / <strong>From 01-Jul: scope TBC</strong></td><td>NOK</td><td>NO</td></tr>
+  <tr><td>Norway entity #2</td><td>AS</td><td>Sells raw material to BNV via SPA / <strong>From 01-Jul: scope TBC</strong></td><td>NOK</td><td>NO</td></tr>
+</table>
+
+<p><em>Out of scope:</em> other group entities, group consolidation, historical years before 2026.</p>
+
+<h3>Data scope</h3>
+<table>
+  <tr><th>Workstream</th><th>Content</th><th>Granularity</th><th>Source</th></tr>
+  <tr><td>Opening BS</td><td>Trial balance 01-Jan-2026</td><td>Account × entity × currency</td><td>Prior-year audited close</td></tr>
+  <tr><td>YTD JEs</td><td>01-Jan → cutover</td><td>Transaction-level (summary acceptable for bank / AR / AP where open items carry detail)</td><td>Legacy GL export</td></tr>
+  <tr><td>Open AR</td><td>Unpaid customer invoices</td><td>Per invoice, partner, due date, currency</td><td>Legacy</td></tr>
+  <tr><td>Open AP</td><td>Unpaid vendor bills</td><td>Per bill, partner, due date, currency</td><td>Legacy</td></tr>
+  <tr><td>Open PO</td><td>Not-received / partial</td><td>Per line: product, qty, unit cost, ETA</td><td>Legacy</td></tr>
+  <tr><td>Open SO</td><td>Not-delivered / not-invoiced</td><td>Per line: product, qty, price</td><td>Legacy</td></tr>
+  <tr><td>Stock</td><td>Full physical inventory</td><td>Per lot, location, FIFO cost</td><td>Physical count + legacy valuation</td></tr>
+  <tr><td>Norwegian SPA lots</td><td>SPA-wrapped raw material</td><td>Per lot, with SPA ref, counterparty, unwind terms</td><td>Legal + inventory team</td></tr>
+</table>
+
+<h2>3. Priority 1 — Norway CoA and company setup</h2>
+
+<p>This section must be executed before any other workstream begins.</p>
+
+<h4>Scope</h4>
+<ul>
+  <li>Create the three companies in Odoo: BNV, Norway #1, Norway #2.</li>
+  <li>Apply correct localisation package per company: Belgian for BNV, Norwegian for both NO entities.</li>
+  <li>Load statutory CoA per entity. Map every account to the legacy CoA used today (one-to-one or one-to-many, documented).</li>
+  <li>Configure per entity: fiscal year, currency, functional currency, journals, taxes, bank accounts, fiscal positions, payment terms.</li>
+  <li>Set up inter-company configuration so NO → BE flows (H1) and BE → customer flows (H2) can both be modelled.</li>
+  <li>Security groups: at minimum controller, accountant, preparer, read-only.</li>
+</ul>
+
+<h4>Deliverables</h4>
+<ul>
+  <li>Three companies visible in Odoo staging with correct country + currency</li>
+  <li>CoA loaded and mapped (CSV: <code>legacy_account → odoo_account</code>)</li>
+  <li>Trial run: post a dummy JE in each entity and verify it balances with correct taxes</li>
+  <li>Sign-off from controller on the mapping</li>
+</ul>
+
+<h4>Acceptance criteria</h4>
+<ul>
+  <li>Every legacy account has exactly one Odoo target account (or an explicit split rule)</li>
+  <li>Every Odoo account has a clear type (asset, liability, equity, income, expense) and tax default</li>
+  <li>CoA differences between NO and BE documented (used later for consolidation mapping)</li>
+</ul>
+
+<h2>4. Data migration workstreams</h2>
+
+<p>All subsequent workstreams are sequenced strictly after §3 completes.</p>
+
+<table>
+  <tr><th>#</th><th>Workstream</th><th>Owner</th><th>Predecessor</th><th>Due</th></tr>
+  <tr><td>4.1</td><td>Master data load (partners, products, analytics, taxes, banks)</td><td>[employee]</td><td>§3</td><td>10-May</td></tr>
+  <tr><td>4.2</td><td>Opening BS per entity (01-Jan-2026)</td><td>[employee]</td><td>4.1</td><td>15-May</td></tr>
+  <tr><td>4.3</td><td>YTD JEs month-by-month (Jan → May)</td><td>[employee]</td><td>4.2</td><td>28-May</td></tr>
+  <tr><td>4.4</td><td>Open AR / AP / PO / SO at 31-May (dry run)</td><td>[employee]</td><td>4.1</td><td>31-May</td></tr>
+  <tr><td>4.5</td><td>Stock snapshot + lots at 31-May (dry run)</td><td>[employee] + ops</td><td>4.1</td><td>31-May</td></tr>
+  <tr><td>4.6</td><td>SPA-held raw material lots — dedicated account + analytic</td><td>[employee] + legal</td><td>4.5</td><td>31-May</td></tr>
+  <tr><td>4.7</td><td>Dry-run sign-off pack per entity</td><td>Olivier + employee</td><td>4.3–4.6</td><td>01-Jun</td></tr>
+  <tr><td>4.8</td><td>Delta refresh to 30-Jun (open items + stock + June JEs)</td><td>[employee]</td><td>4.7</td><td>30-Jun</td></tr>
+  <tr><td>4.9</td><td>Go-live + SPA unwind transition JE</td><td>Olivier + employee + auditor</td><td>4.8</td><td>01-Jul</td></tr>
+</table>
+
+<h2>5. Business-model flip (01-Jul-2026)</h2>
+
+<p>The commercial flow changes on the go-live date. Two changes on the same date — treat them as independent workstreams for risk purposes.</p>
+
+<h4>H1 (current flow, through 30-Jun)</h4>
+<ol>
+  <li>Norwegian entities hold and sell raw material to BNV under a sales-and-purchase agreement (SPA)</li>
+  <li>BNV receives the raw material and sells to end customers</li>
+  <li>Economic effect: Norwegian property value is carried on the NO balance sheet; SPA drives intercompany flow</li>
+</ol>
+
+<h4>H2 (new flow, from 01-Jul)</h4>
+<ol>
+  <li>BNV purchases raw material directly</li>
+  <li>BNV manufactures</li>
+  <li>BNV sells to end customers</li>
+  <li>SPA mechanism unwinds; Norwegian inventory reclassifies to Belgian inventory at carrying value</li>
+</ol>
+
+<h4>Transition JE (30-Jun close / 01-Jul open)</h4>
+<ul>
+  <li>One JE per entity, signed off by Olivier + auditor before posting</li>
+  <li>Reclassifies Norwegian SPA-held raw material to Belgian direct inventory at carrying value</li>
+  <li>Eliminates intercompany margin held on NO balance sheet</li>
+  <li>FX locked at 30-Jun closing rate</li>
+  <li>Preserves lot-level traceability (FSC/PEFC, SPA references)</li>
+</ul>
+
+<h2>6. Slow-mover provision — Excel to per-lot</h2>
+
+<p>Today the slow-mover provision is a single Excel calculation posted as a lump JE. Going forward, the provision is allocated per lot and carried on the lot itself.</p>
+
+<h4>Design choices (to be locked before build)</h4>
+<ul>
+  <li><strong>Storage:</strong> dedicated field on <code>stock.lot</code> (e.g. <code>x_kebony_slow_mover_provision</code>), OR a separate provision model linked to the lot. Decide before build.</li>
+  <li><strong>Trigger:</strong> age-based, turnover-based, or manual — recommendation: age-based (days since last movement) with override</li>
+  <li><strong>Accounting:</strong> book provision to a separate provision account (contra class) — do not net against the gross inventory GL account</li>
+  <li><strong>Reversal:</strong> when the lot is sold or scrapped, provision releases automatically</li>
+  <li><strong>Reporting:</strong> inventory aging with provision column per lot; monthly movement of the provision as a standard report</li>
+</ul>
+
+<h4>Transition at 01-Jul</h4>
+<p>Compute the per-lot provision at 01-Jul and compare to the Excel aggregate. The delta hits P&amp;L as a change in accounting estimate (IAS 8 — prospective). Flag to auditor in writing before go-live.</p>
+
+<h2>7. Accounting impact — is it neutral?</h2>
+
+<p><strong>Short answer: substance-neutral, presentation-not-neutral.</strong> Expect real P&amp;L effects at transition. Auditor written position required on each item below before go-live.</p>
+
+<table>
+  <tr><th>Change</th><th>Nature</th><th>Transition P&amp;L effect</th></tr>
+  <tr><td>NO → BE business flip</td><td>Legal restructuring of commercial flows</td><td>Intercompany margin reclassified, not new P&amp;L — but watch FX on unwind and any customs / VAT one-offs</td></tr>
+  <tr><td>Slow-mover, per-lot</td><td>Change in accounting <em>estimate</em> (IAS 8)</td><td><strong>Yes</strong> — delta between Excel aggregate and sum of per-lot provisions hits P&amp;L at 01-Jul, prospectively</td></tr>
+  <tr><td>Anglo-Saxon presentation</td><td>Reclassification of lines on BS / PL (COGS build-up, provision visibility, gross margin)</td><td>Presentation only; net income unchanged — unless bundled with a policy change</td></tr>
+  <tr><td>FIFO actual cost, if new</td><td>Change in accounting <em>policy</em> (IAS 8)</td><td>Retrospective restatement required — flag now, not in June</td></tr>
+</table>
+
+<h2>8. Minimum Viable Go-Live and Plan B</h2>
+
+<p>Decouple <em>"must invoice / ship / pay from 01-Jul"</em> from <em>"H1 data fully loaded and reconciled."</em> They are different problems and resolve on different timelines.</p>
+
+<h4>MVGL — what is strictly required on 02-Jul</h4>
+<ul>
+  <li>Master data (partners, products, CoA, taxes, banks)</li>
+  <li>Opening balance at <strong>30-Jun</strong> (not 01-Jan) — one TB JE per entity</li>
+  <li>Open AR / AP line items at 30-Jun</li>
+  <li>Open PO / SO at 30-Jun</li>
+  <li>Stock valuation + lots at 30-Jun</li>
+  <li>Users and access rights</li>
+</ul>
+
+<p><em>H1 detail is NOT in MVGL.</em> If H1 detail is not reconciled, go-live proceeds on MVGL and H1 detail loads later (see §8.2).</p>
+
+<h4>Three fallback scenarios</h4>
+<table>
+  <tr><th>Scenario</th><th>Trigger</th><th>Action</th><th>Impact</th></tr>
+  <tr><td><span class="pill pill-green">Green</span></td><td>Full H1 reconciled + MVGL ready</td><td>Go live as planned</td><td>Normal</td></tr>
+  <tr><td><span class="pill pill-amber">Amber</span></td><td>MVGL ready, H1 detail incomplete</td><td>Go live on MVGL. Load H1 detail post-cutover. Legacy stays read-only as source of truth.</td><td>H1 reports come from legacy until reload complete</td></tr>
+  <tr><td><span class="pill pill-red">Red</span></td><td>MVGL not ready</td><td>Do not go live. Extend legacy 1–3 months, re-plan cutover.</td><td>Migration slips; business continuity intact</td></tr>
+</table>
+<p>Decide Green / Amber by <strong>15-Jun</strong>. Decide Red by <strong>25-Jun</strong>.</p>
+
+<h4>8.2 Can H1 be reworked after go-live?</h4>
+<p>Yes, with discipline. Four pre-conditions must be in place <em>before</em> 01-Jul:</p>
+<ol>
+  <li>Accounting periods for Jan–Jun stay <strong>open</strong> in Odoo until each month is validated</li>
+  <li>Every migrated JE carries a batch tag (e.g. <code>x_kebony_migration_batch</code>) so batches can be identified, reversed, and reloaded in bulk</li>
+  <li>Legacy stays read-only through 31-Dec-2026 as source of truth</li>
+  <li>Bank reconciliations on migrated transactions deferred until H1 validated</li>
+</ol>
+
+<h4>Reload mechanism per month</h4>
+<ol>
+  <li>Freeze period in Odoo (prevent concurrent postings)</li>
+  <li>Bulk-reverse the prior batch via tag</li>
+  <li>Re-import corrected batch</li>
+  <li>Re-run reconciliations (AR / AP / stock / bank)</li>
+  <li>Re-validate TB against legacy</li>
+  <li>Unfreeze period</li>
+</ol>
+
+<h4>Hard limits</h4>
+<ul>
+  <li>Customer-facing artefacts already sent (invoices, statements) — reversal creates credit notes, avoid</li>
+  <li>Reconciliations with external systems (bank, payment processor) — break on reload, must redo</li>
+  <li>Filed VAT periods — reloading JEs inside a filed period requires a corrective VAT return</li>
+</ul>
+
+<div class="callout">
+  Target: <strong>all H1 rework complete before 31-Oct-2026.</strong> After Q3 VAT closes, reworking Q1 becomes expensive. Legacy off-date: <strong>31-Mar-2027</strong>, after 2026 audit complete.
+</div>
+
+<h4>What must be 100% correct on go-live</h4>
+<table>
+  <tr><th>Category</th><th>Why</th></tr>
+  <tr><td>Open AR</td><td>Wrong invoice = wrong collection</td></tr>
+  <tr><td>Open AP</td><td>Wrong bill = wrong payment</td></tr>
+  <tr><td>Open PO</td><td>Wrong qty / price = broken 3-way match on receipt</td></tr>
+  <tr><td>Open SO</td><td>Wrong line = broken delivery and invoice</td></tr>
+  <tr><td>Stock + lots + FIFO cost</td><td>Errors cascade into every H2 valuation</td></tr>
+  <tr><td>Bank balance at 30-Jun</td><td>Reconciliation anchor</td></tr>
+  <tr><td>Opening BS totals per entity</td><td>Must balance</td></tr>
+</table>
+
+<p>Everything below TB (P&amp;L detail, analytics, FX history, report build-ups) is a project, not a blocker.</p>
+
+<h2>9. Change management</h2>
+
+<table>
+  <tr><th>Audience</th><th>What changes</th><th>Action</th><th>Owner</th><th>By</th></tr>
+  <tr><td>Auditor</td><td>Restructuring, estimate/policy changes, opening BS re-presentation</td><td>Pre-clearance meeting + written positions on (i) SPA unwind, (ii) lot-level provision, (iii) Anglo-Saxon presentation</td><td>Olivier</td><td><strong>Apr–May</strong></td></tr>
+  <tr><td>Tax / customs (NO + BE)</td><td>New flow → new VAT registrations, Intrastat change</td><td>Review with tax advisor</td><td>Olivier + tax advisor</td><td>01-May</td></tr>
+  <tr><td>Suppliers</td><td>New ordering entity (BE direct); new PO numbers, VAT, bank, payment terms</td><td>Letter + call campaign; master data refresh; vendor portal update</td><td>Procurement</td><td>01-Jun</td></tr>
+  <tr><td>Customers</td><td>New invoicing entity; new VAT on invoices; possibly new incoterms; new bank for payments</td><td>Formal notice ≥30 days before; update contracts if needed</td><td>Sales + Legal</td><td>01-Jun</td></tr>
+  <tr><td>Internal (finance, ops, IT)</td><td>New screens, new GL, new provision workflow</td><td>Training + playbook walk-through</td><td>Employee owner</td><td>Last 2 weeks of June</td></tr>
+</table>
+
+<h2>10. Reconciliation pack per entity</h2>
+
+<p>For each dry run and for go-live, produce one pack per entity. Signed by preparer (employee) and reviewer (Olivier) before closing.</p>
+
+<ul>
+  <li>TB Odoo vs. legacy — zero variance</li>
+  <li>AR aging Odoo vs. legacy — zero variance</li>
+  <li>AP aging Odoo vs. legacy — zero variance</li>
+  <li>Open PO / SO line count + value — zero variance</li>
+  <li>Stock valuation Odoo vs. legacy + physical count</li>
+  <li>Norwegian SPA holdings — line-by-line validated with legal</li>
+</ul>
+
+<h2>11. Go / no-go criteria</h2>
+
+<ul>
+  <li>☐ Norway CoA + company settings live in staging (<strong>Priority 1 complete</strong>)</li>
+  <li>☐ Master data loaded and signed off</li>
+  <li>☐ Opening BS matches audited close — all three entities</li>
+  <li>☐ YTD TB reconciled for ≥4 closed months (dry run) / 6 months (go-live)</li>
+  <li>☐ Open items loaded and aged correctly</li>
+  <li>☐ Stock reconciled physical ↔ valuation ↔ GL</li>
+  <li>☐ SPA holdings validated by legal</li>
+  <li>☐ Per-lot slow-mover provision tested on ≥50 lots vs. current Excel</li>
+  <li>☐ Auditor written positions obtained on all three treatments</li>
+  <li>☐ SPA unwind JE modelled and reviewed</li>
+  <li>☐ Supplier + customer notices sent ≥30 days before 01-Jul</li>
+  <li>☐ Tax registrations confirmed for new flow</li>
+  <li>☐ MVGL dataset signed off</li>
+  <li>☐ Batch-tagging mechanism implemented</li>
+  <li>☐ Period-close policy documented (H1 kept open)</li>
+  <li>☐ Legacy read-only access confirmed through 2026</li>
+</ul>
+
+<h2>12. Key risks</h2>
+
+<table>
+  <tr><th>Risk</th><th>RAG</th><th>Mitigation</th></tr>
+  <tr><td>Simultaneous system migration + business-model flip on same date</td><td><span class="rag-amber">Amber</span></td><td>Treat as two workstreams; consider a silent stabilisation window pre-01-Jul</td></tr>
+  <tr><td>Slow-mover provision delta could be material</td><td><span class="rag-amber">Amber</span></td><td>Model in April, not June; share delta with auditor early</td></tr>
+  <tr><td>Auditor pre-clearance not obtained</td><td><span class="rag-red">Red</span></td><td>Initiate conversation in April; block go-live if positions not written</td></tr>
+  <tr><td>Customer / supplier comms late</td><td><span class="rag-amber">Amber</span></td><td>Notices sent by 01-Jun; follow-up calls last week of June</td></tr>
+  <tr><td>CoA mapping ambiguities</td><td><span class="rag-amber">Amber</span></td><td>Freeze mapping during Priority 1; any change after requires re-validation</td></tr>
+  <tr><td>NO/BE FX treatment ambiguity</td><td><span class="rag-amber">Amber</span></td><td>Lock policy (monthly close vs. daily rate) before loading JEs</td></tr>
+  <tr><td>Stock cut-off accuracy</td><td><span class="rag-amber">Amber</span></td><td>Physical count at 30-Jun under controlled conditions; second count if variance &gt; threshold</td></tr>
+  <tr><td>Legacy export quality</td><td><span class="rag-amber">Amber</span></td><td>Demand sample exports in week 1; do not wait for full extract</td></tr>
+</table>
+
+<h2>13. Governance</h2>
+
+<ul>
+  <li>Weekly 30-min status call — Mondays — tracker updated before the call</li>
+  <li>Tracker: one row per workstream × entity, columns: owner, % complete, blockers, next milestone</li>
+  <li>Risk log maintained alongside the tracker</li>
+  <li>All decisions written, not verbal — stored in this project folder</li>
+</ul>
+
+<div class="signature-block">
+  Olivier Eberhard · VVF Consulting · 2026-04-22
+</div>
+
+<div class="footer">
+  Companion file: <strong>Migration Tracker.xlsx</strong> (same folder) — week-by-week execution tracking aligned to this document.
+</div>
+
+</body>
+</html>

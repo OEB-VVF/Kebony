@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0">
+<title>Manufacturing &amp; Costing Architecture — Full Deck</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    body { background: none; padding: 0; gap: 0; }
+    .slide { box-shadow: none; border-radius: 0; margin: 0;
+             page-break-inside: avoid; page-break-after: always; }
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    gap: 30px;
+  }
+
+  .slide {
+    width: 1280px;
+    min-height: 720px;
+    max-height: 720px;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    padding: 38px 50px 36px;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+  }
+
+  .slide::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
+
+  .slide.title-slide {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .slide.title-slide::before { height: 8px; }
+  .slide.title-slide h1 {
+    font-size: 36px;
+    line-height: 1.2;
+    color: #1a1a2e;
+    margin-bottom: 12px;
+  }
+  .slide.title-slide .subtitle {
+    font-size: 18px;
+    color: #555;
+    font-weight: 400;
+    margin-bottom: 30px;
+  }
+  .slide.title-slide .meta {
+    font-size: 12px;
+    color: #888;
+  }
+
+  h1 { font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 14px; }
+  h2 { font-size: 15px; font-weight: 600; color: #0f3460; margin-bottom: 8px; }
+  h3 { font-size: 12px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  p { font-size: 11px; line-height: 1.6; color: #333; margin-bottom: 6px; }
+
+  .section-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1.2px; color: #0f3460; margin-bottom: 8px;
+    padding-bottom: 4px; border-bottom: 2px solid #0f3460; display: inline-block;
+  }
+
+  .tag {
+    display: inline-block; font-size: 9px; font-weight: 600;
+    padding: 2px 8px; border-radius: 3px; text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .tag.red { background: #ffebee; color: #c62828; }
+  .tag.green { background: #e8f5e9; color: #2e7d32; }
+  .tag.blue { background: #e3f2fd; color: #0f3460; }
+  .tag.orange { background: #fff3e0; color: #e65100; }
+  .tag.purple { background: #f3e5f5; color: #7b1fa2; }
+
+  .callout {
+    padding: 10px 14px; border-radius: 0 6px 6px 0;
+    font-size: 11px; line-height: 1.5; margin: 8px 0;
+  }
+  .callout.info { background: #e3f2fd; border-left: 3px solid #0f3460; }
+  .callout.success { background: #e8f5e9; border-left: 3px solid #2e7d32; }
+  .callout.warning { background: #fff8e1; border-left: 3px solid #f9a825; }
+  .callout.danger { background: #ffebee; border-left: 3px solid #c62828; }
+
+  .flow-diagram {
+    background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 6px;
+    padding: 12px 16px; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 10.5px; line-height: 1.65; white-space: pre;
+  }
+  .flow-diagram .label { color: #0f3460; font-weight: 700; }
+  .flow-diagram .highlight { color: #c62828; font-weight: 600; }
+  .flow-diagram .green { color: #2e7d32; font-weight: 600; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 11px; margin: 6px 0; }
+  th {
+    font-size: 9px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; color: #888; border-bottom: 2px solid #ddd;
+    padding: 4px 6px 5px; text-align: left;
+  }
+  td { padding: 4px 6px; border-bottom: 1px solid #eee; vertical-align: top; }
+  tr.total-row td { font-weight: 700; border-top: 2px solid #1a1a2e; }
+  tr.highlight-row td { background: #e3f2fd; }
+
+  .cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .cols-2.wide-left { grid-template-columns: 1.15fr 0.85fr; }
+  .cols-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  .mini-card {
+    background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 6px;
+    padding: 10px 14px; margin: 4px 0;
+  }
+  .mini-card h4 {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.8px; color: #0f3460; margin-bottom: 4px;
+  }
+  .mini-card p { font-size: 10px; margin: 0; }
+
+  .check-list { list-style: none; font-size: 11px; line-height: 1.7; }
+  .check-list li::before { content: '\2192'; color: #0f3460; margin-right: 6px; }
+  .check-list li.ok::before { content: '\2713'; color: #2e7d32; }
+  .check-list li.no::before { content: '\2717'; color: #c62828; }
+
+  .big-num { font-size: 28px; font-weight: 700; color: #0f3460; line-height: 1; }
+  .big-num.green { color: #2e7d32; }
+
+  .footnote { font-size: 9px; color: #888; position: absolute; bottom: 16px; left: 50px; right: 50px; }
+  .slide-number { font-size: 10px; color: #bbb; }
+  /* ── Logo ── */
+  .logo-title {
+    position: absolute; top: 30px; right: 40px;
+    height: 80px; opacity: 0.9;
+  }
+  .slide-footer {
+    position: absolute; bottom: 10px; left: 20px; right: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .prepared-by {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .prepared-by span {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+  .prepared-by img {
+    height: 22px; opacity: 0.7;
+  }
+  .footer-project {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ================================================================ -->
+
+<!-- SLIDE 1 — TITLE                                                   -->
+
+<!-- ================================================================ -->
+
+<div class="slide title-slide">
+
+  <img src="VVF-logo.png" alt="VVF" class="logo-title">
+  <h1>Manufacturing &amp; Costing Architecture</h1>
+  <div class="subtitle">Planning Families, Cost Versions, BOM Generation &amp; Gap Analysis</div>
+  <div class="meta">
+    Kebony — Odoo 19 | Module: <code>kebony_manufacturing</code> | March 2026
+
+  </div>
+
+<!-- ================================================================ -->
+
+<!-- SLIDE 2 — MANUFACTURING HIERARCHY                                 -->
+
+<!-- ================================================================ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">1</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>1. Manufacturing Hierarchy</h1>
+  <p>The atomic planning, costing, and valuation unit is the <strong>Dryer Load</strong>. One Dryer Load = One Manufacturing Order.</p>
+
+  <div class="cols-2" style="margin-top:12px;">
+    <div>
+      <div class="section-label">Physical Hierarchy</div>
+      <div class="flow-diagram">
+<span class="label">Raw Lot</span> (white wood, received at FIFO)
+  ↓
+<span class="label">Process Pack (PP)</span>    [physical only]
+  ↓
+<span class="label">Autoclave Batch (AC)</span> [5-8 packs, 2-8h cycle]
+  ↓
+<span class="label">Dryer Load (DL)</span>      [2 AC = 1 DL, 40-70h]
+  ↓                       <span class="highlight">= 1 MO</span>
+<span class="label">Finished Lot</span>         [sellable FG]
+  ↓ <em>(optional)</em>
+<span class="label">RDK Machining</span>        [subcontracting MO]</div>
+    </div>
+    <div>
+      <div class="section-label">Odoo Models</div>
+      <table>
+        <thead><tr>
+<th>Model</th>
+<th>Accounting?</th>
+<th>Status</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td><code>kebony.planning.family</code></td>
+<td>No — master data</td>
+<td><span class="tag green">Done</span></td>
+</tr>
+          <tr>
+<td><code>kebony.process.pack</code></td>
+<td>No — physical only</td>
+<td><span class="tag green">Done</span></td>
+</tr>
+          <tr>
+<td><code>kebony.autoclave.batch</code></td>
+<td>No — physical only</td>
+<td><span class="tag green">Done</span></td>
+</tr>
+          <tr>
+<td><code>kebony.dryer.load</code></td>
+<td>
+<strong>Yes</strong> — = MO</td>
+<td><span class="tag green">Done</span></td>
+</tr>
+          <tr>
+<td><code>mrp.production</code></td>
+<td>Yes — WIP + FG</td>
+<td><span class="tag orange">Phase 6</span></td>
+</tr>
+          <tr>
+<td><code>kebony.cost.version</code></td>
+<td>Yes — budget layer</td>
+<td><span class="tag green">Done</span></td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="callout info" style="margin-top:10px;">
+        <strong>Key rule:</strong> Only products from the <strong>same planning family</strong> can share an autoclave load or dryer load.
+
+      </div>
+
+<!-- ================================================================ -->
+
+<!-- SLIDE 3 — PLANNING FAMILIES                                       -->
+
+<!-- ================================================================ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">2</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>2. Planning Families — The Template Layer</h1>
+  <p>A planning family groups products by species + dimensions + impregnation/drying profile. It defines all production parameters used for BOM generation and costing.</p>
+
+  <div class="cols-2" style="margin-top:10px;">
+    <div>
+      <div class="section-label">What a Family Stores</div>
+      <table>
+        <thead><tr>
+<th>Parameter</th>
+<th>Unit</th>
+<th>Used For</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>Stacking hours ref</td>
+<td>hours</td>
+<td>BOM operation</td>
+</tr>
+          <tr>
+<td>Autoclave hours ref</td>
+<td>hours</td>
+<td>BOM operation</td>
+</tr>
+          <tr>
+<td>Dryer hours ref</td>
+<td>hours</td>
+<td>BOM operation</td>
+</tr>
+          <tr>
+<td>Capacity weight</td>
+<td>dryer h/m³</td>
+<td>DL scheduling</td>
+</tr>
+          <tr>
+<td>Typical dryer load volume</td>
+<td>m³</td>
+<td>Cost per m³ calculation</td>
+</tr>
+          <tr>
+<td>Mix consumption per m³</td>
+<td>kg/m³</td>
+<td>BOM chemical line</td>
+</tr>
+          <tr>
+<td>Scrap internal %</td>
+<td>%</td>
+<td>Scrap factor → BOM wood qty</td>
+</tr>
+          <tr>
+<td>Scrap B-grade %</td>
+<td>%</td>
+<td>Scrap factor → BOM wood qty</td>
+</tr>
+          <tr>
+<td><strong>Raw wood product</strong></td>
+<td>product</td>
+<td>BOM wood component</td>
+</tr>
+          <tr>
+<td>Ready-mix product</td>
+<td>product</td>
+<td>BOM chemical component</td>
+</tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div class="section-label">Family Types</div>
+      <div class="cols-3" style="gap:8px;">
+        <div class="mini-card">
+          <h4>Scots Pine (KSP)</h4>
+          <p>55–80h dryer, 1.34–1.96 h/m³</p>
+          <p>230–309 kg/m³ chemical</p>
+          <p><span class="tag blue">4 families</span></p>
+        </div>
+        <div class="mini-card">
+          <h4>Radiata (KRRS)</h4>
+          <p>48–54h dryer, 1.06–1.30 h/m³</p>
+          <p>541–677 kg/m³ chemical</p>
+          <p><span class="tag blue">7 families</span></p>
+        </div>
+        <div class="mini-card">
+          <h4>Specialty (Other)</h4>
+          <p>30–210h dryer, 0.77–14.74 h/m³</p>
+          <p>Wide range</p>
+          <p><span class="tag blue">5 families</span></p>
+        </div>
+      </div>
+
+      <div class="callout success" style="margin-top:10px;">
+        <strong>Scrap factor</strong> = 1 / (1 − internal% − b_grade%)<br>
+        E.g. 4.7% internal + 5.9% B-grade → scrap factor = <strong>1.118</strong><br>
+        Meaning: 1.118 m³ raw wood needed per 1 m³ FG output.
+
+      </div>
+
+<!-- ================================================================ -->
+
+<!-- SLIDE 4 — BOM GENERATION                                          -->
+
+<!-- ================================================================ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">3</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>3. BOM Generation — From Family to Product</h1>
+  <p>The <strong>"Push BoM to Products"</strong> button on a planning family creates or updates the BOM for every product assigned to that family.</p>
+
+  <div class="cols-2" style="margin-top:12px;">
+    <div>
+      <div class="section-label">What Gets Generated</div>
+      <table>
+        <thead><tr>
+<th>BOM Element</th>
+<th>Source</th>
+<th>Qty Formula</th>
+</tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Wood component</strong></td>
+            <td><code>raw_wood_product_id</code></td>
+            <td>
+<code>scrap_factor</code> per 1 unit FG</td>
+          </tr>
+          <tr>
+            <td><strong>Chemical component</strong></td>
+            <td><code>ready_mix_product_id</code></td>
+            <td>
+<code>mix_consumption_per_m3</code> (kg)</td>
+          </tr>
+          <tr>
+            <td><strong>Stacking operation</strong></td>
+            <td>WC: STACK</td>
+            <td>
+<code>stacking_hours_ref</code> × 60 min</td>
+          </tr>
+          <tr>
+            <td><strong>Autoclave operation</strong></td>
+            <td>WC: AC</td>
+            <td>
+<code>autoclave_hours_ref</code> × 60 min</td>
+          </tr>
+          <tr>
+            <td><strong>Dryer operation</strong></td>
+            <td>WC: DRY</td>
+            <td>
+<code>dryer_hours_ref</code> × 60 min</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout warning" style="margin-top:10px;">
+        <strong>Maintenance rule:</strong> Change parameters on the <em>family</em>, then re-push. Never edit individual product BOMs directly — they will be overwritten on next push.
+      </div>
+    </div>
+    <div>
+      <div class="section-label">Example: KRRS 1" (Radiata)</div>
+      <div class="flow-diagram" style="font-size:10px;">
+<span class="label">Planning Family:</span> KRRS 1" (KRRS1)
+<span class="label">Scrap:</span> 2.3% internal + 1.6% B-grade
+<span class="label">Scrap Factor:</span> 1 / (1 - 0.039) = <span class="highlight">1.0406</span>
+
+<span class="label">BOM for product "KRRS 50x150mm":</span>
+┌─────────────────────────────────────────┐
+│ <span class="green">Component: Raw Radiata</span>   qty: 1.0406 m³ │
+│ <span class="green">Component: Ready-Mix</span>    qty: 676 kg    │
+│ <span class="label">Op 1: Stacking</span>          4.5h (270 min) │
+│ <span class="label">Op 2: Autoclave</span>         0h   (per AC)  │
+│ <span class="label">Op 3: Dryer</span>             54h  (3240 min)│
+┌─────────────────────────────────────────┐
+│ Output: 1 m³ FG (KRRS 50x150mm)              │
+└─────────────────────────────────────────┘</div>
+
+<!-- ================================================================ -->
+
+<!-- SLIDE 5 — COST VERSION FRAMEWORK                                  -->
+
+<!-- ================================================================ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">4</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>4. Cost Version Framework — The Budget Layer</h1>
+  <p>A <strong>Cost Version</strong> stores period-versioned budget and standard cost references. It is the "what should it cost" baseline for gap analysis.</p>
+
+  <div class="cols-2" style="margin-top:10px;">
+    <div>
+      <div class="section-label">Header: kebony.cost.version</div>
+      <table>
+        <thead><tr>
+<th>Field</th>
+<th>Description</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td><code>version_type</code></td>
+<td>Budget / Standard / Forecast</td>
+</tr>
+          <tr>
+<td><code>fiscal_year</code></td>
+<td>Year (e.g. 2026)</td>
+</tr>
+          <tr>
+<td><code>date_from / date_to</code></td>
+<td>Monthly period boundaries</td>
+</tr>
+          <tr>
+<td><code>locked</code></td>
+<td>Approved → read-only</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="section-label" style="margin-top:12px;">4 Child Line Types</div>
+      <table>
+        <thead><tr>
+<th>Child</th>
+<th>Purpose</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td><span class="tag blue">BU Budget</span></td>
+<td>Top-down: BU + GL account + € amount</td>
+</tr>
+          <tr>
+<td><span class="tag green">WC Cost Line</span></td>
+<td>Bottom-up: WC + GL account + €/hour</td>
+</tr>
+          <tr>
+<td><span class="tag purple">Product Price</span></td>
+<td>Standard RM price per UoM</td>
+</tr>
+          <tr>
+<td><span class="tag orange">Family Card</span></td>
+<td>Hours + scrap snapshot + computed costs</td>
+</tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div class="section-label">Lifecycle</div>
+      <div class="flow-diagram" style="font-size:10px;">
+<span class="label">1. Create</span> version for a month (e.g. July 2026)
+
+<span class="label">2. Populate</span>
+   "Snapshot Families" button → family lines
+   Manually add WC lines + product prices
+
+<span class="label">3. Review</span>
+   Computed cost card auto-updates
+   Verify total standard cost per m³
+
+<span class="label">4. Lock &amp; Approve</span>
+   Version becomes read-only
+   Now visible on product cost cards
+   Used as baseline for gap analysis
+
+<span class="label">5. Next period</span>
+   "Duplicate Version" → adjust prices/rates
+   Lock the new one</div>
+
+<!-- ================================================================ -->
+
+<!-- SLIDE 6 — THE CLOSED LOOP (WC COST LINES)                        -->
+
+<!-- ================================================================ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">5</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>5. The Closed Loop — Work Centre × GL Account</h1>
+  <p>Each WC cost line links a <strong>work centre</strong> to a <strong>GL account</strong> (cost nature) with a rate per hour. This is the key to variance decomposition.</p>
+
+  <div class="cols-2" style="margin-top:10px;">
+    <div>
+      <div class="section-label">Example: Dryer Work Centre</div>
+      <table>
+        <thead><tr>
+<th>GL Account</th>
+<th>Cost Nature</th>
+<th>€/hour</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>620000</td>
+<td>Personnel (operators)</td>
+<td>25.00</td>
+</tr>
+          <tr>
+<td>610000</td>
+<td>Energy (electricity)</td>
+<td>12.50</td>
+</tr>
+          <tr>
+<td>630000</td>
+<td>Depreciation (dryer asset)</td>
+<td>8.00</td>
+</tr>
+          <tr>
+<td>611000</td>
+<td>Maintenance</td>
+<td>3.50</td>
+</tr>
+          <tr class="total-row">
+<td colspan="2"><strong>Total Dryer Rate</strong></td>
+<td><strong>49.00</strong></td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="callout info" style="margin-top:10px;">
+        <strong>Why multiple lines per WC?</strong> Each GL account is a separate cost nature. When the actual GL balance is compared to absorbed amount (rate × hours), you get <strong>per-nature variance</strong>: "Energy was over budget by €2k, but personnel was under."
+      </div>
+    </div>
+    <div>
+      <div class="section-label">Variance Decomposition</div>
+      <div class="flow-diagram" style="font-size:10px;">
+<span class="label">Budget (from cost version):</span>
+  Dryer rate    = €49.00/h
+  Dryer hours   = 54h (from family KRRS1)
+  Load volume   = 49.4 m³
+  <span class="green">Budget cost   = 49 × 54 / 49.4 = €53.56/m³</span>
+
+<span class="label">Actual (from MO completion):</span>
+  Actual hours  = 58h (4h over)
+  Actual GL 620 = €1,600 (vs budget €1,350)
+  Actual GL 610 = €700  (vs budget €675)
+
+<span class="highlight">Variances:</span>
+  <span class="highlight">Efficiency:</span> (58-54)h × €49/h = €196 unfav.
+  <span class="highlight">Rate (620):</span> €1,600 - (58 × €25) = €150 unfav.
+  <span class="highlight">Rate (610):</span> €700 - (58 × €12.5) = -€25 fav.</div>
+
+<!-- ================================================================ -->
+
+<!-- SLIDE 7 — FAMILY COST CARD                                        -->
+
+<!-- ================================================================ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">6</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>6. Family Cost Card — Standard Cost per m³</h1>
+  <p>Each family line in a cost version automatically computes the full standard cost breakdown. This is the bridge between planning families and financial control.</p>
+
+  <div class="cols-2 wide-left" style="margin-top:10px;">
+    <div>
+      <div class="section-label">Computed Fields (per m³ of FG)</div>
+      <table>
+        <thead><tr>
+<th>Cost Element</th>
+<th>Formula</th>
+<th>Example (KRRS 1")</th>
+</tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Scrap factor</strong></td>
+            <td>1 / (1 − int% − bg%)</td>
+            <td>1 / (1 − 0.016 − 0.023) = 1.0406</td>
+          </tr>
+          <tr>
+            <td><strong>Wood cost / m³</strong></td>
+            <td>scrap_factor × wood_price</td>
+            <td>1.0406 × €280 = €291.37</td>
+          </tr>
+          <tr>
+            <td><strong>Chemical cost / m³</strong></td>
+            <td>mix_kg_per_m3 × mix_price_kg</td>
+            <td>676 × €0.045 = €30.42</td>
+          </tr>
+          <tr>
+            <td><strong>Stacking / m³</strong></td>
+            <td>stack_h × Σ(stack rates) / vol</td>
+            <td>4.5 × €35 / 49.4 = €3.19</td>
+          </tr>
+          <tr>
+            <td><strong>Autoclave / m³</strong></td>
+            <td>ac_h × Σ(ac rates) / vol</td>
+            <td>0 × €42 / 49.4 = €0.00</td>
+          </tr>
+          <tr>
+            <td><strong>Dryer / m³</strong></td>
+            <td>dry_h × Σ(dry rates) / vol</td>
+            <td>54 × €49 / 49.4 = €53.56</td>
+          </tr>
+          <tr>
+            <td><strong>Conversion / m³</strong></td>
+            <td>stack + ac + dryer</td>
+            <td>€3.19 + €0.00 + €53.56 = €56.75</td>
+          </tr>
+          <tr class="total-row">
+            <td><strong>Total std cost / m³</strong></td>
+            <td>wood + chem + conv</td>
+            <td><strong>€378.54</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div class="section-label">Data Sources</div>
+      <div class="mini-card">
+        <h4>Hours &amp; Scrap</h4>
+        <p>From family line snapshot (editable override of family master)</p>
+      </div>
+      <div class="mini-card">
+        <h4>WC Rates (€/hour)</h4>
+        <p>Sum of all WC cost lines for each work centre (multi-line per GL account)</p>
+      </div>
+      <div class="mini-card">
+        <h4>Volume (m³)</h4>
+        <p><code>typical_dryer_load_volume</code> from planning family master</p>
+      </div>
+      <div class="mini-card">
+        <h4>RM Prices</h4>
+        <p>From Product Price lines in the same cost version (wood &amp; ready-mix)</p>
+      </div>
+
+      <div class="callout success" style="margin-top:8px;">
+        <strong>All computed, all stored.</strong> Change a WC rate or RM price → family cost card updates automatically. Lock the version → snapshot frozen.
+
+      </div>
+
+<!-- ================================================================ -->
+
+<!-- SLIDE 8 — PRODUCT COST CARD                                       -->
+
+<!-- ================================================================ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">7</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>7. Product Cost Card — Standard vs Actual</h1>
+  <p>Every product with a planning family shows a <strong>standard cost card</strong> on its form, pulled from the active (locked) cost version. This enables instant comparison with FIFO actual cost.</p>
+
+  <div class="cols-2" style="margin-top:12px;">
+    <div>
+      <div class="section-label">Product Form — Planning Tab</div>
+      <div class="mini-card" style="border-left: 3px solid #0f3460;">
+        <h4>Planning Family: KRRS 1"</h4>
+        <table style="font-size:10px; margin-top:6px;">
+          <tbody>
+            <tr>
+<td style="color:#888;">Stacking hours</td>
+<td>4.5h</td>
+</tr>
+            <tr>
+<td style="color:#888;">Dryer hours</td>
+<td>54h</td>
+</tr>
+            <tr>
+<td style="color:#888;">Mix consumption</td>
+<td>676 kg/m³</td>
+</tr>
+            <tr>
+<td style="color:#888;">Scrap (int + bg)</td>
+<td>1.6% + 2.3%</td>
+</tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="mini-card" style="border-left: 3px solid #2e7d32; margin-top:8px;">
+        <h4>Standard Cost Card (from Budget H2-2026)</h4>
+        <table style="font-size:10px; margin-top:6px;">
+          <tbody>
+            <tr>
+<td style="color:#888;">Std Wood Cost / m³</td>
+<td>€291.37</td>
+</tr>
+            <tr>
+<td style="color:#888;">Std Chemical Cost / m³</td>
+<td>€30.42</td>
+</tr>
+            <tr>
+<td style="color:#888;">Std Conversion Cost / m³</td>
+<td>€56.75</td>
+</tr>
+            <tr style="font-weight:700; border-top:2px solid #333;">
+              <td>Std Total Cost / m³</td>
+<td><strong>€378.54</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="section-label">Gap Analysis Logic</div>
+      <table>
+        <thead><tr>
+<th>Dimension</th>
+<th>Budget (Cost Version)</th>
+<th>Actual (FIFO MO)</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>Wood price</td>
+<td>Product Price line</td>
+<td>FIFO purchase price</td>
+</tr>
+          <tr>
+<td>Wood qty / m³</td>
+<td>Scrap factor (family)</td>
+<td>Actual MO consumption / output m³</td>
+</tr>
+          <tr>
+<td>Chemical price</td>
+<td>Product Price line</td>
+<td>FIFO ready-mix cost</td>
+</tr>
+          <tr>
+<td>Chemical qty / m³</td>
+<td>Mix consumption (family)</td>
+<td>Actual MO consumption / output m³</td>
+</tr>
+          <tr>
+<td>WC rate / hour</td>
+<td>WC Cost Lines (per GL)</td>
+<td>Actual GL balance / actual hours</td>
+</tr>
+          <tr>
+<td>WC hours</td>
+<td>Family reference hours</td>
+<td>Actual MO operation hours</td>
+</tr>
+        </tbody>
+      </table>
+
+      <div class="callout info" style="margin-top:10px;">
+        <strong>Price variance</strong> = (actual price − std price) × actual qty<br>
+        <strong>Volume variance</strong> = (actual qty − std qty) × std price<br>
+        <strong>Efficiency variance</strong> = (actual hours − std hours) × std rate<br>
+        All decomposable by work centre, by GL account, by family.
+
+      </div>
+
+<!-- ================================================================ -->
+
+<!-- SLIDE 9 — DATA FLOW: WHERE IS WHAT STORED?                        -->
+
+<!-- ================================================================ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">8</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>8. Data Architecture — Where Is What Stored?</h1>
+
+  <div style="margin-top:8px;">
+    <table>
+      <thead>
+        <tr>
+<th>Data</th>
+<th>Model</th>
+<th>Maintained By</th>
+<th>When Updated</th>
+</tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Production parameters (hours, scrap, chemical)</td>
+          <td><code>kebony.planning.family</code></td>
+          <td>Production manager</td>
+          <td>When process changes (rare)</td>
+        </tr>
+        <tr>
+          <td>Raw wood &amp; chemical product links</td>
+          <td><code>kebony.planning.family</code></td>
+          <td>Production manager</td>
+          <td>Once per family (setup)</td>
+        </tr>
+        <tr>
+          <td>Product BOMs (wood, chemical, operations)</td>
+          <td><code>mrp.bom</code></td>
+          <td>
+<strong>Auto-generated</strong> (Push BoM button)</td>
+          <td>After any family parameter change</td>
+        </tr>
+        <tr>
+          <td>WC hourly rates (by GL cost nature)</td>
+          <td><code>kebony.cost.version.wc.line</code></td>
+          <td>Controller / CFO</td>
+          <td>Monthly (new cost version)</td>
+        </tr>
+        <tr>
+          <td>RM standard prices (wood, chemical)</td>
+          <td><code>kebony.cost.version.product.line</code></td>
+          <td>Controller / Purchasing</td>
+          <td>Monthly (new cost version)</td>
+        </tr>
+        <tr>
+          <td>BU budgets (top-down)</td>
+          <td><code>kebony.cost.version.bu.line</code></td>
+          <td>CFO / Finance</td>
+          <td>Monthly or quarterly</td>
+        </tr>
+        <tr>
+          <td>Family cost card (std cost per m³)</td>
+          <td><code>kebony.cost.version.family.line</code></td>
+          <td><strong>Auto-computed</strong></td>
+          <td>On any input change (stored)</td>
+        </tr>
+        <tr>
+          <td>Product cost card (std cost per m³)</td>
+          <td>
+<code>product.template</code> (computed)</td>
+          <td><strong>Auto-computed</strong></td>
+          <td>Real-time (non-stored)</td>
+        </tr>
+        <tr>
+          <td>Actual production costs</td>
+          <td>
+<code>mrp.production</code> + FIFO layers</td>
+          <td>System (MO completion)</td>
+          <td>At MO closing</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout warning" style="margin-top:10px;">
+    <strong>Golden rule:</strong> Parameters live on the <strong>family</strong>. BOMs are <strong>generated</strong>, not manually maintained. Prices &amp; rates live on the <strong>cost version</strong>. The cost card is <strong>computed</strong>. Never edit downstream — always change the source.
+
+  </div>
+
+<!-- ================================================================ -->
+
+<!-- SLIDE 10 — MAINTENANCE WORKFLOW                                   -->
+
+<!-- ================================================================ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">9</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>9. Maintenance Workflow — Who Does What, When</h1>
+
+  <div class="cols-3" style="margin-top:12px;">
+    <div>
+      <div class="section-label">Production Manager</div>
+      <ul class="check-list">
+        <li>Update family parameters when process changes</li>
+        <li>Set <code>raw_wood_product_id</code> per family (once)</li>
+        <li>Click <strong>"Push BoM to Products"</strong> after changes</li>
+        <li>Assign planning family to new products</li>
+        <li>Review scrap % quarterly with quality team</li>
+      </ul>
+
+      <div class="callout info" style="margin-top:10px; font-size:10px;">
+        <strong>Frequency:</strong> Rare — only when a production process actually changes (new recipe, equipment upgrade, different chemical mix).
+      </div>
+    </div>
+    <div>
+      <div class="section-label">Controller / CFO</div>
+      <ul class="check-list">
+        <li>Create new cost version each month</li>
+        <li>Duplicate previous month → adjust</li>
+        <li>Update WC rates if cost pool changes</li>
+        <li>Update RM prices from latest PO data</li>
+        <li>Review family cost card totals</li>
+        <li>
+<strong>Lock &amp; Approve</strong> when satisfied</li>
+      </ul>
+
+      <div class="callout info" style="margin-top:10px; font-size:10px;">
+        <strong>Frequency:</strong> Monthly — part of EOM close process. Lock before running margin reports.
+      </div>
+    </div>
+    <div>
+      <div class="section-label">System (Automatic)</div>
+      <ul class="check-list">
+        <li class="ok">Family cost card: auto-computed on input change</li>
+        <li class="ok">Product cost card: auto-computed from active version</li>
+        <li class="ok">BOM wood qty: auto from scrap factor</li>
+        <li class="ok">BOM operations: auto from family hours</li>
+        <li class="ok">BOM chemical: auto from mix consumption</li>
+        <li class="ok">FIFO layers: auto at goods receipt</li>
+        <li class="ok">MO actual cost: auto at MO completion</li>
+      </ul>
+
+<!-- ================================================================ -->
+
+<!-- SLIDE 11 — CHEMICAL FLOW                                          -->
+
+<!-- ================================================================ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">10</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>10. Chemical Supply Chain — Separate Internal Flow</h1>
+  <p>The chemical mix has its own internal supply chain. The autoclave never consumes raw chemicals directly — only ready-mix.</p>
+
+  <div class="cols-2" style="margin-top:12px;">
+    <div>
+      <div class="section-label">Flow</div>
+      <div class="flow-diagram">
+<span class="label">Raw Chemicals</span> (FIFO valued)
+  Water:              17,680 liters
+  Furfuryl Alcohol:    9,821 kg
+  Maleic Anhydride:      250 kg
+  Citric Acid:           147 kg
+  Sodium Carbonate:      145 kg
+        ↓
+<span class="label">Mix Production MO</span>
+  Consumes raws → Produces Ready-Mix
+  1 batch = 28,043 kg
+        ↓
+<span class="label">Ready-Mix Tank</span> (stock location)
+  Triggered by minimum tank level
+        ↓
+<span class="label">Autoclave Consumption</span>
+  BOM line: mix_consumption_per_m³ (kg)</div>
+    </div>
+    <div>
+      <div class="section-label">Costing Implication</div>
+      <div class="mini-card">
+        <h4>Ready-Mix Valuation</h4>
+        <p>FIFO — each Mix MO batch creates a FIFO layer at actual raw chemical cost + absorbed WC (Chemical Mixing work centre).</p>
+      </div>
+      <div class="mini-card">
+        <h4>Standard Chemical Cost</h4>
+        <p>Cost version stores a <code>ready_mix_price_per_kg</code> via the Product Price line. Family cost card computes: mix_consumption × price = chemical cost per m³.</p>
+      </div>
+      <div class="mini-card">
+        <h4>Variance</h4>
+        <p>Actual ready-mix FIFO cost vs standard price = <strong>chemical price variance</strong>. Actual kg consumed per m³ vs standard = <strong>chemical efficiency variance</strong>.</p>
+      </div>
+    </div>
+
+  </div>
+
+<!-- ================================================================ -->
+
+<!-- SLIDE 12 — SUMMARY: FULL PICTURE                                  -->
+
+<!-- ================================================================ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">11</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>11. The Full Picture</h1>
+
+  <div class="flow-diagram" style="font-size:10px; line-height:1.7; margin-top:10px;">
+<span class="label">MASTER DATA (rarely changes)</span>
+  Planning Family    → hours, scrap %, chemical rate, raw_wood_product, ready_mix_product
+  Work Centres       → Stacking, Autoclave, Dryer, Chemical Mixing (physical definitions)
+
+<span class="label">BUDGET LAYER (monthly, by controller)</span>
+  Cost Version       → period + version_type + locked status
+    ├ BU Budget Lines  → BU (analytic) + GL account + planned €
+    ├ WC Cost Lines    → WC + GL account + €/hour        <span class="highlight">← THE CLOSED LOOP</span>
+    ├ Product Prices   → product + standard price / UoM
+    └ Family Cards     → hours + scrap snapshot + <span class="green">computed cost per m³</span>
+
+<span class="label">BOM LAYER (auto-generated from family)</span>
+  Push BoM to Products → wood (scrap-adjusted) + chemical + 3 WC operations
+  One BOM per product, template from family
+
+<span class="label">OPERATIONAL LAYER (production)</span>
+  Dryer Load → Autoclave Batches → Process Packs → MO (Phase 6)
+  Actual hours, actual consumption, actual FIFO cost
+
+<span class="label">GAP ANALYSIS</span>
+  Budget (cost version)  vs  Actual (MO + FIFO)
+  → Per product, per family, per WC, per GL account
+  → Price / Volume / Efficiency variance decomposition</div>
+
+  <div class="callout success" style="margin-top:10px;">
+    <strong>Everything is connected.</strong> Change a WC rate → family cost card updates → product cost card updates. Change scrap % → BOM wood qty updates → cost card updates. Lock the version → snapshot frozen for gap analysis. FIFO provides the truth. The cost version provides the benchmark.
+
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">12</div>
+  </div>
+</div></body></html>

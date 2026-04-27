@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0">
+<title>SteerCo — Approval Flow</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    body { background: none; padding: 0; gap: 0; }
+    .slide { box-shadow: none; border-radius: 0; margin: 0;
+             page-break-inside: avoid; page-break-after: always; }
+  }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f5f5f5; display: flex; flex-direction: column;
+    align-items: center; padding: 20px; gap: 30px;
+  }
+  .slide {
+    width: 1280px; min-height: 720px; max-height: 720px;
+    background: #fff; border-radius: 4px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    padding: 38px 50px 36px; position: relative; overflow: hidden;
+  }
+  .slide::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px;
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
+  .slide.title-slide {
+    display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
+  }
+  .slide.title-slide::before { height: 8px; }
+  .slide.title-slide h1 { font-size: 38px; line-height: 1.2; margin-bottom: 8px; }
+  .slide.title-slide .subtitle { font-size: 17px; color: #555; margin-bottom: 32px; }
+  .slide.title-slide .meta { font-size: 12px; color: #999; line-height: 1.8; }
+
+  h1 { font-size: 24px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  h2 { font-size: 16px; font-weight: 600; color: #0f3460; margin-bottom: 10px; margin-top: 14px; }
+  h3 { font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+  .subtitle { font-size: 12px; color: #888; margin-bottom: 18px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+
+  .card {
+    background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 8px;
+    padding: 16px 18px;
+  }
+
+  .callout {
+    margin-top: 12px; padding: 10px 14px; font-size: 11.5px; border-radius: 4px;
+  }
+  .callout.blue { background: #e3f2fd; border-left: 3px solid #1565c0; }
+  .callout.green { background: #e8f5e9; border-left: 3px solid #2e7d32; }
+  .callout.orange { background: #fff3e0; border-left: 3px solid #e65100; }
+  .callout.red { background: #ffebee; border-left: 3px solid #c62828; }
+
+  .tag {
+    display: inline-block; padding: 2px 8px; border-radius: 3px;
+    font-size: 10px; font-weight: 600;
+  }
+  .tag.green { background: #e8f5e9; color: #2e7d32; }
+  .tag.red { background: #ffebee; color: #c62828; }
+  .tag.blue { background: #e3f2fd; color: #1565c0; }
+  .tag.orange { background: #fff3e0; color: #e65100; }
+  .tag.grey { background: #f5f5f5; color: #616161; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 8px 0; }
+  th { background: #f8f9fa; padding: 8px 12px; text-align: left; font-weight: 600;
+       color: #1a1a2e; border-bottom: 2px solid #dee2e6; }
+  td { padding: 7px 12px; border-bottom: 1px solid #eee; color: #333; vertical-align: top; }
+
+  ul { font-size: 12px; line-height: 1.7; padding-left: 18px; }
+  ul li { margin-bottom: 4px; }
+  p { font-size: 12px; line-height: 1.6; color: #444; }
+
+  .slide-number { font-size: 10px; color: #bbb; }
+  /* ── Logo ── */
+  .logo-title {
+    position: absolute; top: 30px; right: 40px;
+    height: 80px; opacity: 0.9;
+  }
+  .slide-footer {
+    position: absolute; bottom: 10px; left: 20px; right: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .prepared-by {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .prepared-by span {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+  .prepared-by img {
+    height: 22px; opacity: 0.7;
+  }
+  .footer-project {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+
+  .flow-diagram {
+    background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 8px;
+    padding: 16px 20px; margin: 8px 0;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 11px; line-height: 1.6; color: #333; white-space: pre; overflow-x: auto;
+  }
+  .flow-diagram .label { color: #0f3460; font-weight: 700; }
+  .flow-diagram .highlight { color: #c62828; font-weight: 600; }
+  .flow-diagram .green { color: #2e7d32; font-weight: 600; }
+  .flow-diagram .dim { color: #aaa; }
+  .flow-diagram .blue { color: #0f3460; font-weight: 600; }
+  .flow-diagram .orange { color: #e65100; font-weight: 600; }
+
+  .step-row {
+    display: flex; align-items: center; gap: 12px; margin: 8px 0;
+  }
+  .step-circle {
+    width: 36px; height: 36px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-weight: 700;
+    font-size: 14px; color: #fff; flex-shrink: 0;
+  }
+  .step-circle.blue { background: #1565c0; }
+  .step-circle.green { background: #2e7d32; }
+  .step-circle.orange { background: #e65100; }
+  .step-circle.red { background: #c62828; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ SLIDE 1 — TITLE ═══════════════════ -->
+
+<div class="slide title-slide">
+
+  <img src="VVF-logo.png" alt="VVF" class="logo-title">
+  <h1>Approval Flow</h1>
+  <div class="subtitle">Vendor Bills &amp; Purchase Orders — Multi-Level Approval Workflow</div>
+  <div class="meta">
+    Steering Committee — Executive Summary<br>
+    March 2026
+
+</div>
+
+<!-- ═══════════════════ SLIDE 2 — HOW IT WORKS ═══════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">1</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>How the Approval Workflow Works</h1>
+  <div class="subtitle">Sequential multi-level approval with amount-based thresholds and rejection loops</div>
+
+  <div class="two-col">
+    <div>
+      <h2>The Flow</h2>
+      <div class="flow-diagram">
+<span class="label">VENDOR BILL / PO CREATED</span>
+        │
+        ▼
+  <span class="blue">System matches amount to approval rules</span>
+  <span class="dim">  (vendor BU + amount threshold)</span>
+        │
+        ▼
+  <span class="label">APPROVER 1</span> receives notification
+        │
+   ┌────┴────┐
+   <span class="green">Approve</span>    <span class="highlight">Reject</span>
+   │              │
+   ▼              ▼
+  <span class="label">APPROVER 2</span>    <span class="highlight">Back to draft</span>
+   <span class="dim">(if required)</span>    <span class="dim">(user fixes &amp; resubmits)</span>
+   │
+   ▼
+  <span class="green">FULLY APPROVED</span> ──&gt; can be posted / confirmed</div>
+    </div>
+
+    <div>
+      <h2>Key Design Principles</h2>
+      <div class="card" style="margin-bottom: 10px;">
+        <h3>Sequential, not parallel</h3>
+        <p>Approvers are ordered (sequence 10, 20, 30...). Each must approve before the next is notified. No skipping.</p>
+      </div>
+      <div class="card" style="margin-bottom: 10px;">
+        <h3>Amount-based thresholds</h3>
+        <p>Different rules trigger depending on invoice/PO total. Small amounts may need only 1 approver; large amounts need 2-3 levels.</p>
+      </div>
+      <div class="card" style="margin-bottom: 10px;">
+        <h3>Vendor Business Units</h3>
+        <p>Vendors are classified into BUs (e.g. Logistics, Raw Materials, Services). Each BU has its own approval chain and thresholds.</p>
+      </div>
+      <div class="card">
+        <h3>Rejection = back to start</h3>
+        <p>Any rejection resets the document to draft. The submitter fixes the issue and re-submits, restarting the full approval chain.</p>
+      </div>
+
+    </div>
+
+<!-- ═══════════════════ SLIDE 3 — WHAT'S COVERED ═══════════════════ -->
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">2</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Scope &amp; Configuration</h1>
+  <div class="subtitle">Vendor Bills and Purchase Orders — same engine, separate rules</div>
+
+  <div class="two-col">
+    <div>
+      <h2>Documents Covered</h2>
+      <table>
+        <thead><tr>
+<th>Document</th>
+<th>Trigger</th>
+<th>Blocks</th>
+</tr></thead>
+        <tbody>
+          <tr>
+            <td>
+<strong>Vendor Bill</strong><br>(account.move)</td>
+            <td>When user clicks "Request Approval"</td>
+            <td>Cannot post until fully approved</td>
+          </tr>
+          <tr>
+            <td>
+<strong>Purchase Order</strong><br>(purchase.order)</td>
+            <td>When user clicks "Request Approval"</td>
+            <td>Cannot confirm until fully approved</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2 style="margin-top: 16px;">Vendor BU Examples</h2>
+      <table>
+        <thead><tr>
+<th>Vendor BU</th>
+<th>Examples</th>
+<th>Typical Chain</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>Raw Materials</td>
+<td>Wood suppliers, chemicals</td>
+<td>Purchasing → CFO</td>
+</tr>
+          <tr>
+<td>Logistics</td>
+<td>Freight forwarders, customs</td>
+<td>Logistics Mgr → CFO</td>
+</tr>
+          <tr>
+<td>Services</td>
+<td>Consulting, IT, legal</td>
+<td>BU Head → CFO → CEO</td>
+</tr>
+          <tr>
+<td>Subcontracting</td>
+<td>RDK machining</td>
+<td>Production Mgr → CFO</td>
+</tr>
+        </tbody>
+      </table>
+
+    <div>
+      <h2>The kebony.approval Model</h2>
+      <div class="card">
+        <h3>One record per document needing approval</h3>
+        <p style="margin-bottom: 8px;">Tracks the full approval lifecycle:</p>
+        <ul>
+          <li>
+<strong>State:</strong> pending / approved / rejected</li>
+          <li>
+<strong>Current approver:</strong> who's next in the sequence</li>
+          <li>
+<strong>Approval log:</strong> who approved/rejected, when, with comments</li>
+          <li>
+<strong>Amount:</strong> total amount that triggered the rule</li>
+          <li>
+<strong>Rule matched:</strong> which BU + threshold applied</li>
+        </ul>
+      </div>
+
+      <h2 style="margin-top: 14px;">Notifications &amp; Audit</h2>
+      <ul>
+        <li>Email notification sent to each approver when it's their turn</li>
+        <li>Chatter message on the document for every approve/reject action</li>
+        <li>Full audit trail — who, when, what, comments</li>
+        <li>Dashboard: "My Approvals" shows pending items per user</li>
+      </ul>
+
+      <div class="callout blue" style="margin-top: 10px;">
+        <strong>Security:</strong> Only designated approvers can approve. The "Approve" button is invisible to non-approvers. Users cannot approve their own requests.
+
+      </div>
+
+<!-- ═══════════════════ SLIDE 4 — BENEFITS ═══════════════════ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">3</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Why This Matters</h1>
+  <div class="subtitle">From informal email approval to auditable, enforced workflow</div>
+
+  <div class="three-col">
+    <div class="card" style="border-left: 4px solid #c62828;">
+      <h3 style="color: #c62828;">Today (without)</h3>
+      <ul>
+        <li>Approval by email or verbal OK</li>
+        <li>No audit trail</li>
+        <li>Anyone can post a vendor bill</li>
+        <li>POs confirmed without budget check</li>
+        <li>No visibility on pending approvals</li>
+        <li>Risk of unauthorized spend</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left: 4px solid #2e7d32;">
+      <h3 style="color: #2e7d32;">Tomorrow (with)</h3>
+      <ul>
+        <li>Approval enforced in the system</li>
+        <li>Full audit trail with timestamps</li>
+        <li>Posting blocked until approved</li>
+        <li>Amount-based escalation</li>
+        <li>"My Approvals" dashboard</li>
+        <li>Rejection loop with comments</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left: 4px solid #1565c0;">
+      <h3 style="color: #1565c0;">Key Benefits</h3>
+      <ul>
+        <li>
+<strong>Compliance:</strong> Segregation of duties</li>
+        <li>
+<strong>Control:</strong> No spend without approval</li>
+        <li>
+<strong>Visibility:</strong> Real-time approval status</li>
+        <li>
+<strong>Speed:</strong> No more chasing emails</li>
+        <li>
+<strong>Audit:</strong> Instant trail for external auditors</li>
+        <li>
+<strong>Scalable:</strong> Add BUs, thresholds, approvers as org grows</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout green" style="margin-top: 20px;">
+    <strong>Implementation status:</strong> Custom Odoo module (<code>kebony_bol_report</code>) — ready for deployment. Requires configuration of Vendor BUs, approval rules, and approver assignments per company. No third-party module dependency.
+
+</div>
+
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">4</div>
+  </div>
+</div>
+
+</body>
+</html>

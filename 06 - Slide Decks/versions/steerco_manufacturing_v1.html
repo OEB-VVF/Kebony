@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0">
+<title>SteerCo — Manufacturing Architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    body { background: none; padding: 0; gap: 0; }
+    .slide { box-shadow: none; border-radius: 0; margin: 0;
+             page-break-inside: avoid; page-break-after: always; }
+  }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f5f5f5; display: flex; flex-direction: column;
+    align-items: center; padding: 20px; gap: 30px;
+  }
+  .slide {
+    width: 1280px; min-height: 720px; max-height: 720px;
+    background: #fff; border-radius: 4px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    padding: 38px 50px 36px; position: relative; overflow: hidden;
+  }
+  .slide::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px;
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
+  .slide.title-slide {
+    display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
+  }
+  .slide.title-slide::before { height: 8px; }
+  .slide.title-slide h1 { font-size: 38px; line-height: 1.2; margin-bottom: 8px; }
+  .slide.title-slide .subtitle { font-size: 17px; color: #555; margin-bottom: 32px; }
+  .slide.title-slide .meta { font-size: 12px; color: #999; line-height: 1.8; }
+
+  h1 { font-size: 24px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  h2 { font-size: 16px; font-weight: 600; color: #0f3460; margin-bottom: 10px; margin-top: 14px; }
+  h3 { font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+  .subtitle { font-size: 12px; color: #888; margin-bottom: 18px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+
+  .card {
+    background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 8px;
+    padding: 16px 18px;
+  }
+
+  .callout {
+    margin-top: 12px; padding: 10px 14px; font-size: 11.5px; border-radius: 4px;
+  }
+  .callout.blue { background: #e3f2fd; border-left: 3px solid #1565c0; }
+  .callout.green { background: #e8f5e9; border-left: 3px solid #2e7d32; }
+  .callout.orange { background: #fff3e0; border-left: 3px solid #e65100; }
+
+  .tag {
+    display: inline-block; padding: 2px 8px; border-radius: 3px;
+    font-size: 10px; font-weight: 600;
+  }
+  .tag.green { background: #e8f5e9; color: #2e7d32; }
+  .tag.red { background: #ffebee; color: #c62828; }
+  .tag.blue { background: #e3f2fd; color: #1565c0; }
+  .tag.orange { background: #fff3e0; color: #e65100; }
+  .tag.grey { background: #f5f5f5; color: #616161; }
+  .tag.purple { background: #f3e5f5; color: #6a1b9a; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 8px 0; }
+  th { background: #f8f9fa; padding: 8px 12px; text-align: left; font-weight: 600;
+       color: #1a1a2e; border-bottom: 2px solid #dee2e6; }
+  td { padding: 7px 12px; border-bottom: 1px solid #eee; color: #333; vertical-align: top; }
+
+  ul { font-size: 12px; line-height: 1.7; padding-left: 18px; }
+  ul li { margin-bottom: 4px; }
+  p { font-size: 12px; line-height: 1.6; color: #444; }
+
+  .slide-number { font-size: 10px; color: #bbb; }
+  /* ── Logo ── */
+  .logo-title {
+    position: absolute; top: 30px; right: 40px;
+    height: 80px; opacity: 0.9;
+  }
+  .slide-footer {
+    position: absolute; bottom: 10px; left: 20px; right: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .prepared-by {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .prepared-by span {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+  .prepared-by img {
+    height: 22px; opacity: 0.7;
+  }
+  .footer-project {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+
+  .flow-diagram {
+    background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 8px;
+    padding: 16px 20px; margin: 8px 0;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 11px; line-height: 1.55; color: #333; white-space: pre; overflow-x: auto;
+  }
+  .flow-diagram .label { color: #0f3460; font-weight: 700; }
+  .flow-diagram .highlight { color: #c62828; font-weight: 600; }
+  .flow-diagram .green { color: #2e7d32; font-weight: 600; }
+  .flow-diagram .dim { color: #aaa; }
+  .flow-diagram .blue { color: #0f3460; font-weight: 600; }
+  .flow-diagram .orange { color: #e65100; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ SLIDE 1 — TITLE ═══════════════════ -->
+
+<div class="slide title-slide">
+
+  <img src="VVF-logo.png" alt="VVF" class="logo-title">
+  <h1>Manufacturing Architecture</h1>
+  <div class="subtitle">Planning Families, Cost Versions &amp; BOM Generation</div>
+  <div class="meta">
+    Steering Committee — Executive Summary<br>
+    March 2026
+
+</div>
+
+<!-- ═══════════════════ SLIDE 2 — PHYSICAL FLOW ═══════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">1</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Production Flow — From Raw Wood to Finished Product</h1>
+  <div class="subtitle">Each step is traced in Odoo with lot-level granularity</div>
+
+  <div class="flow-diagram" style="font-size: 12px; text-align: center; line-height: 2;">
+<span class="label">Raw Lot</span>  ──&gt;  <span class="label">Process Pack</span>  ──&gt;  <span class="label">Autoclave Batch</span>  ──&gt;  <span class="label">Dryer Load (= 1 MO)</span>  ──&gt;  <span class="label">Finished Lot</span>  ──&gt;  <span class="orange">RDK Machining</span>
+  <span class="dim">PO receipt</span>        <span class="dim">grouping unit</span>       <span class="dim">chemical treatment</span>       <span class="dim">kiln drying = main MO</span>        <span class="dim">FIFO cost layer</span>       <span class="dim">subcontractor</span>
+</div>
+
+  <div class="two-col" style="margin-top: 16px;">
+    <div>
+      <h2>Planning Family = The Template</h2>
+      <p>Groups products by <strong>species + dimensions + treatment profile</strong>. Only products from the same family can share an autoclave/dryer load.</p>
+      <table>
+        <thead><tr>
+<th>Family Parameter</th>
+<th>Example (KRRS 1")</th>
+</tr></thead>
+        <tbody>
+          <tr>
+<td>Stacking hours</td>
+<td>4.5 h</td>
+</tr>
+          <tr>
+<td>Autoclave hours</td>
+<td>12 h</td>
+</tr>
+          <tr>
+<td>Dryer hours</td>
+<td>54 h</td>
+</tr>
+          <tr>
+<td>Scrap % (internal + B-grade)</td>
+<td>3.9%</td>
+</tr>
+          <tr>
+<td>Chemical consumption / m3</td>
+<td>676 kg</td>
+</tr>
+          <tr>
+<td>Typical dryer load volume</td>
+<td>22 m3</td>
+</tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div>
+      <h2>BOM Auto-Generation</h2>
+      <p>One button — <strong>"Push BoM to Products"</strong> — creates/updates BOMs for every product in the family. No manual BOM editing.</p>
+
+      <div class="card" style="margin-top: 10px;">
+        <h3>What gets generated per product</h3>
+        <ul>
+          <li>
+<strong>Wood component:</strong> scrap-adjusted (e.g. 1.0406 m3 raw per 1 m3 FG)</li>
+          <li>
+<strong>Chemical component:</strong> ready-mix consumption per m3</li>
+          <li>
+<strong>Operations:</strong> Stacking, Autoclave, Dryer with family hours</li>
+        </ul>
+      </div>
+
+      <div class="callout orange" style="margin-top: 10px;">
+        <strong>Rule:</strong> Change family parameters → re-push. Never edit product BOMs directly.
+
+      </div>
+
+<!-- ═══════════════════ SLIDE 3 — COST VERSION ═══════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">2</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Cost Version Framework — Budget vs Actual</h1>
+  <div class="subtitle">Structured budget layer enabling gap analysis against actual FIFO costs</div>
+
+  <div class="two-col">
+    <div>
+      <h2>Cost Version = One Budget Period</h2>
+      <p>Created monthly or quarterly by the Controller. Contains four building blocks:</p>
+
+      <table>
+        <thead><tr>
+<th>Block</th>
+<th>Content</th>
+<th>Owner</th>
+</tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="tag blue">BU Budget</span></td>
+            <td>Top-down budget allocation per BU</td>
+            <td>CFO</td>
+          </tr>
+          <tr>
+            <td><span class="tag green">WC Rates</span></td>
+            <td>EUR/hour per work centre per GL account<br>(personnel, energy, depreciation, maintenance)</td>
+            <td>Controller</td>
+          </tr>
+          <tr>
+            <td><span class="tag orange">RM Prices</span></td>
+            <td>Standard raw material prices</td>
+            <td>Purchasing</td>
+          </tr>
+          <tr>
+            <td><span class="tag purple">Family Cards</span></td>
+            <td>Computed: hours + scrap + WC rates = standard cost/m3</td>
+            <td>Auto</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top: 10px;">Lifecycle: <strong>Create → Populate → Review → Lock → Baseline</strong></p>
+
+    <div>
+      <h2>Family Cost Card — Example KRRS 1"</h2>
+      <div class="card">
+        <table>
+          <thead><tr>
+<th>Component</th>
+<th>EUR/m3</th>
+<th>%</th>
+</tr></thead>
+          <tbody>
+            <tr>
+<td>Wood (raw material)</td>
+<td style="text-align:right;">291.37</td>
+<td style="text-align:right;">77%</td>
+</tr>
+            <tr>
+<td>Chemicals (ready-mix)</td>
+<td style="text-align:right;">30.42</td>
+<td style="text-align:right;">8%</td>
+</tr>
+            <tr>
+<td>Conversion (stacking + autoclave + dryer)</td>
+<td style="text-align:right;">56.75</td>
+<td style="text-align:right;">15%</td>
+</tr>
+            <tr style="font-weight:700; border-top: 2px solid #333;">
+              <td>Total standard cost / m3</td>
+<td style="text-align:right;">378.54</td>
+<td style="text-align:right;">100%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 style="margin-top: 14px;">Gap Analysis</h2>
+      <p>Every product shows <strong>Standard (budget)</strong> vs <strong>Actual (FIFO MO)</strong> with three variance types:</p>
+      <ul>
+        <li>
+<strong>Price variance:</strong> (actual price - std price) x actual qty</li>
+        <li>
+<strong>Volume variance:</strong> (actual qty - std qty) x std price</li>
+        <li>
+<strong>Efficiency variance:</strong> (actual hours - std hours) x std rate</li>
+      </ul>
+
+<!-- ═══════════════════ SLIDE 4 — RACI ═══════════════════ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">3</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Who Does What — Maintenance Workflow</h1>
+  <div class="subtitle">Clear ownership ensures data stays current</div>
+
+  <div class="two-col">
+    <div>
+      <table>
+        <thead><tr>
+<th>Role</th>
+<th>Responsibilities</th>
+<th>Frequency</th>
+</tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Production Manager</strong></td>
+            <td>
+              <ul>
+                <li>Update family parameters (hours, scrap, capacity)</li>
+                <li>Push BOMs to products</li>
+                <li>Assign families to new products</li>
+              </ul>
+            </td>
+            <td>Quarterly or<br>on product change</td>
+          </tr>
+          <tr>
+            <td><strong>Controller / CFO</strong></td>
+            <td>
+              <ul>
+                <li>Create &amp; maintain cost versions</li>
+                <li>Update WC rates &amp; RM prices</li>
+                <li>Review cost cards &amp; lock versions</li>
+              </ul>
+            </td>
+            <td>Monthly</td>
+          </tr>
+          <tr>
+            <td><strong>System (auto)</strong></td>
+            <td>
+              <ul>
+                <li>Family cost cards (computed)</li>
+                <li>Product cost cards (computed)</li>
+                <li>FIFO layers on MO closing</li>
+                <li>Gap analysis (std vs actual)</li>
+              </ul>
+            </td>
+            <td>Real-time</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div>
+      <h2>Data Architecture Summary</h2>
+      <div class="card" style="margin-bottom: 12px;">
+        <h3>Where is what stored?</h3>
+        <table style="font-size: 11px;">
+          <tbody>
+            <tr>
+<td><strong>Family params</strong></td>
+<td>kebony.planning.family</td>
+</tr>
+            <tr>
+<td><strong>BOMs</strong></td>
+<td>mrp.bom (auto-generated)</td>
+</tr>
+            <tr>
+<td><strong>WC rates</strong></td>
+<td>kebony.cost.version.wc.line</td>
+</tr>
+            <tr>
+<td><strong>RM prices</strong></td>
+<td>kebony.cost.version.product.line</td>
+</tr>
+            <tr>
+<td><strong>Cost cards</strong></td>
+<td>kebony.cost.version.family.line (auto)</td>
+</tr>
+            <tr>
+<td><strong>Actual costs</strong></td>
+<td>mrp.production + FIFO layers</td>
+</tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout green">
+        <strong>Chemical supply chain:</strong> Raw chemicals → Mix Production MO → Ready-Mix Tank → Autoclave consumption. Each mix batch creates its own FIFO valuation layer. Standard chemical cost from cost version; variance = actual FIFO vs standard.
+
+      </div>
+
+</div>
+</div>
+
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">4</div>
+  </div>
+</div>
+footer"&gt;
+
+</body>
+</html>

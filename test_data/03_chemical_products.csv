@@ -1,0 +1,5 @@
+id,name,is_storable,tracking,uom_id,categ_id/.id,company_id/.id
+prod_chem_fa,Furfuryl Alcohol (FA),1,lot,kg,11,3
+prod_chem_ca,Citric Acid,1,lot,kg,11,3
+prod_chem_water,Water (Process),1,none,kg,11,3
+prod_chem_readymix,Kebony Ready-Mix,1,lot,kg,11,3

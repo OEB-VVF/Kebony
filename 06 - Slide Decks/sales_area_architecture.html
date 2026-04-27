@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0">
+<title>Sales Area Architecture — Hierarchical Territory Model</title>
+<!-- v1.0 | 2026-04-09 | Initial version -->
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    body { background: none; padding: 0; gap: 0; }
+    .slide { box-shadow: none; border-radius: 0; margin: 0; page-break-inside: avoid; page-break-after: always; }
+  }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #f5f5f5; display: flex; flex-direction: column; align-items: center; padding: 20px; gap: 30px; }
+  .slide { width: 1280px; min-height: 720px; max-height: 720px; background: #fff; border-radius: 4px; box-shadow: 0 2px 20px rgba(0,0,0,0.08); padding: 38px 50px 36px; position: relative; overflow: hidden; page-break-after: always; }
+  .slide::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); }
+  .slide.title-slide { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
+  .slide.title-slide::before { height: 8px; }
+  .slide.title-slide h1 { font-size: 36px; line-height: 1.2; margin-bottom: 8px; }
+  .slide.title-slide .subtitle { font-size: 16px; color: #555; margin-bottom: 32px; }
+  .slide.title-slide .meta { font-size: 12px; color: #999; line-height: 1.8; }
+  h1 { font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  h2 { font-size: 15px; font-weight: 600; color: #0f3460; margin-bottom: 10px; margin-top: 14px; }
+  h3 { font-size: 12px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  .subtitle { font-size: 12px; color: #888; margin-bottom: 16px; }
+  .section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: #0f3460; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 2px solid #0f3460; display: inline-block; }
+  .section-label.red { color: #c62828; border-color: #c62828; }
+  .section-label.green { color: #2e7d32; border-color: #2e7d32; }
+  .section-label.orange { color: #e65100; border-color: #e65100; }
+  .section-label.purple { color: #6a1b9a; border-color: #6a1b9a; }
+  .flow-diagram { background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px 20px; margin: 8px 0; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 10.5px; line-height: 1.55; color: #333; white-space: pre; overflow-x: auto; }
+  .flow-diagram .label { color: #0f3460; font-weight: 700; }
+  .flow-diagram .highlight { color: #c62828; font-weight: 600; }
+  .flow-diagram .green { color: #2e7d32; font-weight: 600; }
+  .flow-diagram .blue { color: #0f3460; font-weight: 600; }
+  .flow-diagram .dim { color: #aaa; }
+  .flow-diagram .orange { color: #e65100; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; margin: 6px 0; }
+  th { background: #f8f9fa; padding: 6px 10px; text-align: left; font-weight: 600; color: #1a1a2e; border-bottom: 2px solid #dee2e6; }
+  td { padding: 5px 10px; border-bottom: 1px solid #eee; color: #333; vertical-align: top; }
+  tr:hover td { background: #f8f9fa; }
+  table.compact { font-size: 10px; }
+  table.compact th, table.compact td { padding: 3px 6px; }
+  .tag { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 9px; font-weight: 600; letter-spacing: 0.3px; }
+  .tag.green { background: #e8f5e9; color: #2e7d32; }
+  .tag.red { background: #ffebee; color: #c62828; }
+  .tag.orange { background: #fff3e0; color: #e65100; }
+  .tag.blue { background: #e3f2fd; color: #1565c0; }
+  .tag.purple { background: #f3e5f5; color: #6a1b9a; }
+  .tag.grey { background: #f5f5f5; color: #616161; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .card { background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 8px; padding: 14px 16px; }
+  .card h3 { margin-bottom: 6px; }
+  .callout { margin-top: 10px; padding: 8px 12px; font-size: 10.5px; border-radius: 4px; }
+  .callout.blue { background: #e3f2fd; border-left: 3px solid #1565c0; }
+  .callout.green { background: #e8f5e9; border-left: 3px solid #2e7d32; }
+  .callout.orange { background: #fff3e0; border-left: 3px solid #e65100; }
+  .callout.red { background: #ffebee; border-left: 3px solid #c62828; }
+  .callout.purple { background: #f3e5f5; border-left: 3px solid #6a1b9a; }
+  .slide-number { font-size: 10px; color: #bbb; }
+  .slide-footer {
+    position: absolute; bottom: 10px; left: 20px; right: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .prepared-by { display: flex; align-items: center; gap: 6px; }
+  .prepared-by span { font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px; }
+  .prepared-by img { height: 22px; opacity: 0.7; }
+  .footer-project { font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px; }
+  ul { font-size: 11px; line-height: 1.6; padding-left: 16px; }
+  ul li { margin-bottom: 3px; }
+  p { font-size: 11px; line-height: 1.6; color: #444; }
+  td.check { text-align: center; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 1 — TITLE                                            -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="slide title-slide">
+  <h1>Sales Area Architecture</h1>
+  <div class="subtitle">Hierarchical territory model &mdash; US + Europe</div>
+  <div class="meta">
+    Kebony ERP Implementation<br>
+    April 2026 &mdash; Architecture Blueprint v1.0<br>
+    <br>
+    Module: kebony_bol_report &bull; Analytical Plan: Sales Area
+  </div>
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 2 — WHY CHANGE                                       -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="slide">
+  <h1>Why Change the Sales Area Model?</h1>
+  <div class="subtitle">Flat US list cannot serve a global, evolving sales organization</div>
+
+  <div class="two-col" style="margin-top: 16px;">
+    <div class="card" style="border-top: 3px solid #c62828;">
+      <div class="section-label red">Today</div>
+      <ul style="margin-top: 8px;">
+        <li>9 flat values &mdash; US/Canada only</li>
+        <li>No hierarchy (no parent/child)</li>
+        <li>No manager linked to territory</li>
+        <li>No geography definition &mdash; just names</li>
+        <li>Studio field (<code>x_studio_area_of_sales</code>)</li>
+        <li>Europe has <strong>no sales areas at all</strong></li>
+        <li>Cannot split or merge territories without data loss</li>
+      </ul>
+    </div>
+
+    <div class="card" style="border-top: 3px solid #2e7d32;">
+      <div class="section-label green">Target</div>
+      <ul style="margin-top: 8px;">
+        <li>Hierarchical tree &mdash; any depth</li>
+        <li>Manager (employee) per territory</li>
+        <li>Flexible geography: region, country, or group of countries</li>
+        <li>US + Europe in one model</li>
+        <li>Split/merge without breaking history</li>
+        <li>Auto-linked to analytic accounts</li>
+        <li>Supports budget targets per area</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout blue" style="margin-top: 16px;">
+    <strong>Key constraint:</strong> Sales Area must sit <strong>on top of Country</strong> in the analytics, not replace it.
+    Reorganizing territories (splitting Benelux, merging Nordics) must never break country-level financial reporting.
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 3 — TWO MODELS                                       -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="slide">
+  <h1>Two New Models</h1>
+  <div class="subtitle">Flexible geography + hierarchical territory &mdash; decoupled by design</div>
+
+  <div class="two-col" style="margin-top: 16px;">
+    <div class="card" style="border-top: 3px solid #0f3460;">
+      <div class="section-label">kebony.geo.zone</div>
+      <p style="margin-bottom: 10px;">Named geographic zone &mdash; can be anything from a sub-country region to a group of countries.</p>
+
+      <table class="compact">
+        <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+        <tr><td><code>name</code></td><td>Char</td><td>"French Switzerland", "Benelux"</td></tr>
+        <tr><td><code>code</code></td><td>Char</td><td>CH-FR, BENELUX</td></tr>
+        <tr><td><code>zone_type</code></td><td>Selection</td><td>region / country / country_group</td></tr>
+        <tr><td><code>country_ids</code></td><td>M2M</td><td>res.country &mdash; which countries</td></tr>
+        <tr><td><code>parent_id</code></td><td>M2O</td><td>Self-ref grouping</td></tr>
+        <tr><td><code>description</code></td><td>Text</td><td>Free text (cantons, depts...)</td></tr>
+      </table>
+
+      <div class="callout blue" style="font-size: 9.5px; margin-top: 10px;">
+        <strong>Why not <code>res.country.group</code>?</strong> Odoo's built-in groups are for fiscal positions &mdash;
+        system-wide, shared. We need business zones the CEO can reorganize freely.
+      </div>
+    </div>
+
+    <div class="card" style="border-top: 3px solid #2e7d32;">
+      <div class="section-label green">kebony.sales.area</div>
+      <p style="margin-bottom: 10px;">The actual sales territory. Hierarchical, with manager and analytic link.</p>
+
+      <table class="compact">
+        <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+        <tr><td><code>name</code></td><td>Char</td><td>"Benelux", "North East"</td></tr>
+        <tr><td><code>code</code></td><td>Char</td><td>BENELUX, NORTH-EAST</td></tr>
+        <tr><td><code>parent_id</code></td><td>M2O</td><td>Parent territory (hierarchy)</td></tr>
+        <tr><td><code>child_ids</code></td><td>O2M</td><td>Sub-areas</td></tr>
+        <tr><td><code>manager_id</code></td><td>M2O</td><td>hr.employee &mdash; area owner</td></tr>
+        <tr><td><code>geo_zone_ids</code></td><td>M2M</td><td>kebony.geo.zone</td></tr>
+        <tr><td><code>analytic_account_id</code></td><td>M2O</td><td>Auto-created for leaf nodes</td></tr>
+      </table>
+
+      <div class="callout green" style="font-size: 9.5px; margin-top: 10px;">
+        Customers are assigned to <strong>leaf</strong> areas only. Parents are reporting rollup.
+        Analytic accounts auto-created under the "Sales Area" plan.
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 4 — HIERARCHY EXAMPLE                                -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="slide">
+  <h1>Territory Hierarchy — Example</h1>
+  <div class="subtitle">Supports any depth &mdash; the CEO defines the structure, not IT</div>
+
+  <div class="two-col" style="margin-top: 12px;">
+    <div>
+      <div class="section-label">Europe</div>
+      <div class="flow-diagram" style="font-size: 11px; line-height: 1.7;">
+<span class="blue">Europe</span> <span class="dim">(VP Sales Europe)</span>
+<span class="dim">├──</span> <span class="blue">Nordics</span> <span class="dim">(Regional Mgr)</span>
+<span class="dim">│   ├──</span> <span class="green">Norway</span>
+<span class="dim">│   ├──</span> <span class="green">Sweden</span>
+<span class="dim">│   └──</span> <span class="green">Denmark</span>
+<span class="dim">├──</span> <span class="blue">Benelux</span> <span class="dim">(Regional Mgr)</span>
+<span class="dim">│   ├──</span> <span class="green">Belgium</span>
+<span class="dim">│   ├──</span> <span class="green">Netherlands</span>
+<span class="dim">│   └──</span> <span class="green">Luxembourg</span>
+<span class="dim">├──</span> <span class="blue">DACH</span> <span class="dim">(Regional Mgr)</span>
+<span class="dim">│   ├──</span> <span class="green">Germany</span>
+<span class="dim">│   ├──</span> <span class="green">Austria</span>
+<span class="dim">│   ├──</span> <span class="green">French Switzerland</span>
+<span class="dim">│   └──</span> <span class="green">German Switzerland</span>
+<span class="dim">├──</span> <span class="blue">France</span>
+<span class="dim">│   ├──</span> <span class="green">North France</span>
+<span class="dim">│   └──</span> <span class="green">Rest of France</span>
+<span class="dim">└──</span> <span class="green">UK &amp; Ireland</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">US &amp; Canada</div>
+      <div class="flow-diagram" style="font-size: 11px; line-height: 1.7;">
+<span class="blue">US &amp; Canada</span> <span class="dim">(VP Sales Americas)</span>
+<span class="dim">├──</span> <span class="green">North East</span>
+<span class="dim">├──</span> <span class="green">South East</span>
+<span class="dim">├──</span> <span class="green">Central</span>
+<span class="dim">├──</span> <span class="green">Midwest</span>
+<span class="dim">├──</span> <span class="green">West</span>
+<span class="dim">├──</span> <span class="green">N. Rockies</span>
+<span class="dim">├──</span> <span class="green">East Canada</span>
+<span class="dim">├──</span> <span class="green">West Canada</span>
+<span class="dim">└──</span> <span class="green">OEM</span>
+      </div>
+
+      <div style="margin-top: 12px;">
+        <div class="section-label orange">Legend</div>
+        <table class="compact" style="margin-top: 8px;">
+          <tr><td><span class="tag blue">Blue</span></td><td>Parent node &mdash; reporting rollup only</td></tr>
+          <tr><td><span class="tag green">Green</span></td><td>Leaf node &mdash; customer assignment + analytic account</td></tr>
+        </table>
+      </div>
+
+      <div class="callout green" style="margin-top: 12px; font-size: 9.5px;">
+        <strong>European structure is illustrative.</strong> Exact hierarchy
+        to be defined with Sales VP. The model supports any shape &mdash;
+        2 levels, 3 levels, or mixed depths.
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 5 — GEO ZONE EXAMPLES                               -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="slide">
+  <h1>Geographic Zones — Flexibility by Design</h1>
+  <div class="subtitle">A zone can be a region within a country, a whole country, or a group of countries</div>
+
+  <table style="margin-top: 16px;">
+    <tr>
+      <th style="width:100px;">Code</th>
+      <th style="width:180px;">Name</th>
+      <th style="width:120px;">Type</th>
+      <th>Countries</th>
+      <th style="width:200px;">Description</th>
+    </tr>
+    <tr>
+      <td><code>CH-FR</code></td>
+      <td>French Switzerland</td>
+      <td><span class="tag purple">region</span></td>
+      <td>Switzerland</td>
+      <td>Cantons: GE, VD, VS, FR, NE, JU</td>
+    </tr>
+    <tr>
+      <td><code>CH-DE</code></td>
+      <td>German Switzerland</td>
+      <td><span class="tag purple">region</span></td>
+      <td>Switzerland</td>
+      <td>All other cantons</td>
+    </tr>
+    <tr>
+      <td><code>FR-NORD</code></td>
+      <td>North France</td>
+      <td><span class="tag purple">region</span></td>
+      <td>France</td>
+      <td>&Icirc;le-de-France + northern regions</td>
+    </tr>
+    <tr>
+      <td><code>FR-SUD</code></td>
+      <td>Rest of France</td>
+      <td><span class="tag purple">region</span></td>
+      <td>France</td>
+      <td>Everything south of IDF</td>
+    </tr>
+    <tr>
+      <td><code>DK</code></td>
+      <td>Denmark</td>
+      <td><span class="tag blue">country</span></td>
+      <td>Denmark</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td><code>BENELUX</code></td>
+      <td>Benelux</td>
+      <td><span class="tag orange">country_group</span></td>
+      <td>Belgium, Netherlands, Luxembourg</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td><code>NORDICS</code></td>
+      <td>Nordics</td>
+      <td><span class="tag orange">country_group</span></td>
+      <td>Norway, Sweden, Denmark, Finland</td>
+      <td>&mdash;</td>
+    </tr>
+  </table>
+
+  <div class="two-col" style="margin-top: 16px;">
+    <div class="callout blue">
+      <strong>Loose by design.</strong> A region like "North France" is defined with a text description, not a formal list
+      of postal codes or administrative boundaries. This keeps configuration simple and in business hands.
+    </div>
+    <div class="callout green">
+      <strong>Country link preserved.</strong> Every zone links to <code>res.country</code> (Many2many).
+      This provides the join path to the Country analytic plan when needed for reconciliation.
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 6 — HOW IT FLOWS                                     -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="slide">
+  <h1>How It Flows — From Contact to P&amp;L</h1>
+  <div class="subtitle">Same inheritance chain as today, now with hierarchy + geography</div>
+
+  <div class="flow-diagram" style="margin-top: 16px; font-size: 11.5px; line-height: 1.8;">
+<span class="label">ASSIGNMENT</span>                                       <span class="label">INHERITANCE</span>                                   <span class="label">ANALYTICS</span>
+
+  <span class="blue">res.partner</span> (customer)                         <span class="blue">sale.order</span>                               Analytic Plan: <span class="green">Sales Area</span>
+  field: <span class="green">x_kebony_sales_area_id</span>         <span class="dim">───▶</span>    inherited from partner           <span class="dim">───▶</span>   leaf area = analytic account
+  assigned to <span class="highlight">leaf area only</span>                          <span class="dim">│</span>
+                                                         <span class="dim">▼</span>                                    Analytic Plan: <span class="blue">Country</span>
+                                                    <span class="blue">sale.order.line</span>                     <span class="dim">───▶</span>   <span class="orange">independent</span> (from partner address)
+                                                         <span class="dim">│</span>
+                                                         <span class="dim">▼</span>                                    <span class="dim">Both plans travel together on</span>
+                                                    <span class="blue">account.move</span> (invoice)                    <span class="dim">every journal entry line.</span>
+                                                         <span class="dim">│</span>                                    <span class="dim">Reorganizing areas never</span>
+                                                         <span class="dim">▼</span>                                    <span class="dim">breaks country reporting.</span>
+                                                    <span class="blue">account.move.line</span>
+                                                    (revenue + COGS)
+  </div>
+
+  <div class="two-col" style="margin-top: 12px;">
+    <div class="callout blue">
+      <strong>Manager &ne; Sales Rep.</strong> The <code>manager_id</code> on the sales area is the territory owner.
+      <code>x_studio_sales_representative</code> on the contact is the deal-level rep. Both are inherited to SO/invoice.
+      Different roles, different fields.
+    </div>
+    <div class="callout orange">
+      <strong>Analytic auto-creation.</strong> When a leaf <code>kebony.sales.area</code> is created, the system
+      auto-creates a matching <code>account.analytic.account</code> under the Sales Area plan. No manual config needed.
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 7 — SPLITTING TERRITORIES                            -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="slide">
+  <h1>Territory Splits — Future-proof by Design</h1>
+  <div class="subtitle">Example: CEO decides to split Benelux into Belgium+Lux and Netherlands</div>
+
+  <div class="two-col" style="margin-top: 16px;">
+    <div>
+      <div class="section-label">Before</div>
+      <div class="flow-diagram" style="font-size: 11.5px; line-height: 1.8;">
+<span class="green">Benelux</span> <span class="dim">(leaf &mdash; 45 customers)</span>
+<span class="dim">  Manager: Jan de Vries</span>
+<span class="dim">  Geo: BE + NL + LU</span>
+<span class="dim">  Analytic: BENELUX</span>
+      </div>
+
+      <div class="section-label" style="margin-top: 20px;">After</div>
+      <div class="flow-diagram" style="font-size: 11.5px; line-height: 1.8;">
+<span class="blue">Benelux</span> <span class="dim">(parent &mdash; rollup only)</span>
+<span class="dim">├──</span> <span class="green">Belgium + Luxembourg</span> <span class="dim">(leaf &mdash; 30 customers)</span>
+<span class="dim">│   Manager: Sophie Lambert</span>
+<span class="dim">│   Geo: BE + LU</span>
+<span class="dim">│   Analytic: BE-LU (new)</span>
+<span class="dim">└──</span> <span class="green">Netherlands</span> <span class="dim">(leaf &mdash; 15 customers)</span>
+<span class="dim">    Manager: Jan de Vries</span>
+<span class="dim">    Geo: NL</span>
+<span class="dim">    Analytic: NL (new)</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label green">What happens</div>
+      <div class="card" style="margin-top: 8px;">
+        <table class="compact">
+          <tr><th style="width: 30px;">#</th><th>Step</th></tr>
+          <tr><td>1</td><td>Create 2 child areas under Benelux</td></tr>
+          <tr><td>2</td><td>Assign geo zones + managers to children</td></tr>
+          <tr><td>3</td><td>Reassign 45 customers to appropriate child</td></tr>
+          <tr><td>4</td><td>Benelux becomes <strong>parent</strong> (rollup only)</td></tr>
+          <tr><td>5</td><td>New analytic accounts auto-created for children</td></tr>
+          <tr><td>6</td><td>Old BENELUX analytic account stays &mdash; <strong>history preserved</strong></td></tr>
+        </table>
+      </div>
+
+      <div class="callout green" style="margin-top: 12px;">
+        <strong>No data migration.</strong> Historical transactions keep the old analytic account.
+        New transactions use the new leaf accounts. Reports show both when rolling up to "Benelux" parent.
+      </div>
+
+      <div class="callout blue" style="margin-top: 10px;">
+        <strong>Phase 3 bonus:</strong> a "Split Area" wizard automates steps 3&ndash;6 &mdash;
+        presents customer list, lets the manager drag-and-drop to new sub-areas.
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 8 — ANALYTICS RELATIONSHIP                           -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="slide">
+  <h1>Relationship to 5-Plan Analytics</h1>
+  <div class="subtitle">Sales Area is Plan 4 &mdash; orthogonal to Country, BU, CM Level, Distributor</div>
+
+  <table style="margin-top: 16px;">
+    <tr>
+      <th style="width:150px;">Plan</th>
+      <th style="width:200px;">Dimension</th>
+      <th>Interaction with Sales Area</th>
+      <th style="width:100px;">Source</th>
+    </tr>
+    <tr>
+      <td><strong>1. Country</strong></td>
+      <td>75+ country codes</td>
+      <td><strong>Independent.</strong> "French Switzerland" &rarr; Country = CH. Splitting territories doesn't touch country data.</td>
+      <td>Partner address</td>
+    </tr>
+    <tr>
+      <td><strong>2. BU</strong></td>
+      <td>9 business units</td>
+      <td>Independent. BU is product/cost driven, not territory driven.</td>
+      <td>Product / GL</td>
+    </tr>
+    <tr>
+      <td><strong>3. CM Level</strong></td>
+      <td>P&amp;L waterfall</td>
+      <td>Independent. Margin cascade applies uniformly across all areas.</td>
+      <td>GL account</td>
+    </tr>
+    <tr>
+      <td style="background:#e8f5e9;"><strong>4. Sales Area</strong></td>
+      <td style="background:#e8f5e9;">Hierarchical territories</td>
+      <td style="background:#e8f5e9;"><strong>This model.</strong> Leaf nodes = analytic accounts. Roll up via parent hierarchy.</td>
+      <td style="background:#e8f5e9;">Customer contact</td>
+    </tr>
+    <tr>
+      <td><strong>5. Distributor</strong></td>
+      <td>Customer category</td>
+      <td>Independent. A distributor can be in any sales area.</td>
+      <td>Partner category</td>
+    </tr>
+  </table>
+
+  <div class="callout purple" style="margin-top: 16px;">
+    <strong>Budget &amp; reforecast:</strong> Sales targets can be assigned per leaf area per period.
+    The hierarchy enables top-down target setting (VP sets Europe target) that cascades to sub-areas,
+    or bottom-up rollup from leaf targets. This connects directly to the KPI framework (Commercial family).
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 9 — IMPLEMENTATION                                   -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="slide">
+  <h1>Implementation Phases</h1>
+  <div class="subtitle">Models first, then Europe territories, then advanced tooling</div>
+
+  <div class="three-col" style="margin-top: 16px;">
+    <div class="card" style="border-top: 3px solid #2e7d32;">
+      <div class="section-label green">Phase 1 &mdash; Models + US migration</div>
+      <ul style="font-size: 10.5px;">
+        <li>Create <code>kebony.geo.zone</code> model</li>
+        <li>Create <code>kebony.sales.area</code> model</li>
+        <li>Seed 9 US areas (from Studio field)</li>
+        <li><code>x_kebony_sales_area_id</code> on <code>res.partner</code></li>
+        <li>Migrate existing <code>x_studio_area_of_sales</code> data</li>
+        <li>Auto-create analytic accounts (leaf nodes)</li>
+        <li>Adapt SO &rarr; invoice inheritance chain</li>
+      </ul>
+      <div class="callout green" style="font-size: 9px; margin-top: 8px;">
+        <strong>US parity.</strong> Same functionality as today, now on a proper model.
+        Existing reports, accrual wizard, and dashboards continue working.
+      </div>
+    </div>
+
+    <div class="card" style="border-top: 3px solid #0f3460;">
+      <div class="section-label">Phase 2 &mdash; Europe</div>
+      <ul style="font-size: 10.5px;">
+        <li>Define geo zones with CEO / Sales VP</li>
+        <li>Build European hierarchy</li>
+        <li>Assign European customers to leaf areas</li>
+        <li>Sales dashboard: hierarchy rollup views</li>
+        <li>Budget targets per area (optional)</li>
+      </ul>
+      <div class="callout blue" style="font-size: 9px; margin-top: 8px;">
+        <strong>Business-driven.</strong> IT builds the model; the Sales VP
+        defines the structure. Geo zones are configured in Settings, not code.
+      </div>
+    </div>
+
+    <div class="card" style="border-top: 3px solid #e65100;">
+      <div class="section-label orange">Phase 3 &mdash; Advanced</div>
+      <ul style="font-size: 10.5px;">
+        <li>"Split Area" wizard (auto customer reassignment)</li>
+        <li>Territory map visualization</li>
+        <li>Sales target cascade (top-down / bottom-up)</li>
+        <li>Area performance dashboard</li>
+      </ul>
+      <div class="callout orange" style="font-size: 9px; margin-top: 8px;">
+        <strong>Nice-to-have.</strong> Build when the organization is
+        mature enough to use territory-level performance tracking.
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 10 — OPEN QUESTIONS                                  -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="slide">
+  <h1>Open Questions</h1>
+  <div class="subtitle">To resolve before European rollout</div>
+
+  <table style="margin-top: 16px;">
+    <tr>
+      <th style="width:30px;">#</th>
+      <th style="width:250px;">Question</th>
+      <th>Context</th>
+      <th style="width:100px;">Who decides</th>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td><strong>European hierarchy</strong></td>
+      <td>Exact tree structure to be defined with Sales VP. Model supports any depth &mdash;
+          need to agree on regions, groupings, and managers.</td>
+      <td>CEO / Sales VP</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><strong>OEM: area or channel?</strong></td>
+      <td>OEM is currently a US sales area but spans all geography. If Europe has OEM too,
+          should it be a separate "Europe OEM" or a cross-entity channel dimension?</td>
+      <td>Sales VP</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><strong>Geo zone granularity</strong></td>
+      <td>"North France" vs "Rest of France" &mdash; is a text description enough, or do we need
+          formal postal code / department mapping? Recommendation: <strong>text is sufficient</strong>.</td>
+      <td>COO / Sales VP</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><strong>Sales rep vs. manager</strong></td>
+      <td>Confirm they remain separate: manager = territory owner (on area), rep = deal attribution (on contact).
+          Both inherited to SO/invoice independently.</td>
+      <td>Sales VP</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><strong>Budget targets per area</strong></td>
+      <td>Should budget/reforecast targets be assignable at area level? If yes, Phase 2 includes
+          a target model linked to sales area + period. Feeds into KPI framework.</td>
+      <td>CFO / CEO</td>
+    </tr>
+  </table>
+
+  <div class="callout blue" style="margin-top: 16px;">
+    <strong>Phase 1 is self-contained.</strong> US migration can proceed without answering European questions.
+    Questions 1&ndash;3 must be resolved before Phase 2 (European rollout).
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+  </div>
+</div>
+
+</body>
+</html>

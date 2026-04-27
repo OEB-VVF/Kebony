@@ -1,0 +1,12 @@
+id,partner_id,date_order,company_id/.id,order_line/product_id,order_line/name,order_line/product_qty,order_line/price_unit,order_line/product_uom_id
+PO_TEST_RAW_001,Kebony Norge AS,2026-03-01 00:00:00,3,1003,Raw KSP 28x120mm - Batch 1,5000,3.20,m
+PO_TEST_RAW_001,,,,1929,Raw Radiata 25mm RS - Batch 1,8000,2.85,m
+PO_TEST_RAW_001,,,,1934,Raw Radiata 38mm RS - Batch 1,4000,4.10,m
+PO_TEST_RAW_002,Kebony Norge AS,2026-03-15 00:00:00,3,1003,Raw KSP 28x120mm - Batch 2,5000,3.25,m
+PO_TEST_RAW_002,,,,1929,Raw Radiata 25mm RS - Batch 2,8000,2.90,m
+PO_TEST_RAW_002,,,,1934,Raw Radiata 38mm RS - Batch 2,4000,4.15,m
+PO_TEST_RAW_003,Kebony Norge AS,2026-04-01 00:00:00,3,1003,Raw KSP 28x120mm - Batch 3,5000,3.30,m
+PO_TEST_RAW_003,,,,1929,Raw Radiata 25mm RS - Batch 3,8000,2.95,m
+PO_TEST_CHEM_001,Kebony Norge AS,2026-03-01 00:00:00,3,Furfuryl Alcohol (FA),Furfuryl Alcohol bulk delivery,5000,1.85,kg
+PO_TEST_CHEM_001,,,,Citric Acid,Citric Acid bulk delivery,1000,0.95,kg
+PO_TEST_CHEM_001,,,,Water (Process),Process Water,10000,0.02,kg

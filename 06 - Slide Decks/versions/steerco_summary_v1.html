@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0">
+<title>SteerCo — Executive Summary</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    body { background: none; padding: 0; gap: 0; }
+    .slide { box-shadow: none; border-radius: 0; margin: 0;
+             page-break-inside: avoid; page-break-after: always; }
+  }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f5f5f5; display: flex; flex-direction: column;
+    align-items: center; padding: 20px; gap: 30px;
+  }
+  .slide {
+    width: 1280px; min-height: 720px; max-height: 720px;
+    background: #fff; border-radius: 4px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    padding: 32px 44px 30px; position: relative; overflow: hidden;
+  }
+  .slide::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px;
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
+
+  h1 { font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 2px; }
+  .subtitle { font-size: 11px; color: #888; margin-bottom: 14px; }
+  h3 { font-size: 11.5px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+  .card {
+    background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 6px;
+    padding: 10px 12px;
+  }
+  .card.selected { border: 2px solid #2e7d32; background: #f1f8e9; }
+  .card.dimmed { opacity: 0.45; }
+
+  .callout {
+    padding: 7px 10px; font-size: 10.5px; border-radius: 4px; margin-top: 8px;
+  }
+  .callout.blue { background: #e3f2fd; border-left: 3px solid #1565c0; }
+  .callout.green { background: #e8f5e9; border-left: 3px solid #2e7d32; }
+  .callout.orange { background: #fff3e0; border-left: 3px solid #e65100; }
+  .callout.red { background: #ffebee; border-left: 3px solid #c62828; }
+
+  .tag {
+    display: inline-block; padding: 1px 6px; border-radius: 3px;
+    font-size: 9px; font-weight: 600;
+  }
+  .tag.green { background: #e8f5e9; color: #2e7d32; }
+  .tag.red { background: #ffebee; color: #c62828; }
+  .tag.blue { background: #e3f2fd; color: #1565c0; }
+  .tag.orange { background: #fff3e0; color: #e65100; }
+  .tag.grey { background: #f5f5f5; color: #616161; }
+  .tag.purple { background: #f3e5f5; color: #6a1b9a; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 10.5px; margin: 5px 0; }
+  th { background: #f8f9fa; padding: 5px 8px; text-align: left; font-weight: 600;
+       color: #1a1a2e; border-bottom: 2px solid #dee2e6; }
+  td { padding: 4px 8px; border-bottom: 1px solid #eee; color: #333; vertical-align: top; }
+
+  ul { font-size: 10.5px; line-height: 1.55; padding-left: 14px; }
+  ul li { margin-bottom: 2px; }
+  p { font-size: 10.5px; line-height: 1.5; color: #444; }
+
+  .slide-number { font-size: 10px; color: #bbb; }
+  /* ── Logo ── */
+  .logo-title {
+    position: absolute; top: 30px; right: 40px;
+    height: 80px; opacity: 0.9;
+  }
+  .slide-footer {
+    position: absolute; bottom: 10px; left: 20px; right: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .prepared-by {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .prepared-by span {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+  .prepared-by img {
+    height: 22px; opacity: 0.7;
+  }
+  .footer-project {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+  .slide-label {
+    position: absolute; top: 14px; right: 18px;
+    font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+    color: #0f3460; opacity: 0.5;
+  }
+
+  .flow-mini {
+    background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 6px;
+    padding: 8px 12px; margin: 5px 0;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 9.5px; line-height: 1.5; color: #333; white-space: pre;
+  }
+  .flow-mini .label { color: #0f3460; font-weight: 700; }
+  .flow-mini .green { color: #2e7d32; font-weight: 600; }
+  .flow-mini .highlight { color: #c62828; font-weight: 600; }
+  .flow-mini .dim { color: #aaa; }
+  .flow-mini .orange { color: #e65100; font-weight: 600; }
+
+  .phase-bar {
+    display: flex; gap: 0; margin: 6px 0; border-radius: 4px; overflow: hidden;
+    height: 24px; font-size: 9px; font-weight: 600;
+  }
+  .phase-bar > div {
+    display: flex; align-items: center; justify-content: center; color: #fff;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 1 — COSTING MODEL
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="slide">
+
+<div class="slide-label">Costing Model
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 2 — MANUFACTURING
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">1</div>
+  </div>
+</div>
+<div class="slide">
+
+<div class="slide-label">Manufacturing
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 3 — APPROVAL FLOW
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">2</div>
+  </div>
+</div>
+<div class="slide">
+
+<div class="slide-label">Approval Flow
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 4 — ANALYTICAL & MANAGEMENT REPORTING
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">3</div>
+  </div>
+</div>
+<div class="slide">
+
+<div class="slide-label">Reporting
+
+</div>
+
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">4</div>
+  </div>
+</div>
+
+</body>
+</html>

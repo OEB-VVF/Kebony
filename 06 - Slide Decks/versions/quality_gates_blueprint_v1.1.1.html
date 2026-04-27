@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Quality Gates — Blueprint</title>
+<style>
+  @page { size: A4; margin: 18mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 11pt;
+    line-height: 1.55;
+    color: #1a1a1a;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 30px 40px;
+    background: #fafaf7;
+  }
+  h1, h2, h3, h4 { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #0f2a4f; font-weight: 600; }
+  h1 { font-size: 24pt; margin: 0 0 4px 0; letter-spacing: -0.5px; }
+  .subtitle { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 11pt; color: #5a6b80; margin-bottom: 6px; }
+  .meta { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9pt; color: #7a8698; border-bottom: 1px solid #c8d1df; padding-bottom: 14px; margin-bottom: 26px; }
+  h2 { font-size: 16pt; margin: 36px 0 10px 0; border-bottom: 2px solid #0f2a4f; padding-bottom: 4px; }
+  h3 { font-size: 12.5pt; margin: 22px 0 8px 0; color: #2d4a73; }
+  h4 { font-size: 11pt; margin: 16px 0 6px 0; color: #2d4a73; }
+  p { margin: 8px 0; }
+  ul, ol { margin: 6px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9.5pt; }
+  th { background: #0f2a4f; color: #fff; text-align: left; padding: 8px 10px; font-weight: 600; }
+  td { border-bottom: 1px solid #dbe2ec; padding: 7px 10px; vertical-align: top; }
+  tr:nth-child(even) td { background: #f2f4f9; }
+  code { font-family: "SF Mono", Menlo, monospace; font-size: 9pt; background: #eef1f7; padding: 1px 5px; border-radius: 2px; }
+  .callout { background: #eaf2fb; border-left: 4px solid #2563a8; padding: 12px 16px; margin: 14px 0; font-style: italic; }
+  .decided { background: #e7f3ec; border-left: 4px solid #2f855a; padding: 12px 16px; margin: 14px 0; }
+  .open { background: #fff4e5; border-left: 4px solid #d97706; padding: 12px 16px; margin: 14px 0; }
+  .warn { background: #fde4e4; border-left: 4px solid #b00020; padding: 12px 16px; margin: 14px 0; }
+  .pill { display: inline-block; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 8.5pt; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+  .pill-green { background: #d7efe5; color: #065f46; }
+  .pill-amber { background: #fef0d4; color: #b45309; }
+  .pill-red   { background: #fde4e4; color: #b00020; }
+  .pill-blue  { background: #e0ecf8; color: #1a4a86; }
+  .pill-gray  { background: #e5e9f0; color: #3b4657; }
+  .toc { background: #fff; border: 1px solid #dbe2ec; padding: 14px 20px; margin: 16px 0 28px 0; border-radius: 3px; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 10pt; }
+  .toc ol { margin: 6px 0; padding-left: 20px; }
+  .toc li { margin: 2px 0; }
+  .toc a { color: #2d4a73; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* Pack-chain visual */
+  .pack-chain { display: flex; align-items: stretch; gap: 0; margin: 14px 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 10pt; }
+  .pack-box { flex: 1; background: #fff; border: 2px solid #0f2a4f; padding: 10px 8px; text-align: center; position: relative; }
+  .pack-box .lbl { display: block; font-weight: 700; color: #0f2a4f; font-size: 13pt; letter-spacing: 0.5px; }
+  .pack-box .stage { display: block; font-size: 9pt; color: #5a6b80; margin-top: 3px; }
+  .pack-arrow { flex: 0 0 22px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #0f2a4f; font-weight: 700; }
+
+  /* Flow schema */
+  .flow-section { margin: 20px 0; padding: 14px 18px; background: #fff; border: 1px solid #dbe2ec; border-left: 5px solid #0f2a4f; border-radius: 3px; }
+  .flow-section h3 { margin-top: 0; color: #0f2a4f; }
+  .flow-step { display: grid; grid-template-columns: 240px 20px 1fr; align-items: start; gap: 10px; margin: 8px 0; }
+  .flow-obj { background: #f2f4f9; border: 1px solid #c8d1df; padding: 8px 10px; border-radius: 3px; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9pt; line-height: 1.35; }
+  .flow-obj .obj-type { display: block; font-size: 8pt; color: #5a6b80; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+  .flow-obj .obj-name { font-weight: 600; color: #0f2a4f; }
+  .flow-obj code { background: #fff; border: 1px solid #dbe2ec; }
+  .flow-arr { text-align: center; color: #2563a8; font-weight: 700; font-size: 16pt; padding-top: 4px; }
+  .flow-gate { background: #fff4e5; border-left: 3px solid #d97706; padding: 8px 12px; border-radius: 2px; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9.5pt; }
+  .flow-gate .gate-tag { display: inline-block; background: #d97706; color: #fff; font-size: 8pt; font-weight: 700; padding: 2px 8px; border-radius: 3px; letter-spacing: 0.5px; margin-right: 6px; }
+  .flow-gate.hard .gate-tag { background: #b00020; }
+  .flow-gate.hard { background: #fde4e4; border-left-color: #b00020; }
+  .flow-gate.soft { background: #eaf2fb; border-left-color: #2563a8; }
+  .flow-gate.soft .gate-tag { background: #2563a8; }
+  .flow-branch { margin-left: 20px; padding-left: 14px; border-left: 2px dashed #c8d1df; }
+
+  /* Chemical loop visual */
+  .loop-diagram { background: #0f2a4f; color: #fff; font-family: "SF Mono", Menlo, monospace; font-size: 10pt; padding: 18px 20px; border-radius: 4px; margin: 14px 0; overflow-x: auto; }
+  .loop-diagram .node { color: #ffd17c; font-weight: 700; }
+  .loop-diagram .pass { color: #8fe6b5; }
+  .loop-diagram .fail { color: #ff9f9f; }
+  .loop-diagram .arr { color: #9dc6ff; }
+
+  .footer { margin-top: 50px; padding-top: 14px; border-top: 1px solid #c8d1df; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9pt; color: #7a8698; }
+  @media print { body { background: #fff; padding: 0; } .flow-section, .callout, .decided, .open, .warn { break-inside: avoid; } table { break-inside: avoid; } }
+</style>
+</head>
+<body>
+
+<h1>Quality Gates</h1>
+<div class="subtitle">Blueprint — 8 gates, reception to expedition · April 2026 workshop</div>
+<div class="meta">
+  Version 1.1.1 · 2026-04-23 · Olivier Eberhard / VVF Consulting · Post-workshop requirements capture — <em>not</em> a user guide · For QA Manager, Plant Manager, CEO, IT
+</div>
+
+<div class="toc">
+  <strong>Contents</strong>
+  <ol>
+    <li><a href="#principle">Design principle — stick to Odoo standard</a></li>
+    <li><a href="#chain">Pack numbering chain</a></li>
+    <li><a href="#flow">Flow schema — reception to expedition</a></li>
+    <li><a href="#gates">Gate catalogue</a></li>
+    <li><a href="#support">Supporting models — reasons, quarantine, escalation</a></li>
+    <li><a href="#chem">Chemical correction loop (Gate 6)</a></li>
+    <li><a href="#pm">Project management bridge</a></li>
+    <li><a href="#claims">Claims workflow (Gate 8)</a></li>
+    <li><a href="#reporting">Reporting &amp; dashboards</a></li>
+    <li><a href="#supplier">Supplier quality performance</a></li>
+    <li><a href="#phases">Implementation phases</a></li>
+    <li><a href="#decisions">Decisions made / open questions</a></li>
+  </ol>
+</div>
+
+<h2 id="principle">1. Design principle — stick to Odoo standard</h2>
+
+<p>Quality gates are <strong>control points on existing Odoo objects</strong> (receipts, pickings, manufacturing orders, deliveries, tickets) — not a parallel shadow system. Every gate:</p>
+<ul>
+  <li>Hooks into a native Odoo record via a <strong>Quality Control Point</strong></li>
+  <li>Produces a <strong>Quality Check</strong> at the right moment in the flow</li>
+  <li>Can escalate to a <strong>Quality Alert</strong> (nonconformance) with project-management follow-up</li>
+  <li>Writes evidence (measurements, documents, photos) against the underlying object — not a side database</li>
+</ul>
+
+<div class="decided">
+  <strong>Minimal custom code.</strong> Native Odoo stages, kanbans, escalation. Custom is limited to: shared reason catalogue, Quality-Alert → Project bridge, chemical correction loop, and the €5k claim co-sign rule. Everything else is out of the box.
+</div>
+
+<h2 id="chain">2. Pack numbering chain</h2>
+
+<p>All operational labels follow this chain. Any earlier document using different naming is superseded. Canonical source: <em>Terminology Bible</em> §5.</p>
+
+<div class="pack-chain">
+  <div class="pack-box"><span class="lbl">White wood</span><span class="stage">Supplier plate<br>(no internal label)</span></div>
+  <div class="pack-arrow">▶</div>
+  <div class="pack-box"><span class="lbl">SA-xxxxx</span><span class="stage">Stacking Antwerp<br>(post-stacking)</span></div>
+  <div class="pack-arrow">▶</div>
+  <div class="pack-box"><span class="lbl">AA-xxxxx</span><span class="stage">Autoclave Antwerp<br>(same pack, 1:1)</span></div>
+  <div class="pack-arrow">▶</div>
+  <div class="pack-box"><span class="lbl">DA-xxxxx</span><span class="stage">Dryer Antwerp<br>(same pack, 1:1)</span></div>
+  <div class="pack-arrow">▶</div>
+  <div class="pack-box"><span class="lbl">FA-xxxxx</span><span class="stage">Finished pack<br>(FG lot, split per SKU)</span></div>
+</div>
+
+<p class="callout"><strong>Process Pack model.</strong> SA / AA / DA are stages of the <em>same</em> <code>kebony.process.pack</code> record — one stable <code>pack_number</code>, only the stage letter changes. Display name = <code>{stage}-{pack_number}</code>. The pack number is the same from SA through DA. FA leaves the Process Pack model — it is a <code>stock.lot</code> on the finished good (1 DA → N FA split per SKU at destacking).</p>
+
+<p class="callout"><strong>Container-level grouping (not pack-level merge).</strong> The "2-to-1" at the dryer is a grouping on <code>kebony.dryer.load</code>: 2 autoclave loads (<code>kebony.autoclave.batch</code>) are routed to 1 dryer run. Individual packs never merge — they carry <code>autoclave_batch_id</code> + <code>dryer_load_id</code> foreign keys to the containers they flowed through.</p>
+
+<table>
+  <tr><th>Level</th><th>Model</th><th>Scale</th><th>Own number?</th></tr>
+  <tr><td>Individual pack</td><td><code>kebony.process.pack</code></td><td>1 pile, stable from SA → DA</td><td>Yes — <code>pack_number</code> (e.g. 9999)</td></tr>
+  <tr><td>Autoclave load</td><td><code>kebony.autoclave.batch</code></td><td>N packs (SA → AA together)</td><td>Yes — its own sequence</td></tr>
+  <tr><td>Dryer run</td><td><code>kebony.dryer.load</code></td><td>~2 autoclave batches (~2N packs; AA → DA)</td><td>Yes — its own sequence</td></tr>
+</table>
+
+<p class="callout"><strong>Event log.</strong> Every stage transition (stacked, autoclave_in/out, dryer_in/out, destacked) is one row in <code>kebony.process.pack.event</code> — timestamp, operator, equipment (autoclave #, dryer #). Enables residence-time, equipment-utilisation, and full audit trail.</p>
+
+<p class="callout"><strong>White wood is not a Process Pack.</strong> It stays on the supplier's own license plate. There is no "RA" internal label. <strong>"Charge"</strong> is retained as the industry term for an autoclave load — interchangeable with AA in conversation.</p>
+
+<p style="font-size: 9.5pt; color: #5a6b80;">Note: <strong>FA</strong> as a stage label is distinct from the product code Furfuryl Alcohol (<code>CHEM-FA</code>) — different domain, no model collision.</p>
+
+<h3>Planning direction — backward from FA</h3>
+<p>Planning runs <strong>backward from the finished pack</strong>, using scrap yield:</p>
+<ol>
+  <li>Start with FG demand (boards per SKU)</li>
+  <li>Compute target SA board count: <code>SA = ceil(FA × scrap_yield_factor)</code> — always rounded <strong>up</strong></li>
+  <li>Planner requests white-wood plates closest to but ≥ the target</li>
+  <li><strong>Stacking machine stops at the exact board count</strong>; excess boards return to the raw-material warehouse</li>
+</ol>
+<p>SA is therefore always equal to or higher than the strict yield-derived minimum — the physical constraint is supplier plate granularity.</p>
+
+<h2 id="flow">3. Flow schema — reception to expedition</h2>
+
+<p>Every gate is pinned to a specific Odoo object. Colour key: <span class="pill pill-amber">standard QC gate</span> <span class="pill pill-red">hard block</span> <span class="pill pill-blue">certification hard block (CoC)</span></p>
+
+<!-- CHEMICAL SUPPLY CHAIN -->
+<div class="flow-section">
+  <h3>Chemical supply chain</h3>
+
+  <div class="flow-step">
+    <div class="flow-obj">
+      <span class="obj-type">External</span>
+      <span class="obj-name">Vendor</span><br>FA · MA · CA · NaC
+    </div>
+    <div class="flow-arr">▶</div>
+    <div class="flow-obj">
+      <span class="obj-type">Odoo</span>
+      <span class="obj-name"><code>stock.picking</code> — incoming</span><br>
+      filtered by product category = Chemical
+    </div>
+  </div>
+
+  <div class="flow-step">
+    <div></div>
+    <div class="flow-arr">▼</div>
+    <div class="flow-gate">
+      <span class="gate-tag">GATE 1</span><strong>Chemical Reception</strong>
+      <br>QCP on receipt · COA mandatory · lab measurement · block until released
+    </div>
+  </div>
+
+  <div class="flow-step">
+    <div class="flow-obj">
+      <span class="obj-type">Odoo</span>
+      <span class="obj-name">Inventory</span><br>Chemical tanks (per lot, per supplier COA)
+    </div>
+    <div class="flow-arr">▶</div>
+    <div class="flow-obj">
+      <span class="obj-type">Odoo</span>
+      <span class="obj-name"><code>mrp.production</code></span><br>Kebony Chemical Mix (Ready-Mix)
+    </div>
+  </div>
+
+  <div class="flow-step">
+    <div></div>
+    <div class="flow-arr">▼</div>
+    <div class="flow-gate">
+      <span class="gate-tag">GATE 6</span><strong>In-house Chemical Batch Quality</strong>
+      <br>QCP on Ready-Mix MO · lab measurement · correction loop if fail · autoclave blocked until fixed · Production + Lab joint sign-off
+    </div>
+  </div>
+
+  <p style="font-size: 9.5pt; color: #5a6b80; margin-top: 6px;">Output: Kebony Chemical Mix tank — consumed by autoclave MOs downstream.</p>
+</div>
+
+<!-- WHITE WOOD -->
+<div class="flow-section">
+  <h3>White wood supply chain</h3>
+
+  <div class="flow-step">
+    <div class="flow-obj">
+      <span class="obj-type">External</span>
+      <span class="obj-name">Vendor</span><br>NZ · EU · other origins
+    </div>
+    <div class="flow-arr">▶</div>
+    <div class="flow-obj">
+      <span class="obj-type">Odoo</span>
+      <span class="obj-name"><code>stock.picking</code> — receipt at TBK</span><br>
+      location = Tabaknatie
+    </div>
+  </div>
+
+  <div class="flow-step">
+    <div></div>
+    <div class="flow-arr">▼</div>
+    <div class="flow-gate">
+      <span class="gate-tag">GATE 2a</span><strong>Tabaknatie Reception</strong>
+      <br>QCP on receipt · FAVV biohazard inspection (non-EU) · aspect/damage check · claim to Purchasing on failure
+    </div>
+  </div>
+
+  <div class="flow-step">
+    <div class="flow-obj">
+      <span class="obj-type">Odoo</span>
+      <span class="obj-name"><code>stock.picking</code> — internal transfer</span><br>
+      TBK → Kallo (full packs, no sort)
+    </div>
+    <div class="flow-arr">▶</div>
+    <div class="flow-obj">
+      <span class="obj-type">Odoo</span>
+      <span class="obj-name"><code>stock.picking</code> — arrival at Kallo</span>
+    </div>
+  </div>
+
+  <div class="flow-step">
+    <div></div>
+    <div class="flow-arr">▼</div>
+    <div class="flow-gate">
+      <span class="gate-tag">GATE 2b</span><strong>Kallo Visual Inspection</strong>
+      <br>QCP on arrival · visual check · quarantine if NOK · lot split here (defects separated at Kallo, not TBK)
+    </div>
+  </div>
+
+  <p style="font-size: 9.5pt; color: #5a6b80; margin-top: 6px;">Output: white wood at Kallo, still on the supplier's license plate (no internal relabelling).</p>
+</div>
+
+<!-- PRODUCTION -->
+<div class="flow-section">
+  <h3>Production — stacking, autoclave, dryer, finished</h3>
+
+  <div class="flow-step">
+    <div class="flow-obj">
+      <span class="obj-type">Input</span>
+      <span class="obj-name">White wood (supplier plate)</span>
+    </div>
+    <div class="flow-arr">▶</div>
+    <div class="flow-obj">
+      <span class="obj-type">Odoo</span>
+      <span class="obj-name"><code>mrp.production</code> + <code>mrp.workorder</code></span><br>operation = stacking
+    </div>
+  </div>
+
+  <div class="flow-step">
+    <div></div>
+    <div class="flow-arr">▼</div>
+    <div class="flow-gate">
+      <span class="gate-tag">GATE 3</span><strong>Stacking QC #1</strong>
+      <br>MES feeds moisture + length · X/100 sampling · bad boards → waste sorted by species · SA always formed; flagged + quarantined if overall fails · stacking machine stops at exact board count, excess returned to RM warehouse
+    </div>
+  </div>
+
+  <div class="flow-step">
+    <div class="flow-obj">
+      <span class="obj-type">Output</span>
+      <span class="obj-name">SA-xxxxx (Process Pack, stage=SA)</span>
+    </div>
+    <div class="flow-arr">▶</div>
+    <div class="flow-obj">
+      <span class="obj-type">Odoo</span>
+      <span class="obj-name"><code>mrp.production</code></span><br>Kebonisation (autoclave)<br>consumes Kebony Chemical Mix · 1 SA → 1 AA (same pack_number, state change)
+    </div>
+  </div>
+
+  <div class="flow-step">
+    <div></div>
+    <div class="flow-arr">▼</div>
+    <div class="flow-gate hard">
+      <span class="gate-tag">HARD BLOCK</span><strong>Certification mixing block (CoC §12)</strong>
+      <br>All consumed SAs must share scheme + claim · no override for Kebonisation or RDK MOs
+    </div>
+  </div>
+
+  <div class="flow-step">
+    <div class="flow-obj">
+      <span class="obj-type">Output</span>
+      <span class="obj-name">AA-xxxxx (same Process Pack, stage=AA)</span>
+    </div>
+    <div class="flow-arr">▶</div>
+    <div class="flow-obj">
+      <span class="obj-type">Odoo</span>
+      <span class="obj-name"><code>mrp.production</code></span><br>Dryer run — groups 2 autoclave loads (<code>kebony.dryer.load</code>) · packs keep their number, carry <code>dryer_load_id</code>
+    </div>
+  </div>
+
+  <div class="flow-step">
+    <div></div>
+    <div class="flow-arr">▼</div>
+    <div class="flow-gate">
+      <span class="gate-tag">GATE 4</span><strong>Stacking QC #2 (post-autoclave)</strong>
+      <br>Cracking, twisting, moisture · <em>asynchronous</em> lab check per autoclave load · released by default; blocked retroactively on lab fail · full autoclave-load quarantine · high-priority alert to Sales + ExCo if any already shipped (no auto-recall)
+    </div>
+  </div>
+
+  <p style="font-size: 9.5pt; color: #5a6b80; margin-top: 6px;">Output: DA-xxxxx (same Process Pack, stage=DA — pack_number unchanged) → destacked into FA-xxxxx <code>stock.lot</code>s on the FG product (1 DA → N FA split per SKU) → FG inventory.</p>
+</div>
+
+<!-- RDK -->
+<div class="flow-section">
+  <h3>RDK — subcontract manufacturing</h3>
+
+  <div class="flow-step">
+    <div class="flow-obj">
+      <span class="obj-type">Odoo</span>
+      <span class="obj-name"><code>purchase.order</code></span><br>one PO · multiple subcontract MOs
+    </div>
+    <div class="flow-arr">▶</div>
+    <div class="flow-obj">
+      <span class="obj-type">Odoo</span>
+      <span class="obj-name"><code>stock.picking</code> — inputs to subcontractor</span>
+    </div>
+  </div>
+
+  <div class="flow-step">
+    <div></div>
+    <div class="flow-arr">▼</div>
+    <div class="flow-gate hard">
+      <span class="gate-tag">HARD BLOCK</span><strong>Certification mixing block (CoC §12)</strong>
+      <br>Same as Kebonisation — inputs must share scheme + claim
+    </div>
+  </div>
+
+  <div class="flow-step">
+    <div class="flow-obj">
+      <span class="obj-type">External</span>
+      <span class="obj-name">Subcontractor</span><br>produces · declares claim per PO
+    </div>
+    <div class="flow-arr">▶</div>
+    <div class="flow-obj">
+      <span class="obj-type">Odoo</span>
+      <span class="obj-name"><code>stock.picking</code> — subcontract receipt</span>
+    </div>
+  </div>
+
+  <div class="flow-step">
+    <div></div>
+    <div class="flow-arr">▼</div>
+    <div class="flow-gate">
+      <span class="gate-tag">GATE 5</span><strong>RDK Quality</strong>
+      <br>QCP on subcontract receipt · <strong>one quality report per PO</strong> covering all MOs · three distinct products:
+      <span class="pill pill-green">A — prime</span>
+      <span class="pill pill-amber">B — short length (recut)</span>
+      <span class="pill pill-gray">C — waste</span>
+    </div>
+  </div>
+</div>
+
+<!-- EXPEDITION -->
+<div class="flow-section">
+  <h3>Expedition</h3>
+
+  <div class="flow-step">
+    <div class="flow-obj">
+      <span class="obj-type">Odoo</span>
+      <span class="obj-name">FG inventory</span>
+    </div>
+    <div class="flow-arr">▶</div>
+    <div class="flow-obj">
+      <span class="obj-type">Odoo</span>
+      <span class="obj-name"><code>stock.picking</code> — delivery</span>
+    </div>
+  </div>
+
+  <div class="flow-step">
+    <div></div>
+    <div class="flow-arr">▼</div>
+    <div class="flow-gate">
+      <span class="gate-tag">GATE 7</span><strong>Expedition</strong>
+      <br><strong>Mandatory photo per pack</strong> during loading (stored on picking) · spontaneous transfer/picking checks · damage report → auto-draft credit note
+    </div>
+  </div>
+</div>
+
+<!-- CLAIMS -->
+<div class="flow-section">
+  <h3>Post-delivery — claims</h3>
+
+  <div class="flow-step">
+    <div class="flow-obj">
+      <span class="obj-type">External</span>
+      <span class="obj-name">Customer / rep</span>
+    </div>
+    <div class="flow-arr">▶</div>
+    <div class="flow-obj">
+      <span class="obj-type">Channel</span>
+      <span class="obj-name">Customer portal · web form · email-to-ticket</span>
+    </div>
+  </div>
+
+  <div class="flow-step">
+    <div class="flow-obj">
+      <span class="obj-type">Odoo</span>
+      <span class="obj-name"><code>helpdesk.ticket</code></span><br>Customer Service
+    </div>
+    <div class="flow-arr">▼</div>
+    <div class="flow-gate soft">
+      <span class="gate-tag">GATE 8</span><strong>Claims workflow</strong>
+      <br>Reason → auto-assign to owner · watcher = Sales Manager · sign-off ≤€5k Sales alone / &gt;€5k + QA · Sales Manager communicates · auto-draft credit note if damage · spawn <code>project.project</code> if serious
+    </div>
+  </div>
+</div>
+
+<h2 id="gates">4. Gate catalogue</h2>
+
+<table>
+  <tr><th>#</th><th>Gate</th><th>Odoo anchor</th><th>Key checks</th><th>Fail path</th><th>Owner</th></tr>
+  <tr>
+    <td><strong>1</strong></td><td>Chemical Reception</td>
+    <td><code>stock.picking</code> incoming · categ = Chemical</td>
+    <td>COA attach + lab measurement</td>
+    <td>Block · quarantine · claim to supplier</td>
+    <td>Lab + QA</td>
+  </tr>
+  <tr>
+    <td><strong>2a</strong></td><td>TBK Reception</td>
+    <td><code>stock.picking</code> · location = TBK</td>
+    <td>FAVV biohazard (non-EU) · aspect / damage</td>
+    <td>Full pack still moves to Kallo · claim to Purchasing</td>
+    <td>Purchasing + TBK</td>
+  </tr>
+  <tr>
+    <td><strong>2b</strong></td><td>Kallo Visual</td>
+    <td><code>stock.picking</code> arrival Kallo</td>
+    <td>Visual inspection</td>
+    <td>Quarantine · lot split · defects separated at Kallo</td>
+    <td>Kallo QA</td>
+  </tr>
+  <tr>
+    <td><strong>3</strong></td><td>Stacking QC #1</td>
+    <td><code>mrp.production</code> · op = stacking</td>
+    <td>Moisture · length (MES) · X/100 sampling</td>
+    <td>Bad boards → waste (per species) · SA flagged if overall fails</td>
+    <td>Stacking ops + Kallo QA</td>
+  </tr>
+  <tr>
+    <td><strong>4</strong></td><td>Stacking QC #2 (post-autoclave)</td>
+    <td><code>mrp.production</code> · op = de-stacking</td>
+    <td>Cracking · twisting · moisture · async lab per charge</td>
+    <td>Released by default · blocked retroactively · full charge quarantine · high-priority alert</td>
+    <td>Lab + QA</td>
+  </tr>
+  <tr>
+    <td><strong>5</strong></td><td>RDK Quality</td>
+    <td><code>stock.picking</code> · subcontract receipt</td>
+    <td>One quality report per PO · A/B/C grading</td>
+    <td>A variance → claim · B → recut · C → waste</td>
+    <td>Procurement + QA</td>
+  </tr>
+  <tr>
+    <td><strong>6</strong></td><td>Chemical Batch</td>
+    <td><code>mrp.production</code> · Kebony Chemical Mix</td>
+    <td>Lab measurement of batch</td>
+    <td>Correction loop · autoclave blocked · joint sign-off</td>
+    <td>Production + Lab</td>
+  </tr>
+  <tr>
+    <td><strong>7</strong></td><td>Expedition</td>
+    <td><code>stock.picking</code> · delivery</td>
+    <td>Mandatory photo per pack · spontaneous checks</td>
+    <td>Damage report · auto-draft credit note</td>
+    <td>Logistics + Sales</td>
+  </tr>
+  <tr>
+    <td><strong>8</strong></td><td>External Claims</td>
+    <td><code>helpdesk.ticket</code></td>
+    <td>Reason + photo + docs</td>
+    <td>Sign-off per €5k threshold · credit note · optional Project spawn</td>
+    <td>Customer Service · Sales Manager · QA Manager</td>
+  </tr>
+</table>
+
+<h2 id="support">5. Supporting models</h2>
+
+<h3>5.1 Shared reason catalogue — <code>quality.reason</code></h3>
+<p>Controlled list maintained by QA, used on every check, alert and claim. Fields: <code>name</code>, <code>category</code> (Transport / Chemical / Wood / Process / Packaging / Logistics / Other), <code>gate_applicability</code> (many2many — some reasons are multi-gate like transport damage), <code>owner_user_id</code> (default routing on claims).</p>
+<p>Every check / alert / ticket carries <code>reason_id</code> (Many2one to <code>quality.reason</code>) + <code>note</code> (Text free-text).</p>
+
+<h3>5.2 Quarantine locations</h3>
+<table>
+  <tr><th>Site</th><th>Location</th></tr>
+  <tr><td>Tabaknatie</td><td><code>WH/TBK/QUARANTINE</code></td></tr>
+  <tr><td>Kallo</td><td><code>WH/KALLO/QUARANTINE</code> (+ sub-locations per wood species for waste sorting)</td></tr>
+  <tr><td>US (INC)</td><td><code>WH/INC/QUARANTINE</code></td></tr>
+  <tr><td>RDK subcontract receipts</td><td><code>WH/KALLO/QUARANTINE/RDK</code></td></tr>
+</table>
+
+<h3>5.3 Quarantine release</h3>
+<table>
+  <tr><th>Path</th><th>Trigger</th><th>Sign-off</th></tr>
+  <tr><td>Direct to defect / waste</td><td>Common case — failed QC pack / board never shipped</td><td>Operator — no sign-off</td></tr>
+  <tr><td>Heavy inspection + release</td><td>Lab-triggered full-charge quarantine (Gate 4)</td><td><strong>QA Manager</strong> — required</td></tr>
+</table>
+
+<h3>5.4 Escalation on Quality Alert</h3>
+<p>Standard <code>quality.alert</code> stages, QA configures:</p>
+<p><code>New → In Progress → Containment → Root Cause → CAPA → Closed</code>, with an optional <strong>Escalated</strong> stage (auto-assign to QA Manager) triggered after repeated re-test failures. No numeric counter in code — stage-driven.</p>
+
+<h2 id="chem">6. Chemical correction loop (Gate 6)</h2>
+
+<div class="loop-diagram"><pre>
+  <span class="node">Ready-Mix MO starts</span>
+        <span class="arr">│</span>
+        <span class="arr">▼</span>
+  <span class="node">Batch produced</span>
+        <span class="arr">│</span>
+        <span class="arr">▼</span>
+  <span class="node">Lab measurement</span>   <span class="arr">◄──┐</span>
+        <span class="arr">│</span>              <span class="arr">│</span>
+        <span class="pass">In spec?</span>        <span class="arr">│</span>
+        <span class="arr">│</span>              <span class="arr">│</span>
+  <span class="pass">Yes ► Release · sign-off Prod + Lab · MO done</span>
+        <span class="arr">│</span>              <span class="arr">│</span>
+  <span class="fail">No  ► Adjust composition (add / dilute)</span>
+                          <span class="arr">│</span>
+                          <span class="arr">└──────┘</span>  loop
+</pre></div>
+
+<p><strong>Consumption accounting</strong> — lump-sum at batch close. A single consumption event records total material consumed (initial + all corrections). FIFO cost of the final mix reflects everything consumed. No per-correction JE overhead.</p>
+
+<p><strong>Autoclave block</strong> — while a Ready-Mix batch has an open alert, autoclave MOs requesting that tank are blocked (Python constraint on <code>action_confirm</code>).</p>
+
+<p><strong>Escalation</strong> — no numeric hard limit. After ~2–3 failed re-tests, alert moves to <em>Escalated</em> stage (auto-assigned to QA Manager) who decides: continue, scrap tank (exceptional), or rework with different recipe.</p>
+
+<h2 id="pm">7. Project management bridge</h2>
+
+<p>Standard Odoo <strong>Project</strong> app — no parallel PM.</p>
+
+<ul>
+  <li><code>project.project</code> + <code>project.task</code> with standard stages (To Do / In Progress / Done / Cancelled — QA configures)</li>
+  <li>Native Kanban, Gantt, deadlines, sub-tasks, followers, activities, mentions</li>
+  <li>Dashboards filtered per role</li>
+</ul>
+
+<p><strong>Native bridges:</strong></p>
+<ul>
+  <li><code>helpdesk.ticket → project.project</code> — already native (Enterprise)</li>
+</ul>
+
+<p><strong>Custom bridge needed (small):</strong></p>
+<ul>
+  <li><code>quality.alert → project.project</code> — one Many2one field on the alert + a "Create Project" button</li>
+  <li>Button spawns a project pre-filled with alert context and 3–5 template sub-tasks (Investigate / Contain / CAPA / Verify / Close)</li>
+</ul>
+
+<p><strong>Primary consumers:</strong> QA Manager (all quality + HSE tasks), Plant Manager (ops-tagged filter), ExCo (pre-filtered card in existing ExCo deck).</p>
+
+<h2 id="claims">8. Claims workflow (Gate 8) — detail</h2>
+
+<h3>8.1 Entry channels</h3>
+<table>
+  <tr><th>Channel</th><th>Use</th><th>Odoo component</th></tr>
+  <tr><td>Customer portal</td><td>Known account-holders (primary — no user licence)</td><td><code>helpdesk.ticket</code> via portal</td></tr>
+  <tr><td>Public web form</td><td>Walk-ins / unknown parties</td><td><code>website_helpdesk_form</code></td></tr>
+  <tr><td>Email-to-ticket</td><td>Fallback</td><td><code>helpdesk.alias</code></td></tr>
+</table>
+
+<p>All three land in Helpdesk as tickets assigned to Customer Service.</p>
+
+<h3>8.2 Ticket routing</h3>
+<ol>
+  <li>Set <code>reason_id</code> (controlled list §5.1)</li>
+  <li>Auto-assign to <code>reason.owner_user_id</code></li>
+  <li>Auto-add watcher: Sales Manager</li>
+  <li>Classification: damage? cert? dimensional?</li>
+  <li>Sign-off determination based on credit amount:
+    <ul>
+      <li>≤ €5 000 → Sales Manager alone</li>
+      <li>&gt; €5 000 → Sales Manager + QA Manager co-sign</li>
+    </ul>
+  </li>
+  <li>Sales Manager communicates outcome to customer</li>
+  <li>If damage → auto-draft credit note → validated per sign-off rule</li>
+</ol>
+
+<h3>8.3 Reason → Owner mapping</h3>
+<p>Does not exist today. Build with new QA Manager at project kick-off.</p>
+
+<h2 id="reporting">9. Reporting &amp; dashboards</h2>
+
+<p>Reporting is a first-class requirement, not a Phase-4 afterthought. Two levels: live operational dashboards, and periodic reports.</p>
+
+<h3>9.1 Operational dashboards (live, per role)</h3>
+<p>Native Odoo views (Kanban / List / Graph / Pivot) filtered per user — no custom code.</p>
+
+<table>
+  <tr><th>Dashboard</th><th>Audience</th><th>Source</th><th>Key measures</th></tr>
+  <tr><td>Open quality alerts</td><td>QA Manager · Plant Manager</td><td><code>quality.alert</code></td><td>By stage, reason category, age, owner</td></tr>
+  <tr><td>Open claims</td><td>Sales Manager · Customer Service · QA</td><td><code>helpdesk.ticket</code> (claim type)</td><td>By reason, customer, value, age</td></tr>
+  <tr><td>Quality project board</td><td>QA Manager · ExCo</td><td><code>project.task</code> filtered by Quality project</td><td>Kanban by stage; overdue flagged</td></tr>
+  <tr><td>Quarantine inventory</td><td>QA · Plant Manager · Finance</td><td><code>stock.quant</code> on quarantine locations</td><td>Qty + value per site, species, reason</td></tr>
+  <tr><td>Gate pass rate (live)</td><td>Plant Manager</td><td><code>quality.check</code></td><td>Pass / fail % per gate per shift</td></tr>
+</table>
+
+<h3>9.2 Periodic reports (monthly / quarterly)</h3>
+<p>Produced via scheduled cron; delivered as PDF and/or pushed into the Odoo Spreadsheet module (same surface as the finance dashboards).</p>
+
+<table>
+  <tr><th>Report</th><th>Frequency</th><th>Audience</th><th>Content</th></tr>
+  <tr><td>Gate performance</td><td>Monthly</td><td>QA + ExCo</td><td>Pass rate per gate · 12-month trend · top 5 reasons</td></tr>
+  <tr><td>Waste report</td><td>Monthly</td><td>Plant Manager · Finance</td><td>Waste volume + value per species, per source gate</td></tr>
+  <tr><td>Credit-note volume</td><td>Monthly</td><td>Finance · Sales Manager</td><td>Count + € by reason, customer segment, trend</td></tr>
+  <tr><td>Supplier quality performance</td><td>Monthly (+ on demand)</td><td>Procurement · QA</td><td>See §10</td></tr>
+  <tr><td>Quality KPI pack</td><td>Quarterly</td><td>ExCo · CEO</td><td>Pass rate · claim cost · DPPM · CAPA SLA · top-10 supplier scorecard</td></tr>
+</table>
+
+<h3>9.3 Dashboard in Odoo Spreadsheet</h3>
+<p>The quarterly KPI pack lives in <strong>Odoo Spreadsheet</strong> next to the existing finance dashboards (analytical accounting, accruals, margin). Single pivot surface — no external BI at this stage.</p>
+
+<h3>9.4 Alerting</h3>
+<ul>
+  <li>Every failed QCP → Odoo activity on the owner (native)</li>
+  <li>Quality alert in "Escalated" stage → email to QA Manager + project task</li>
+  <li>Supplier tolerance breach (§10) → auto-create helpdesk ticket (type = Supplier Claim), routed to Procurement Manager</li>
+  <li>Gate 4 retroactive full-charge quarantine with already-shipped product → high-priority email to Sales Manager + ExCo (no auto-recall)</li>
+</ul>
+
+<h2 id="supplier">10. Supplier quality performance &amp; contract tolerance</h2>
+
+<p>Recurring measurement of each supplier's delivered quality against their contractual tolerance, with automatic claim generation on breach. Turns per-delivery quality data into an actionable supplier-management cycle.</p>
+
+<h3>10.1 Model — <code>supplier.quality.tolerance</code></h3>
+<p>Per supplier, per product (or category), per metric.</p>
+
+<table>
+  <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+  <tr><td><code>partner_id</code></td><td>Many2one <code>res.partner</code></td><td>Supplier</td></tr>
+  <tr><td><code>product_id</code> / <code>product_category_id</code></td><td>Many2one</td><td>Scope: specific product or whole category</td></tr>
+  <tr><td><code>metric</code></td><td>Selection</td><td>Moisture out-of-spec % · Dimensional defect % · Cert-match failure % · On-time delivery % · Other</td></tr>
+  <tr><td><code>tolerance_value</code></td><td>Float</td><td>Contractual threshold (e.g. 2% max moisture deviation)</td></tr>
+  <tr><td><code>unit</code></td><td>Selection</td><td>percent / count / days / m³</td></tr>
+  <tr><td><code>period</code></td><td>Selection</td><td>monthly / quarterly</td></tr>
+  <tr><td><code>contract_reference</code></td><td>Char</td><td>PO terms / master contract ref</td></tr>
+  <tr><td><code>valid_from / valid_to</code></td><td>Date</td><td>Effective dates</td></tr>
+  <tr><td><code>claim_template_id</code></td><td>Many2one <code>helpdesk.ticket.template</code></td><td>Template used if breach triggers auto-claim</td></tr>
+</table>
+
+<h3>10.2 Monthly computation (cron)</h3>
+<ol>
+  <li>Aggregate quality checks / alerts / receipts over the period per supplier × metric</li>
+  <li>Compute actual value (e.g. % of lots failing moisture check)</li>
+  <li>Compare to <code>tolerance_value</code></li>
+  <li>Write a <code>supplier.quality.performance</code> record with period, actual, tolerance, variance, breach flag</li>
+  <li>If breach → auto-create a <strong>Supplier Claim</strong> ticket routed to Procurement Manager, pre-filled with: supplier + metric + period · actual vs tolerance · failing lots / PO lines · suggested claim amount (affected lot value × breach %)</li>
+</ol>
+
+<h3>10.3 Supplier performance report</h3>
+<p>Monthly PDF + live dashboard. Per supplier:</p>
+<ul>
+  <li>Volume received (m³, €)</li>
+  <li>Gate failures (count, %, €)</li>
+  <li>Breakdown per reason</li>
+  <li>Actual vs tolerance per metric — colour-coded <span class="pill pill-green">green</span> <span class="pill pill-amber">amber</span> <span class="pill pill-red">red</span></li>
+  <li>12-month trend</li>
+  <li>Active + closed claims</li>
+  <li>Suggested action (warn / formal claim / supplier review)</li>
+</ul>
+
+<h3>10.4 Link to existing architecture</h3>
+<table>
+  <tr><th>Element</th><th>Source</th></tr>
+  <tr><td>Supplier identity + certificate history</td><td><code>partner.certificate</code> (Chain of Custody §5)</td></tr>
+  <tr><td>Failing lots</td><td><code>stock.lot</code> + <code>quality.check</code> / <code>quality.alert</code></td></tr>
+  <tr><td>Contract tolerance</td><td><code>supplier.quality.tolerance</code> (new)</td></tr>
+  <tr><td>Claim generated</td><td><code>helpdesk.ticket</code> (type = Supplier Claim) — same engine as Gate 8 customer claims, routed to Procurement</td></tr>
+</table>
+
+<h3>10.5 Sign-off</h3>
+<ul>
+  <li>Monthly report reviewed by <strong>Procurement Manager</strong></li>
+  <li>Formal claim approved by Procurement Manager before sending to supplier</li>
+  <li>Material breaches (&gt; €X threshold — TBD) escalated to COO + Finance</li>
+  <li>Supplier performance scorecard summarised in the quarterly KPI pack (§9.2)</li>
+</ul>
+
+<h2 id="phases">11. Implementation phases</h2>
+
+<table>
+  <tr><th>Phase</th><th>Scope</th></tr>
+  <tr><td><strong>MVP (Phase 1)</strong></td><td>Install Odoo Quality modules · QCPs for Gates 1, 2a, 2b, 7 (config only) · seed <code>quality.reason</code> · quarantine locations · mandatory loading photo · customer portal + email-to-ticket · reason→owner mapping · €5k sign-off logic · auto credit note</td></tr>
+  <tr><td><strong>Phase 2</strong></td><td>QCPs for Gates 3 and 4 · MES integration · Gate 4 async block-by-exception · Gate 5 (RDK) one-report-per-PO · A/B/C grade products</td></tr>
+  <tr><td><strong>Phase 3</strong></td><td>Gate 6 chemical correction loop (custom workflow) · autoclave block · Quality-Alert → Project bridge · species-sorted defect sub-locations · ExCo card · Quality KPI dashboard · IoT opportunistic</td></tr>
+  <tr><td><strong>Phase 4</strong></td><td>Packaging quality gate · self-service credit note approval for small amounts · expiry dashboards (FSC / PEFC / ICC-ES) · HR Learning for training records</td></tr>
+</table>
+
+<h2 id="decisions">12. Decisions made / open questions</h2>
+
+<div class="decided">
+<strong>✅ Decided (April 2026 workshop)</strong>
+<ul>
+  <li>Stick to Odoo standard — minimal custom code</li>
+  <li>Shared <code>quality.reason</code> catalogue maintained by QA — controlled list + free text</li>
+  <li>One quarantine location per site; pack-label chain (white wood → SA → AA → DA → FA) carries identity</li>
+  <li>Default quarantine → defect; QA Manager sign-off required only on lab-triggered full-charge quarantine</li>
+  <li>Gate 3: SA always formed with good boards; bad boards → waste sorted per species</li>
+  <li>Gate 4: async block-by-exception; no auto-recall on shipped product, high-priority alert to Sales + ExCo</li>
+  <li>Gate 5 RDK: one quality report per PO; A / B / C grades as three distinct products</li>
+  <li>Gate 6 chemical: lump-sum consumption at close; Production + Lab joint sign-off; autoclave blocked until fixed</li>
+  <li>Gate 7: mandatory photo per pack; auto-draft credit note</li>
+  <li>Gate 8: customer portal + web form + email-to-ticket → Helpdesk; €5k co-sign threshold</li>
+  <li>Project: standard Odoo Project, standard stages; Alert → Project bridge as the only custom piece</li>
+  <li>Reason → owner mapping: build with QA Manager as project deliverable</li>
+</ul>
+</div>
+
+<div class="open">
+<strong>⚠ Open</strong>
+<ul>
+  <li><strong>Furchem</strong> — supplier? lab? test method? And is Gate 1 lab measurement one test per delivery, or per chemical received?</li>
+  <li><strong>MES error-code list</strong> — Word doc to come. Drives how much Gate 3 defect reason is coded vs free-text</li>
+  <li><strong>Gate 6 escalation threshold</strong> — ~2–3 failed re-tests suggested; confirm with QA Manager at kick-off</li>
+  <li><strong>Gate 3 sampling norm X/100</strong> — define exact X with QA Manager</li>
+  <li><strong>Gate 5 RDK legal claim mechanism</strong> on A-grade variance — shape with Procurement / Legal</li>
+  <li><strong>HSE scope</strong> — Quality Alert category carries HSE as a value; confirm ownership of HSE alerts (likely same QA Manager at this stage)</li>
+  <li><strong>Supplier tolerance matrix</strong> — exact metrics and thresholds per supplier / category · to be populated jointly with Procurement + QA Manager from existing contracts</li>
+  <li><strong>Material breach escalation threshold</strong> (§10.5) — amount above which a supplier claim escalates to COO + Finance</li>
+</ul>
+</div>
+
+<div class="footer">
+  Requirements / blueprint document — canonical source in the vault at <code>02 - General Topics / Quality Gates Architecture.md</code>. A derived user guide (for day-to-day operators) will be produced once the blueprint is signed off.
+  <br>
+  Olivier Eberhard · VVF Consulting · 2026-04-23
+</div>
+
+<!--
+  CHANGELOG
+  v1.0 · 2026-04-22 · Initial post-workshop capture — 8-gate catalogue, pack chain, quarantine + escalation, chemical loop, claims, reporting, supplier tolerance
+  v1.1 · 2026-04-23 · Pack chain terminology aligned with Terminology Bible:
+                      - RA removed (white wood stays on supplier license plate, no internal label)
+                      - PA renamed AA (Autoclave Antwerp)
+                      - SA / AA clarified as stages of the same Process Pack record (1:1 state change, shared pack_number)
+                      - FA is a stock.lot on FG (leaves kebony.process.pack model)
+                      - Added display-name convention {stage}-{pack_number}
+                      - Added stage event log spec (kebony.process.pack.event)
+                      - Added backward-from-FA planning rule with stacking-machine exact-count + RM-warehouse return
+  v1.1.1 · 2026-04-23 · Correction — no pack-level merge at the dryer:
+                      - SA / AA / DA are the same pack with a stable pack_number — only the stage letter changes
+                      - The 2-to-1 step at the dryer is a container-level grouping: 2 kebony.autoclave.batch per 1 kebony.dryer.load
+                      - Packs never merge; they carry autoclave_batch_id + dryer_load_id foreign keys
+                      - Added three-level model table (pack / autoclave load / dryer run) with scale + own-number columns
+-->
+
+</body>
+</html>

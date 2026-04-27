@@ -1,0 +1,2241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0">
+<title>Product Master Data — Strategic Architecture &amp; Governance Reference</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    body { background: none; padding: 0; gap: 0; }
+    .slide { box-shadow: none; border-radius: 0; margin: 0;
+             page-break-inside: avoid; page-break-after: always; }
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    gap: 30px;
+  }
+
+  .slide {
+    width: 1280px;
+    min-height: 720px;
+    max-height: 720px;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    padding: 38px 50px 36px;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+  }
+
+  .slide::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
+
+  /* ── Title slide ── */
+  .slide.title-slide {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .slide.title-slide::before {
+    height: 8px;
+  }
+  .slide.title-slide h1 {
+    font-size: 36px;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .slide.title-slide .subtitle {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 32px;
+  }
+  .slide.title-slide .meta {
+    font-size: 12px;
+    color: #999;
+    line-height: 1.8;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+  }
+
+  h2 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0f3460;
+    margin-bottom: 10px;
+    margin-top: 14px;
+  }
+
+  h3 {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 16px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #0f3460;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid #0f3460;
+    display: inline-block;
+  }
+
+  .section-label.red { color: #c62828; border-color: #c62828; }
+  .section-label.green { color: #2e7d32; border-color: #2e7d32; }
+  .section-label.orange { color: #e65100; border-color: #e65100; }
+  .section-label.purple { color: #6a1b9a; border-color: #6a1b9a; }
+
+  /* ── Flow diagrams ── */
+  .flow-diagram {
+    background: #fafbfc;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 8px 0;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 10.5px;
+    line-height: 1.55;
+    color: #333;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .flow-diagram .label { color: #0f3460; font-weight: 700; }
+  .flow-diagram .highlight { color: #c62828; font-weight: 600; }
+  .flow-diagram .green { color: #2e7d32; font-weight: 600; }
+  .flow-diagram .arrow { color: #999; }
+  .flow-diagram .dim { color: #aaa; }
+  .flow-diagram .blue { color: #0f3460; font-weight: 600; }
+  .flow-diagram .orange { color: #e65100; font-weight: 600; }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    margin: 6px 0;
+  }
+
+  th {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #888;
+    text-align: left;
+    padding: 4px 6px 5px;
+    border-bottom: 2px solid #ddd;
+  }
+
+  td {
+    padding: 4px 6px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #333;
+    vertical-align: top;
+  }
+
+  tr.total-row td {
+    font-weight: 700;
+    border-top: 2px solid #1a1a2e;
+    color: #1a1a2e;
+  }
+
+  .muted { color: #bbb; }
+
+  /* ── Columns ── */
+  .cols-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .cols-2.wide-left {
+    grid-template-columns: 1.15fr 0.85fr;
+  }
+
+  .cols-2.wide-right {
+    grid-template-columns: 0.85fr 1.15fr;
+  }
+
+  .cols-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .cols-4 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 12px;
+    align-items: start;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: #fafbfc;
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+    padding: 12px 14px;
+  }
+
+  .card.blue { border-left: 3px solid #0f3460; }
+  .card.red { border-left: 3px solid #c62828; }
+  .card.green { border-left: 3px solid #2e7d32; }
+  .card.orange { border-left: 3px solid #e65100; }
+  .card.purple { border-left: 3px solid #6a1b9a; }
+
+  .card h3 { margin-bottom: 6px; }
+  .card p, .card li { font-size: 11px; color: #444; line-height: 1.5; }
+
+  /* ── Lists ── */
+  ul, ol { padding-left: 16px; }
+  li { font-size: 11px; color: #444; line-height: 1.6; margin-bottom: 2px; }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .badge.blue { background: #e3f2fd; color: #0f3460; }
+  .badge.green { background: #e8f5e9; color: #2e7d32; }
+  .badge.red { background: #fce4ec; color: #c62828; }
+  .badge.orange { background: #fff3e0; color: #e65100; }
+  .badge.purple { background: #f3e5f5; color: #6a1b9a; }
+  .badge.grey { background: #f5f5f5; color: #666; }
+
+  /* ── Callout ── */
+  .callout {
+    background: #fffde7;
+    border-left: 3px solid #f9a825;
+    padding: 8px 12px;
+    font-size: 11px;
+    color: #555;
+    border-radius: 0 4px 4px 0;
+    margin: 8px 0;
+  }
+
+  .callout.info {
+    background: #e3f2fd;
+    border-left-color: #0f3460;
+  }
+
+  .callout.critical {
+    background: #fce4ec;
+    border-left-color: #c62828;
+  }
+
+  /* ── Misc ── */
+  .slide-num {
+    position: absolute;
+    bottom: 14px;
+    right: 24px;
+    font-size: 10px;
+    color: #ccc;
+  }
+
+  code {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 10px;
+    background: #f0f0f0;
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: #c62828;
+  }
+
+  .tag-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin: 4px 0;
+  }
+  .slide-number { font-size: 10px; color: #bbb; }
+  /* ── Logo ── */
+  .logo-title {
+    position: absolute; top: 30px; right: 40px;
+    height: 80px; opacity: 0.9;
+  }
+  .slide-footer {
+    position: absolute; bottom: 10px; left: 20px; right: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .prepared-by {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .prepared-by span {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+  .prepared-by img {
+    height: 22px; opacity: 0.7;
+  }
+  .footer-project {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 1 — TITLE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="slide title-slide">
+
+  <img src="VVF-logo.png" alt="VVF" class="logo-title">
+  <h1>Product Master Data</h1>
+  <div class="subtitle">Strategic Architecture &amp; Governance Reference</div>
+  <div class="meta">
+    Version 2.0  |  Module: All  |  Odoo 19<br>
+    Kebony — Custom Platform Architecture
+</div>
+
+<div class="slide-num">1
+
+  </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 2 — WHY PRODUCT MATTERS
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">1</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Why Product Matters</h1>
+  <div class="subtitle">The product record is a load-bearing data structure — 13 domains depend on it</div>
+
+  <div class="cols-2" style="margin-top: 8px;">
+    <div>
+      <table>
+        <tr>
+<th>#</th>
+<th>Domain</th>
+<th>What Product Drives</th>
+</tr>
+        <tr>
+<td>1</td>
+<td><strong>Sales</strong></td>
+<td>Quotation, pricing, packaging UoM</td>
+</tr>
+        <tr>
+<td>2</td>
+<td><strong>Pricing</strong></td>
+<td>Pricelist rules, price per lm / m² / m³</td>
+</tr>
+        <tr>
+<td>3</td>
+<td><strong>Inventory</strong></td>
+<td>FIFO valuation, lot tracking, quant metrics</td>
+</tr>
+        <tr>
+<td>4</td>
+<td><strong>Manufacturing</strong></td>
+<td>BoM generation, dryer load planning, chemical mix</td>
+</tr>
+        <tr>
+<td>5</td>
+<td><strong>Capacity Planning</strong></td>
+<td>Dryer / autoclave scheduling, bottleneck</td>
+</tr>
+        <tr>
+<td>6</td>
+<td><strong>Costing &amp; Margin</strong></td>
+<td>Standard cost, COGS split, margin per m³</td>
+</tr>
+        <tr>
+<td>7</td>
+<td><strong>Accounting</strong></td>
+<td>GL routing, analytic distribution, accruals</td>
+</tr>
+      </table>
+    </div>
+    <div>
+      <table>
+        <tr>
+<th>#</th>
+<th>Domain</th>
+<th>What Product Drives</th>
+</tr>
+        <tr>
+<td>8</td>
+<td><strong>Logistics</strong></td>
+<td>Weight, pallet dims, transport planning</td>
+</tr>
+        <tr>
+<td>9</td>
+<td><strong>Packaging</strong></td>
+<td>Pack / Board UoMs, picking, shipping labels</td>
+</tr>
+        <tr>
+<td>10</td>
+<td><strong>Compliance</strong></td>
+<td>HS codes, intrastat, customs declarations</td>
+</tr>
+        <tr>
+<td>11</td>
+<td><strong>Website</strong></td>
+<td>Catalogue, filtering, search, display</td>
+</tr>
+        <tr>
+<td>12</td>
+<td><strong>Purchasing</strong></td>
+<td>Vendor bills, consignment, raw material link</td>
+</tr>
+        <tr>
+<td>13</td>
+<td><strong>Samples</strong></td>
+<td>Sample workflows, services available</td>
+</tr>
+      </table>
+
+      <div class="callout critical" style="margin-top: 14px;">
+        A single field error propagates across inventory valuation, costing, invoicing, logistics, and compliance.
+      </div>
+
+<div class="slide-num">2
+
+  </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 3 — ARCHITECTURE PRINCIPLES
+     ═══════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">2</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Architecture Principles</h1>
+  <div class="subtitle">Four structural rules that shape the entire product model</div>
+
+  <div class="cols-2" style="margin-top: 8px;">
+    <div>
+      <div class="card blue" style="margin-bottom: 12px;">
+        <h3>1. No Dimensional Variants</h3>
+        <p>Odoo 19 merged packaging and UoM. A product sold as "Pack of 162 × 3.2 lm" needs packaging-level UoMs that depend on length. Each dimensional product = its own <code>product.template</code>.</p>
+      </div>
+
+      <div class="card green">
+        <h3>2. Metric / Imperial Separation</h3>
+        <p>Metric and imperial are <strong>separate templates</strong> linked by a shared Master Item Code. Metric is the engineering source of truth; imperial derives from it.</p>
+        <table style="margin-top: 6px;">
+          <tr>
+<th>Concept</th>
+<th>Metric</th>
+<th>Imperial</th>
+</tr>
+          <tr>
+<td>Name</td>
+<td><code>1127-M-3.2</code></td>
+<td><code>1127-I-10.5</code></td>
+</tr>
+          <tr>
+<td>UoM</td>
+<td>m (meter)</td>
+<td>LF (linear foot)</td>
+</tr>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="card orange" style="margin-bottom: 12px;">
+        <h3>3. Treatment ≠ Variant</h3>
+        <p>Treatment (fire retardant, colour, brushing) is tracked at <strong>lot level only</strong>. Product identity remains purely dimensional.</p>
+        <p style="margin-top: 4px;">Without this rule: ~70 cross-sections × ~20 lengths × 4 treatments × 2 systems = <strong>~11,200 SKUs</strong>. Current catalogue: <strong>~490</strong>.</p>
+      </div>
+
+      <div class="card purple">
+        <h3>4. Three-Level Hierarchy</h3>
+        <div class="flow-diagram" style="margin-top: 6px; font-size: 10px; padding: 10px 14px;">
+<span class="label">Master Item</span> (e.g. 1127)
+  <span class="arrow">└──</span> <span class="label">Master Variant</span> (e.g. 1127-3.2)
+        <span class="arrow">├──</span> <span class="blue">Metric Product</span>  (1127-M-3.2)
+        <span class="arrow">└──</span> <span class="orange">Imperial Product</span> (1127-I-10.5)</div>
+      </div>
+
+<div class="slide-num">3
+
+  </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 4 — PRODUCT POPULATION & HIERARCHY
+     ═══════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">3</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Product Population &amp; Hierarchy Levels</h1>
+  <div class="subtitle">~490 products across two wood species, two measurement systems, plus accessories &amp; services</div>
+
+  <div class="cols-2" style="margin-top: 8px;">
+    <div>
+      <div class="section-label">Product Population</div>
+      <table>
+        <tr>
+<th>Segment</th>
+<th>Metric</th>
+<th>Imperial</th>
+<th>Total</th>
+</tr>
+        <tr>
+<td>Character (Scots Pine)</td>
+<td>30</td>
+<td>~30</td>
+<td>~60</td>
+</tr>
+        <tr>
+<td>Clear (Radiata)</td>
+<td>117</td>
+<td>117</td>
+<td>~234</td>
+</tr>
+        <tr>
+<td>Master Items</td>
+<td>~70</td>
+<td class="muted">—</td>
+<td>~70</td>
+</tr>
+        <tr>
+<td>Master Variants</td>
+<td>~80</td>
+<td class="muted">—</td>
+<td>~80</td>
+</tr>
+        <tr>
+<td>Accessories</td>
+<td class="muted">—</td>
+<td class="muted">—</td>
+<td>~27</td>
+</tr>
+        <tr>
+<td>Services / Other</td>
+<td class="muted">—</td>
+<td class="muted">—</td>
+<td>~20</td>
+</tr>
+        <tr class="total-row">
+<td>Estimated Total</td>
+<td></td>
+<td></td>
+<td>~490</td>
+</tr>
+      </table>
+    </div>
+    <div>
+      <div class="section-label">Hierarchy Levels</div>
+      <div class="card blue" style="margin-bottom: 8px;">
+        <h3>Master Item <span class="badge grey">non-sellable</span>
+</h3>
+        <p><code>x_studio_is_master_item = True</code><br>Cross-section grouping (e.g. "Kebony Character Decking 28×120")</p>
+      </div>
+      <div class="card green" style="margin-bottom: 8px;">
+        <h3>Master Variant <span class="badge grey">non-sellable</span>
+</h3>
+        <p><code>x_studio_is_master_variant = True</code><br>Dimension grouping (e.g. "1127-3.2" = 28×120 at 3.2m)</p>
+      </div>
+      <div class="card orange" style="margin-bottom: 8px;">
+        <h3>M-I Master <span class="badge grey">linking record</span>
+</h3>
+        <p><code>x_studio_product_family_1 = True</code><br>Links metric/imperial twins (e.g. <code>1127-M</code>)</p>
+      </div>
+      <div class="card purple">
+        <h3>Sellable Product <span class="badge blue">stockable</span>
+</h3>
+        <p>Actual <code>product.template</code> (e.g. <code>1127-M-3.2</code>)</p>
+      </div>
+    </div>
+</div>
+
+<div class="slide-num">4
+
+  </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 5 — MEASUREMENT DOCTRINE
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">4</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Measurement Doctrine</h1>
+  <div class="subtitle">Three dimensions of quantity &amp; the critical volume distinction</div>
+
+  <div class="cols-2" style="margin-top: 8px;">
+    <div>
+      <div class="section-label">Three Dimensions of Quantity</div>
+      <div class="card blue" style="margin-bottom: 10px;">
+        <h3>Linear <span class="badge blue">Operational</span>
+</h3>
+        <p>meters (m), lm, LF — normalised to meters internally</p>
+      </div>
+      <div class="card green" style="margin-bottom: 10px;">
+        <h3>Board Count <span class="badge green">Informational</span>
+</h3>
+        <p>Integer boards — ROUND_UP at threshold 0.95</p>
+      </div>
+      <div class="card orange" style="margin-bottom: 10px;">
+        <h3>Volume <span class="badge orange">Economic Truth</span>
+</h3>
+        <p>m³ — all KPIs, pricing, margin analysis in m³</p>
+      </div>
+
+      <div class="section-label" style="margin-top: 14px;">Conversion Constants</div>
+      <div class="flow-diagram" style="font-size: 11px; padding: 10px 14px;">
+<span class="label">FT_PER_M</span>   = 3.280839895
+<span class="label">M_PER_FT</span>   = 1 / FT_PER_M
+<span class="label">FT3_PER_M3</span> = 35.3146667</div>
+    </div>
+    <div>
+      <div class="section-label red">Critical — Two Volume Fields</div>
+      <table>
+        <tr>
+<th>Field</th>
+<th>Technical Name</th>
+<th>Unit</th>
+<th>Usage</th>
+</tr>
+        <tr>
+          <td><strong>Normalised</strong></td>
+          <td><code>x_studio_volume_m3</code></td>
+          <td>Always m³/lm</td>
+          <td>
+<span class="badge green">Canonical</span> All economic calcs</td>
+        </tr>
+        <tr>
+          <td><strong>Localised</strong></td>
+          <td>
+<code>volume</code> (Odoo)</td>
+          <td>m³/lm or ft³/lf</td>
+          <td>
+<span class="badge grey">Transport only</span> Never for metrics</td>
+        </tr>
+      </table>
+
+      <div class="callout critical" style="margin-top: 12px;">
+        <strong>Formula:</strong> Total volume = linear_meters × x_studio_volume_m3<br>
+        <strong>Never</strong> use <code>product.volume</code> for economic calculations.
+      </div>
+
+      <div class="section-label" style="margin-top: 14px;">Key Formulas</div>
+      <table>
+        <tr>
+<th>Derived Field</th>
+<th>Formula</th>
+</tr>
+        <tr>
+<td>Volume (m³/lm)</td>
+<td>thickness(m) × width(m)</td>
+</tr>
+        <tr>
+<td>lm per m³</td>
+<td>1 / <code>x_studio_volume_m3</code>
+</td>
+</tr>
+        <tr>
+<td>lm per m²</td>
+<td>1 / width(m)</td>
+</tr>
+        <tr>
+<td>Weight per lm</td>
+<td>density × volume(m³/lm)</td>
+</tr>
+        <tr>
+<td>Boards</td>
+<td>ROUND(linear_m / length_m), threshold 0.95</td>
+</tr>
+        <tr>
+<td>Total volume</td>
+<td>linear_m × <code>x_studio_volume_m3</code>
+</td>
+</tr>
+      </table>
+
+<div class="slide-num">5
+
+  </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 6 — CORE IDENTITY FIELDS
+     ═══════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">5</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Field Registry — Core Identity</h1>
+  <div class="subtitle">18 fields that define what a product is — Odoo standard + Studio-defined</div>
+
+  <table style="margin-top: 8px;">
+    <tr>
+<th>#</th>
+<th>Label</th>
+<th>Technical Field</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+    <tr>
+<td>1</td>
+<td>Name</td>
+<td><code>name</code></td>
+<td>Char</td>
+<td>
+<code>{Item}-{System}-{Length}</code> e.g. <code>1127-M-3.2</code>
+</td>
+</tr>
+    <tr>
+<td>2</td>
+<td>Description</td>
+<td><code>x_studio_description</code></td>
+<td>Char</td>
+<td>Full commercial name</td>
+</tr>
+    <tr>
+<td>3</td>
+<td>Sales Description</td>
+<td><code>description_sale</code></td>
+<td>Text</td>
+<td>Shown on quotations</td>
+</tr>
+    <tr>
+<td>5</td>
+<td>Master Item Code</td>
+<td><code>x_studio_master_item_code</code></td>
+<td>Char</td>
+<td>Cross-section grouping: <code>1127</code>
+</td>
+</tr>
+    <tr>
+<td>6</td>
+<td>Is Master Item?</td>
+<td><code>x_studio_is_master_item</code></td>
+<td>Bool</td>
+<td>True for grouping records</td>
+</tr>
+    <tr>
+<td>7</td>
+<td>Master Variant Code</td>
+<td><code>x_studio_master_variant_code_1</code></td>
+<td>Char</td>
+<td>Dimension grouping: <code>1127-3.2</code>
+</td>
+</tr>
+    <tr>
+<td>9</td>
+<td>M-I Master Code</td>
+<td><code>x_studio_product_family</code></td>
+<td>Char</td>
+<td>Links metric/imperial: <code>1127-M</code>
+</td>
+</tr>
+    <tr>
+<td>11</td>
+<td>Measurement System</td>
+<td><code>x_studio_measurement_system</code></td>
+<td>Selection</td>
+<td>
+<code>Metric</code> · <code>Imperial</code>
+</td>
+</tr>
+    <tr>
+<td>12</td>
+<td>Unit of Measure</td>
+<td><code>uom_id</code></td>
+<td>Many2one</td>
+<td>
+<code>m</code> (metric) or <code>LF</code> (imperial)</td>
+</tr>
+    <tr>
+<td>14</td>
+<td>Product Category</td>
+<td><code>categ_id</code></td>
+<td>Many2one</td>
+<td>GL routing (accounting)</td>
+</tr>
+    <tr>
+<td>15</td>
+<td>Product Type</td>
+<td><code>type</code></td>
+<td>Selection</td>
+<td>
+<code>Goods</code> · <code>Service</code> · <code>Combo</code>
+</td>
+</tr>
+    <tr>
+<td>16</td>
+<td>Lot Tracking</td>
+<td><code>tracking</code></td>
+<td>Selection</td>
+<td>
+<code>By lots</code> for all wood</td>
+</tr>
+    <tr>
+<td>17</td>
+<td>Valuation by Lot</td>
+<td><code>lot_valuated</code></td>
+<td>Bool</td>
+<td>True — FIFO per lot</td>
+</tr>
+  </table>
+
+  <div class="callout info" style="margin-top: 10px;">
+    <strong>Naming convention:</strong> Fields 1–4 are Odoo standard  |  Fields 5–11 are <code>x_studio_*</code> (Studio-defined)  |  Fields 12–18 are Odoo standard
+</div>
+
+<div class="slide-num">6
+
+  </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 7 — CLASSIFICATION & GEOMETRY
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">6</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Field Registry — Classification &amp; Geometry</h1>
+  <div class="subtitle">Classification attributes + metric engineering base dimensions</div>
+
+  <div class="cols-2" style="margin-top: 8px;">
+    <div>
+      <div class="section-label">Classification Fields</div>
+      <table>
+        <tr>
+<th>#</th>
+<th>Label</th>
+<th>Technical Field</th>
+<th>Notes</th>
+</tr>
+        <tr>
+<td>19</td>
+<td>Wood Species</td>
+<td><code>x_studio_word_species</code></td>
+<td>
+<code>Scots Pine</code> · <code>Radiata</code>
+</td>
+</tr>
+        <tr>
+<td>20</td>
+<td>Production Family</td>
+<td><code>x_studio_production_chain</code></td>
+<td>
+<code>Character</code> · <code>Clear</code>
+</td>
+</tr>
+        <tr>
+<td>21</td>
+<td>Application</td>
+<td><code>x_studio_many2one_field_3oj…</code></td>
+<td>7 values (M2O)</td>
+</tr>
+        <tr>
+<td>22</td>
+<td>Shape</td>
+<td><code>x_studio_shape</code></td>
+<td>27 values (M2O)</td>
+</tr>
+        <tr>
+<td>24</td>
+<td>Product Lifecycle</td>
+<td><code>x_studio_product_lifecycle</code></td>
+<td>6 stages</td>
+</tr>
+        <tr>
+<td>25</td>
+<td>Product Classification</td>
+<td><code>x_studio_product_classification</code></td>
+<td>
+<code>wood</code> · <code>accessory</code> (M2M)</td>
+</tr>
+      </table>
+
+      <div class="callout" style="margin-top: 10px;">
+        <strong>Note:</strong> <code>x_studio_word_species</code> — the typo ("word" not "wood") is permanent. Studio fields cannot be renamed.
+      </div>
+    </div>
+    <div>
+      <div class="section-label green">Metric Geometry (Engineering Base)</div>
+      <table>
+        <tr>
+<th>#</th>
+<th>Label</th>
+<th>Technical Field</th>
+<th>Unit</th>
+</tr>
+        <tr>
+<td>27</td>
+<td>Length</td>
+<td><code>x_studio_length_m</code></td>
+<td>m</td>
+</tr>
+        <tr>
+<td>28</td>
+<td>Thickness</td>
+<td><code>x_studio_thickness_mm</code></td>
+<td>mm</td>
+</tr>
+        <tr>
+<td>29</td>
+<td>Width</td>
+<td><code>x_studio_width_mm_1</code></td>
+<td>mm</td>
+</tr>
+        <tr>
+<td>30</td>
+<td>Volume (normalised)</td>
+<td><code>x_studio_volume_m3</code></td>
+<td>m³/lm</td>
+</tr>
+        <tr>
+<td>31</td>
+<td>Weight</td>
+<td><code>x_studio_weight_kg</code></td>
+<td>kg</td>
+</tr>
+        <tr>
+<td>32</td>
+<td>Density</td>
+<td><code>x_studio_density_kgm3_2</code></td>
+<td>kg/m³</td>
+</tr>
+        <tr>
+<td>33</td>
+<td>Square Factor</td>
+<td><code>x_studio_square_factor_1</code></td>
+<td>lm/m²</td>
+</tr>
+        <tr>
+<td>35</td>
+<td>lm per m³</td>
+<td><code>x_studio_number_of_lmm3_1</code></td>
+<td>lm/m³</td>
+</tr>
+        <tr>
+<td>36</td>
+<td>lm per m²</td>
+<td><code>x_studio_number_of_lmm2_1</code></td>
+<td>lm/m²</td>
+</tr>
+        <tr>
+<td>37</td>
+<td>Weight per lm</td>
+<td><code>x_studio_net_weight_per_lm_kg_1</code></td>
+<td>kg/lm</td>
+</tr>
+      </table>
+
+      <div class="callout info" style="margin-top: 6px;">
+        All derived fields must be reproducible from the <strong>four base dimensions</strong>: length, thickness, width, density.
+      </div>
+
+<div class="slide-num">7
+
+  </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 8 — IMPERIAL GEOMETRY & PACKAGING
+     ═══════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">7</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Field Registry — Imperial Geometry &amp; Packaging</h1>
+  <div class="subtitle">Imperial values derive from metric + packaging intelligence fields</div>
+
+  <div class="cols-2" style="margin-top: 8px;">
+    <div>
+      <div class="section-label orange">Imperial Geometry</div>
+      <table>
+        <tr>
+<th>#</th>
+<th>Label</th>
+<th>Technical Field</th>
+<th>Unit</th>
+</tr>
+        <tr>
+<td>39</td>
+<td>Length (LF)</td>
+<td><code>x_studio_length_1</code></td>
+<td>feet</td>
+</tr>
+        <tr>
+<td>40</td>
+<td>Thickness</td>
+<td><code>x_studio_thickness</code></td>
+<td>inches</td>
+</tr>
+        <tr>
+<td>41</td>
+<td>Width</td>
+<td><code>x_studio_width</code></td>
+<td>inches</td>
+</tr>
+        <tr>
+<td>42</td>
+<td>Volume (localised)</td>
+<td><code>volume</code></td>
+<td>ft³/lf</td>
+</tr>
+        <tr>
+<td>43</td>
+<td>Weight</td>
+<td><code>weight</code></td>
+<td>lb</td>
+</tr>
+        <tr>
+<td>44</td>
+<td>Density</td>
+<td><code>x_studio_density_lbft3</code></td>
+<td>lb/ft³</td>
+</tr>
+        <tr>
+<td>45</td>
+<td>Square Factor</td>
+<td><code>x_studio_square_factor</code></td>
+<td>lf/ft²</td>
+</tr>
+        <tr>
+<td>47</td>
+<td>LF per ft³</td>
+<td><code>x_studio_number_of_lmm3</code></td>
+<td>lf/ft³</td>
+</tr>
+        <tr>
+<td>49</td>
+<td>Weight per LF</td>
+<td><code>x_studio_net_weight_per_lm_kg</code></td>
+<td>lb/lf</td>
+</tr>
+      </table>
+    </div>
+    <div>
+      <div class="section-label purple">Packaging Intelligence</div>
+      <table>
+        <tr>
+<th>#</th>
+<th>Label</th>
+<th>Technical Field</th>
+<th>Type</th>
+</tr>
+        <tr>
+<td>53</td>
+<td>Boards per Pack</td>
+<td><code>x_studio_boards_per_pack</code></td>
+<td>Integer</td>
+</tr>
+        <tr>
+<td>54</td>
+<td>Pcs per Layer</td>
+<td><code>x_studio_pcslayer</code></td>
+<td>Integer</td>
+</tr>
+        <tr>
+<td>55</td>
+<td>Number of Layers</td>
+<td><code>x_studio_number_of_layers_1</code></td>
+<td>Integer</td>
+</tr>
+        <tr>
+<td>56</td>
+<td>Pallet Height (cm)</td>
+<td><code>x_studio_pallet_height_cm_1</code></td>
+<td>Float</td>
+</tr>
+        <tr>
+<td>57</td>
+<td>Pallet Width (cm)</td>
+<td><code>x_studio_pallet_width_cm_1</code></td>
+<td>Float</td>
+</tr>
+        <tr>
+<td>59</td>
+<td>End-Matched</td>
+<td><code>x_studio_end_matched</code></td>
+<td>Selection</td>
+</tr>
+        <tr>
+<td>61</td>
+<td>Packagings (UoMs)</td>
+<td><code>uom_ids</code></td>
+<td>M2M</td>
+</tr>
+      </table>
+
+      <div style="margin-top: 10px;">
+        <h3>UoM Packaging Example</h3>
+        <div class="flow-diagram" style="font-size: 10px; padding: 10px 14px;">
+<span class="label">Product:</span> 1127-M-3.2
+<span class="label">UoMs:</span>    m, Board of 3.2 lm, Pack of 162 × 3.2 lm
+
+<span class="dim">End-Matched values:</span> End-matched · End-cut · N.A.
+<span class="dim">Orientation:</span>       Horizontal · Vertical · Both · N.A.</div>
+
+<div class="slide-num">8
+
+  </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 9 — SUPPLY CHAIN RULES
+     ═══════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">8</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Supply Chain Rules</h1>
+  <div class="subtitle">Four replenishment strategies — per-product assignment based on market maturity</div>
+
+  <div class="cols-4" style="margin-top: 12px;">
+    <div class="card blue">
+      <h3>Make to Order</h3>
+      <p><strong>Buffer:</strong> None</p>
+      <p><strong>Trigger:</strong> Min. process batch reached</p>
+      <p><strong>Lead time:</strong> Procurement + production + transport</p>
+      <p style="margin-top: 6px; font-size: 10px; color: #888;">New / low-volume products</p>
+    </div>
+    <div class="card green">
+      <h3>ATO — White Wood</h3>
+      <p><strong>Buffer:</strong> White wood (untreated)</p>
+      <p><strong>Trigger:</strong> Min. white wood stock</p>
+      <p><strong>Lead time:</strong> Production + transport</p>
+      <p style="margin-top: 6px; font-size: 10px; color: #888;">Start from autoclave stage</p>
+    </div>
+    <div class="card orange">
+      <h3>ATO — Brown Wood</h3>
+      <p><strong>Buffer:</strong> Brown wood (treated RS)</p>
+      <p><strong>Trigger:</strong> Min. brown wood stock</p>
+      <p><strong>Lead time:</strong> Machining + transport</p>
+      <p style="margin-top: 6px; font-size: 10px; color: #888;">Radiata — machining only</p>
+    </div>
+    <div class="card purple">
+      <h3>Make to Stock</h3>
+      <p><strong>Buffer:</strong> Finished goods</p>
+      <p><strong>Trigger:</strong> Min. FG stock breach</p>
+      <p><strong>Lead time:</strong> Transport only</p>
+      <p style="margin-top: 6px; font-size: 10px; color: #888;">High-volume / mature</p>
+    </div>
+  </div>
+
+  <div class="flow-diagram" style="margin-top: 16px; font-size: 10px;">
+<span class="label">MTO:</span>    <span class="dim">[Procurement]</span> <span class="arrow">→</span> [Stacking] <span class="arrow">→</span> [Autoclave] <span class="arrow">→</span> [Dryer] <span class="arrow">→</span> [Machining] <span class="arrow">→</span> <span class="highlight">[Transport]</span>   <span class="dim">← full lead time</span>
+
+<span class="label">ATO-WW:</span>              <span class="green">[White Wood Buffer]</span> <span class="arrow">→</span> [Autoclave] <span class="arrow">→</span> [Dryer] <span class="arrow">→</span> [Machining] <span class="arrow">→</span> <span class="highlight">[Transport]</span>
+
+<span class="label">ATO-BW:</span>                                         <span class="orange">[Brown Wood Buffer]</span> <span class="arrow">→</span> [Machining] <span class="arrow">→</span> <span class="highlight">[Transport]</span>
+
+<span class="label">MTS:</span>                                                                       <span class="blue">[FG Buffer]</span> <span class="arrow">→</span> <span class="highlight">[Transport]</span>
+</div>
+
+  <div class="callout" style="margin-top: 8px;">
+    Products can transition: MTO (introduction) → ATO → MTS (mature) as demand stabilises. Per-product assignment awaiting COO input.
+</div>
+
+<div class="slide-num">9
+
+  </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 10 — PRODUCT CATEGORIES & COMPLIANCE
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">9</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Product Categories &amp; Trade Compliance</h1>
+  <div class="subtitle">Accounting routing via category + HS codes for customs &amp; intrastat</div>
+
+  <div class="cols-2" style="margin-top: 8px;">
+    <div>
+      <div class="section-label">Product Categories (GL Routing)</div>
+      <table>
+        <tr>
+<th>Category</th>
+<th>Accounting Impact</th>
+</tr>
+        <tr>
+<td>Finished Product - Wood</td>
+<td>FIFO valuation, standard COGS</td>
+</tr>
+        <tr>
+<td>Semi-Finished Product - Wood</td>
+<td>WIP valuation</td>
+</tr>
+        <tr>
+<td>Raw Material - White Wood</td>
+<td>Purchase → WIP conversion</td>
+</tr>
+        <tr>
+<td>Raw Material - Chemical</td>
+<td>Consumed in BoM</td>
+</tr>
+        <tr>
+<td>Finished Product - Accessories</td>
+<td>Separate COGS category</td>
+</tr>
+        <tr>
+<td>Product in Consignment</td>
+<td>Consignment valuation rules</td>
+</tr>
+        <tr>
+<td>Sample Special / Standard</td>
+<td>Sample cost tracking</td>
+</tr>
+        <tr>
+<td>Services</td>
+<td>No inventory impact</td>
+</tr>
+        <tr>
+<td>Landed Costs</td>
+<td>Cost adjustment layer</td>
+</tr>
+      </table>
+    </div>
+    <div>
+      <div class="section-label red">HS Code &amp; Trade Classification</div>
+      <table>
+        <tr>
+<th>Product Type</th>
+<th>HS (NO)</th>
+<th>HS (EU)</th>
+<th>Origin</th>
+</tr>
+        <tr>
+<td>Radiata Rough Sawn</td>
+<td>44.07.1111</td>
+<td>4407 11 90 90</td>
+<td>BE / NO</td>
+</tr>
+        <tr>
+<td>White Radiata RS</td>
+<td>44.07.1121</td>
+<td>4407 11 90 90</td>
+<td>NZ</td>
+</tr>
+        <tr>
+<td>Radiata Machined</td>
+<td>44.09.1091</td>
+<td>4409 10 18 00</td>
+<td>BE / DK</td>
+</tr>
+        <tr>
+<td>Character ≤48×48</td>
+<td>44.09.1091</td>
+<td>4409 10 18 00</td>
+<td>NO</td>
+</tr>
+        <tr>
+<td>Character Standard</td>
+<td>44.09.1092</td>
+<td>4410 10 18 00</td>
+<td>NO</td>
+</tr>
+        <tr>
+<td>White Scots Pine</td>
+<td>44.09.1091</td>
+<td>4409 10 18 00</td>
+<td>SE</td>
+</tr>
+        <tr>
+<td>White SYP</td>
+<td>44.07.1121</td>
+<td>4407 11 90 90</td>
+<td>US</td>
+</tr>
+      </table>
+
+      <div class="section-label" style="margin-top: 12px;">Compliance Fields</div>
+      <table>
+        <tr>
+<th>Label</th>
+<th>Technical Field</th>
+</tr>
+        <tr>
+<td>HS Code</td>
+<td><code>hs_code</code></td>
+</tr>
+        <tr>
+<td>Commodity Code</td>
+<td><code>intrastat_code_id</code></td>
+</tr>
+        <tr>
+<td>Country of Origin</td>
+<td><code>intrastat_origin_country_id</code></td>
+</tr>
+      </table>
+
+<div class="slide-num">10
+
+  </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 11 — PLANNING FAMILY MODEL
+     ═══════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">10</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Planning Family Model</h1>
+  <div class="subtitle">Bridge between product and manufacturing — <code>kebony.planning.family</code>
+</div>
+
+  <div class="cols-2 wide-right" style="margin-top: 8px;">
+    <div>
+      <div class="section-label">Product → Family Link</div>
+      <table>
+        <tr>
+<th>#</th>
+<th>Label</th>
+<th>RO</th>
+</tr>
+        <tr>
+<td>79</td>
+<td>Planning Family</td>
+<td><span class="badge green">Edit</span></td>
+</tr>
+        <tr>
+<td>80</td>
+<td>Stacking Hours</td>
+<td><span class="badge grey">Read</span></td>
+</tr>
+        <tr>
+<td>81</td>
+<td>Autoclave Hours</td>
+<td><span class="badge grey">Read</span></td>
+</tr>
+        <tr>
+<td>82</td>
+<td>Dryer Hours</td>
+<td><span class="badge red">Bottleneck</span></td>
+</tr>
+        <tr>
+<td>83</td>
+<td>Dryer h/m³</td>
+<td><span class="badge grey">Read</span></td>
+</tr>
+        <tr>
+<td>84</td>
+<td>Typical Load m³</td>
+<td><span class="badge grey">Read</span></td>
+</tr>
+        <tr>
+<td>85</td>
+<td>Min Process Qty</td>
+<td><span class="badge grey">Read</span></td>
+</tr>
+        <tr>
+<td>86</td>
+<td>Mix kg/m³</td>
+<td><span class="badge grey">Read</span></td>
+</tr>
+        <tr>
+<td>87</td>
+<td>Internal Scrap %</td>
+<td><span class="badge grey">Read</span></td>
+</tr>
+        <tr>
+<td>88</td>
+<td>B-Grade Scrap %</td>
+<td><span class="badge grey">Read</span></td>
+</tr>
+      </table>
+      <div class="callout info" style="margin-top: 8px;">
+        Only <strong>#79</strong> (Planning Family) is editable on the product. All others are related / readonly from the family record.
+      </div>
+    </div>
+    <div>
+      <div class="section-label green">Family Inventory</div>
+      <table>
+        <tr>
+<th>Code</th>
+<th>Name</th>
+<th>Type</th>
+<th>Dryer</th>
+<th>AC</th>
+<th>h/m³</th>
+<th>Mix</th>
+</tr>
+        <tr>
+<td><code>KSP1C</code></td>
+<td>SP 1" Cladding</td>
+<td>SP</td>
+<td>55</td>
+<td>3.5</td>
+<td>1.34</td>
+<td>230</td>
+</tr>
+        <tr>
+<td><code>KSP15T</code></td>
+<td>SP 1.5" T&amp;G</td>
+<td>SP</td>
+<td>55</td>
+<td>3.5</td>
+<td class="muted">—</td>
+<td class="muted">—</td>
+</tr>
+        <tr>
+<td><code>KSP2PD</code></td>
+<td>SP 2" Decking</td>
+<td>SP</td>
+<td>65</td>
+<td>3.5</td>
+<td>1.57</td>
+<td>315</td>
+</tr>
+        <tr>
+<td><code>KSP2C</code></td>
+<td>SP 2" Cladding</td>
+<td>SP</td>
+<td>65</td>
+<td>3.5</td>
+<td class="muted">—</td>
+<td class="muted">—</td>
+</tr>
+        <tr>
+<td><code>KR1</code></td>
+<td>Radiata 1"</td>
+<td>R</td>
+<td>54</td>
+<td>4.5</td>
+<td>1.18</td>
+<td>676</td>
+</tr>
+        <tr>
+<td><code>KR1CL</code></td>
+<td>Radiata 1" Cladding</td>
+<td>R</td>
+<td>54</td>
+<td>4.5</td>
+<td class="muted">—</td>
+<td class="muted">—</td>
+</tr>
+        <tr>
+<td><code>KR2</code></td>
+<td>Radiata 2"</td>
+<td>R</td>
+<td>62</td>
+<td>4.5</td>
+<td>1.36</td>
+<td>600</td>
+</tr>
+        <tr>
+<td><code>KRRS1</code></td>
+<td>Radiata RS 1"</td>
+<td>R</td>
+<td class="muted">—</td>
+<td class="muted">—</td>
+<td class="muted">—</td>
+<td class="muted">—</td>
+</tr>
+        <tr>
+<td><code>KRRS2</code></td>
+<td>Radiata RS 2"</td>
+<td>R</td>
+<td class="muted">—</td>
+<td class="muted">—</td>
+<td class="muted">—</td>
+<td class="muted">—</td>
+</tr>
+        <tr>
+<td><code>KSPRUCE</code></td>
+<td>Kebony Spruce</td>
+<td>O</td>
+<td>30</td>
+<td>3.5</td>
+<td>0.77</td>
+<td>40</td>
+</tr>
+      </table>
+      <p style="font-size: 10px; color: #888; margin-top: 4px;">SP = Scots Pine, R = Radiata, O = Other. Dryer/AC in hours. Mix = kg/m³.</p>
+    </div>
+</div>
+
+<div class="slide-num">11
+
+  </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 12 — METRICS COMPUTATION ARCHITECTURE
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">11</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Metrics Computation Architecture</h1>
+  <div class="subtitle">The mixin, recompute hierarchy, and wood-only rule</div>
+
+  <div class="cols-2" style="margin-top: 8px;">
+    <div>
+      <div class="section-label">The Mixin: <code>kebony.metrics.mixin</code>
+</div>
+      <p style="font-size: 11px; color: #444; margin-bottom: 8px;">
+        Abstract model inherited by: <code>stock.quant</code>, <code>stock.lot</code>, <code>stock.move</code>, <code>sale.order.line</code>, <code>account.move.line</code>, <code>product.template</code>.
+      </p>
+
+      <table>
+        <tr>
+<th>Method</th>
+<th>Purpose</th>
+</tr>
+        <tr>
+<td><code>_kebony_linear_qty_in_m()</code></td>
+<td>Normalise any quantity to meters</td>
+</tr>
+        <tr>
+<td><code>_kebony_boards_from_linear()</code></td>
+<td>Board count (ROUND_UP 0.95)</td>
+</tr>
+        <tr>
+<td><code>_kebony_volume_m3()</code></td>
+<td>Volume via <code>x_studio_volume_m3</code>
+</td>
+</tr>
+        <tr>
+<td><code>_kebony_is_wood_product()</code></td>
+<td>Check classification for "wood"</td>
+</tr>
+      </table>
+
+      <div class="callout critical" style="margin-top: 12px;">
+        <strong>Wood-Only Rule:</strong> Physical metrics (linear m, boards, volume m³) are <strong>only computed for wood products</strong>. Accessories and services return 0.
+      </div>
+    </div>
+    <div>
+      <div class="section-label green">Recompute Hierarchy</div>
+      <div class="flow-diagram" style="font-size: 10.5px;">
+<span class="label">Level 1:</span> <span class="blue">stock.quant</span>     <span class="dim">← source of truth</span>
+           <span class="arrow">├→</span> stock.lot         <span class="dim">(aggregate from internal quants)</span>
+           <span class="arrow">└→</span> product.template  <span class="dim">(aggregate from internal quants)</span>
+
+<span class="label">Level 2:</span> stock.move           <span class="dim">(from move lines or demand qty)</span>
+         sale.order.line      <span class="dim">(from SO line qty + UoM)</span>
+         account.move.line    <span class="dim">(from invoice line qty + UoM)</span>
+
+<span class="label">Level 3:</span> sale.order           <span class="dim">(sum of order lines)</span>
+         account.move         <span class="dim">(sum of invoice lines)</span>
+</div>
+
+      <div class="section-label" style="margin-top: 12px;">Computed Stock Metric Fields</div>
+      <table>
+        <tr>
+<th>Field</th>
+<th>Model</th>
+<th>Stored</th>
+</tr>
+        <tr>
+<td><code>x_studio_number_of_boards</code></td>
+<td>product.template</td>
+<td>Yes</td>
+</tr>
+        <tr>
+<td><code>x_kebony_volume_m3_on_hand</code></td>
+<td>product.template</td>
+<td>Yes</td>
+</tr>
+        <tr>
+<td><code>x_kebony_available_packs</code></td>
+<td>product.template</td>
+<td>Yes</td>
+</tr>
+        <tr>
+<td><code>kebony_boards_available</code></td>
+<td>product.template</td>
+<td>No</td>
+</tr>
+        <tr>
+<td><code>kebony_cubic_meters_available</code></td>
+<td>product.template</td>
+<td>No</td>
+</tr>
+      </table>
+
+<div class="slide-num">12
+
+  </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 13 — ENTITY TYPE & COMPANY ARCHITECTURE
+     ═══════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">12</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Entity Type &amp; Company Architecture</h1>
+  <div class="subtitle">Shared products, entity-gated features — <code>res.company.x_kebony_entity_type</code>
+</div>
+
+  <div class="cols-2" style="margin-top: 12px;">
+    <div>
+      <div class="section-label">Company Registry</div>
+      <table>
+        <tr>
+<th>Code</th>
+<th>Company</th>
+<th>Type</th>
+<th>Features</th>
+</tr>
+        <tr>
+<td><code>inc</code></td>
+<td>Kebony Inc. (US)</td>
+<td>Distribution</td>
+<td>BOL, accruals, margin, consignment</td>
+</tr>
+        <tr>
+<td><code>holding</code></td>
+<td>Kebony Holding (BE)</td>
+<td>Holding</td>
+<td>Product master ownership</td>
+</tr>
+        <tr>
+<td><code>bnv</code></td>
+<td>Kebony BNV (BE)</td>
+<td>Manufacturing</td>
+<td>Planning, BoM, manufacturing</td>
+</tr>
+        <tr>
+<td><code>kas</code></td>
+<td>Kebony KAS (NO)</td>
+<td>Legacy</td>
+<td>Placeholder</td>
+</tr>
+        <tr>
+<td><code>nas</code></td>
+<td>Kebony Norge AS (NO)</td>
+<td>Legacy</td>
+<td>Placeholder</td>
+</tr>
+      </table>
+
+      <div style="margin-top: 14px;">
+        <h3>Key Methods</h3>
+        <div class="flow-diagram" style="font-size: 11px; padding: 10px 14px;">
+<span class="label">_is_kebony_us()</span>   <span class="arrow">→</span> True for <span class="highlight">INC</span>
+<span class="label">_is_kebony_bnv()</span>  <span class="arrow">→</span> True for <span class="blue">BNV</span>
+</div>
+      </div>
+    </div>
+    <div>
+      <div class="section-label">Feature Gating by Entity</div>
+      <div class="card red" style="margin-bottom: 10px;">
+        <h3>US-Only Features (INC)</h3>
+        <ul>
+          <li>Bill of Lading (BOL) reports</li>
+          <li>Accruals (royalties, mgmt fees, freight, duty)</li>
+          <li>Margin analysis per m³</li>
+          <li>Consignment / Biewer PO flow</li>
+          <li>Imperial packaging &amp; labels</li>
+        </ul>
+      </div>
+      <div class="card blue" style="margin-bottom: 10px;">
+        <h3>Manufacturing Features (BNV)</h3>
+        <ul>
+          <li>Planning families &amp; process parameters</li>
+          <li>Dryer-centric batch planning</li>
+          <li>Bill of Materials generation</li>
+          <li>Production scheduling</li>
+        </ul>
+      </div>
+      <div class="card green">
+        <h3>Global Features (All Entities)</h3>
+        <ul>
+          <li>Product master data &amp; metrics</li>
+          <li>KebonyMetricsMixin calculations</li>
+          <li>Inventory &amp; lot tracking</li>
+        </ul>
+      </div>
+
+<div class="slide-num">13
+
+  </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 14 — TRACEABILITY & FIFO
+     ═══════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">13</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Traceability &amp; FIFO Integrity</h1>
+  <div class="subtitle">Lot-level identity, treatment separation, and per-lot cost tracking</div>
+
+  <div class="cols-3" style="margin-top: 12px;">
+    <div class="card blue">
+      <h3>Lot-Level Identity</h3>
+      <p>Each physical production batch receives a unique <code>stock.lot</code> record carrying:</p>
+      <ul style="margin-top: 6px;">
+        <li>Treatment info (fire retardant, colour, brushing)</li>
+        <li>Metrics: linear meters, boards, volume</li>
+        <li>Pack reservation: link to reserved SO</li>
+        <li>Legacy fields: <code>x_studio_boards</code>, <code>x_studio_linear_feet</code>
+</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>Product ≠ Treatment</h3>
+      <p>Treatment is a <strong>post-production attribute</strong> applied during or after manufacturing.</p>
+      <p style="margin-top: 6px;">It is <strong>never</strong> part of the product identity or SKU. This prevents combinatorial SKU explosion.</p>
+      <p style="margin-top: 6px;">Product identity = dimensional specification only.</p>
+    </div>
+    <div class="card orange">
+      <h3>FIFO Integrity</h3>
+      <p>Odoo 19's lot-valuated FIFO ensures per-lot cost tracking:</p>
+      <ul style="margin-top: 6px;">
+        <li>
+<code>lot_valuated = True</code><br>→ per-lot cost tracking</li>
+        <li>
+<code>tracking = 'lot'</code><br>→ mandatory lot assignment</li>
+        <li>
+<code>categ_id</code><br>→ GL account routing for valuation</li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="margin-top: 20px;">
+    <div class="section-label">Wood Species &amp; Production Families</div>
+    <div class="cols-2" style="margin-top: 8px;">
+      <div>
+        <table>
+          <tr>
+<th>Species</th>
+<th>Latin Name</th>
+<th>Origin</th>
+<th>Production Family</th>
+</tr>
+          <tr>
+<td><strong>Scots Pine</strong></td>
+<td><em>Pinus sylvestris</em></td>
+<td>Sweden / Norway</td>
+<td>Character</td>
+</tr>
+          <tr>
+<td><strong>Radiata</strong></td>
+<td><em>Pinus radiata</em></td>
+<td>New Zealand / Belgium</td>
+<td>Clear</td>
+</tr>
+        </table>
+      </div>
+      <div>
+        <div class="section-label">Product Lifecycle Stages</div>
+        <div class="tag-row">
+          <span class="badge green">Introduction</span>
+          <span class="badge green">Growth</span>
+          <span class="badge blue">Mature</span>
+          <span class="badge orange">Decline</span>
+          <span class="badge red">Abandon</span>
+          <span class="badge grey">Decommissioned</span>
+        </div>
+        <p style="font-size: 10px; color: #888; margin-top: 6px;">Lifecycle transitions are one-way. A product cannot move from Decommissioned back to Mature without executive approval.</p>
+      </div>
+    </div>
+</div>
+
+<div class="slide-num">14
+
+  </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 15 — REFERENCE VALUES
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">14</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Reference Values &amp; Classifications</h1>
+  <div class="subtitle">Model values for Application, Shape, Market Portfolios, and Services</div>
+
+  <div class="cols-2" style="margin-top: 8px;">
+    <div>
+      <div class="section-label">Application (7 values)</div>
+      <table>
+        <tr>
+<th>Value</th>
+<th>Typical Products</th>
+</tr>
+        <tr>
+<td>Decking</td>
+<td>Floor boards, boardwalk planks</td>
+</tr>
+        <tr>
+<td>Cladding</td>
+<td>Wall profiles, façade boards</td>
+</tr>
+        <tr>
+<td>Construction</td>
+<td>Structural beams, battens</td>
+</tr>
+        <tr>
+<td>Boardwalk</td>
+<td>Heavy-duty outdoor planking</td>
+</tr>
+        <tr>
+<td>Roofing</td>
+<td>Roof boards</td>
+</tr>
+        <tr>
+<td>Industrial</td>
+<td>Non-standard / custom</td>
+</tr>
+        <tr>
+<td>N.A.</td>
+<td>Raw materials, semi-finished</td>
+</tr>
+      </table>
+
+      <div class="section-label" style="margin-top: 12px;">Market Portfolios</div>
+      <div class="tag-row">
+        <span class="badge blue">Export</span>
+        <span class="badge blue">France</span>
+        <span class="badge blue">Nordic</span>
+        <span class="badge blue">DACH</span>
+        <span class="badge blue">Benelux</span>
+        <span class="badge blue">United States</span>
+      </div>
+      <p style="font-size: 10px; color: #888; margin-top: 4px;">Products can belong to multiple markets (M2M).</p>
+
+      <div class="section-label" style="margin-top: 12px;">Services Available</div>
+      <div class="tag-row">
+        <span class="badge purple">Fire retardant</span>
+        <span class="badge purple">Color finish</span>
+        <span class="badge purple">Brushing</span>
+        <span class="badge purple">Polish</span>
+        <span class="badge purple">Shou sugi ban</span>
+        <span class="badge purple">Fine sawn</span>
+      </div>
+    </div>
+    <div>
+      <div class="section-label orange">Shape (27 values)</div>
+      <div style="font-size: 10px; color: #444; line-height: 1.7; margin-bottom: 12px;">
+        Batten · Beam · Bevel Halflap · Bevel T&amp;G · Comb Faced · Dekora T&amp;G · Halflap · Melsom Slat · N.A. · Nickel Gap · Railing · Rectangular · Rectangular Click-In · Rectangular w Side Slits · Rhombus · Rhombus Click-In · Rhombus Tiga · Roof Board · Rough Sawn · Shiplap · Shiplap Click-In · Siding · Skewed Slat · StepClip · StepClip Startboard · T&amp;G · Triple Batten
+      </div>
+
+      <div class="section-label">Shape Value (27 profile geometry codes)</div>
+      <div style="font-size: 10px; color: #444; line-height: 1.7; margin-bottom: 12px;">
+        <code>1SL</code> · <code>1SLL</code> · <code>1SLR</code> · <code>2SL</code> · <code>3SL</code> · <code>45°</code> · <code>60°</code> · <code>60° 1SL</code> · <code>75°</code> · <code>75° 1SL</code> · <code>75° 1SLL</code> · <code>75° 1SLR</code> · <code>75° 2SL</code> · <code>75° 3SL</code> · <code>78°</code> · <code>78° 1SL</code> · <code>90°</code> · <code>90° 1SL</code> · <code>90° 1SLR</code> · <code>90° 2SL</code> · <code>C1</code> · <code>C2</code> · <code>C3</code> · <code>N.A.</code> · <code>R2</code> · <code>R3</code> · <code>R5</code>
+      </div>
+
+      <div class="section-label">Fixing Method (8 values)</div>
+      <div style="font-size: 10px; color: #444; line-height: 1.7;">
+        <code>[blank]</code> · Click-In · Nickel Gap · Side Slits · Dekora · Tiga · GRAD · CAMO
+      </div>
+
+<div class="slide-num">15
+
+  </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 16 — GOVERNANCE FRAMEWORK
+     ═══════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">15</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Governance Framework</h1>
+  <div class="subtitle">Master Data Guardian, RACI, change control &amp; critical rules</div>
+
+  <div class="cols-2" style="margin-top: 8px;">
+    <div>
+      <div class="section-label red">Master Data Guardian</div>
+      <div class="card red" style="margin-bottom: 10px;">
+        <p>A <strong>Super Master Data Guardian</strong> must be nominated — single point of accountability for product data integrity across the organisation.</p>
+        <ul style="margin-top: 6px;">
+          <li>
+<strong>Authority:</strong> No product CRUD without Guardian validation</li>
+          <li>
+<strong>Scope:</strong> All entities, all product types, all governed fields</li>
+          <li>
+<strong>Cadence:</strong> Weekly review, monthly audit</li>
+        </ul>
+      </div>
+
+      <div class="section-label" style="margin-top: 6px;">Change Control Process</div>
+      <div class="flow-diagram" style="font-size: 10px; padding: 10px 14px;">
+<span class="label">1. REQUEST</span>    <span class="arrow">→</span> Fields, current → proposed, justification
+<span class="label">2. REVIEW</span>     <span class="arrow">→</span> Cross-domain &amp; financial impact
+<span class="label">3. APPROVE</span>    <span class="arrow">→</span> Guardian sign-off (or escalate)
+<span class="label">4. EXECUTE</span>    <span class="arrow">→</span> Applied in Odoo
+<span class="label">5. VALIDATE</span>   <span class="arrow">→</span> Metrics, orders, planning intact?
+<span class="label">6. DOCUMENT</span>   <span class="arrow">→</span> Change logged in register</div>
+    </div>
+    <div>
+      <div class="section-label green">RACI Matrix</div>
+      <table>
+        <tr>
+<th>Field Family</th>
+<th>R</th>
+<th>A</th>
+<th>C</th>
+<th>I</th>
+</tr>
+        <tr>
+<td>Identity</td>
+<td>MDG</td>
+<td>COO</td>
+<td>Sales</td>
+<td>All</td>
+</tr>
+        <tr>
+<td>Geometry — Metric</td>
+<td>CTO</td>
+<td>MDG</td>
+<td>Prod.</td>
+<td>Finance</td>
+</tr>
+        <tr>
+<td>Geometry — Imperial</td>
+<td>CTO</td>
+<td>MDG</td>
+<td>US Sales</td>
+<td>Finance</td>
+</tr>
+        <tr>
+<td>Packaging</td>
+<td>Planning</td>
+<td>MDG</td>
+<td>Logistics</td>
+<td>Sales</td>
+</tr>
+        <tr>
+<td>Classification</td>
+<td>Prod. Mgmt</td>
+<td>MDG</td>
+<td>Eng.</td>
+<td>Mktg</td>
+</tr>
+        <tr>
+<td>Lifecycle</td>
+<td>Prod. Mgmt</td>
+<td>MDG</td>
+<td>Sales</td>
+<td>All</td>
+</tr>
+        <tr>
+<td>Compliance</td>
+<td>Finance</td>
+<td>MDG</td>
+<td>Legal</td>
+<td>Ops</td>
+</tr>
+        <tr>
+<td>Manufacturing</td>
+<td>Planning</td>
+<td>MDG</td>
+<td>Eng.</td>
+<td>Finance</td>
+</tr>
+        <tr>
+<td>Pricing</td>
+<td>Finance</td>
+<td>CFO</td>
+<td>Sales</td>
+<td>MDG</td>
+</tr>
+      </table>
+
+      <div class="section-label red" style="margin-top: 10px;">Critical Rules</div>
+      <ul style="font-size: 10.5px;">
+        <li>No bulk updates without Guardian approval</li>
+        <li>No Studio field creation without documentation</li>
+        <li>No field renaming (Studio limitation)</li>
+        <li>Metric fields read-only for non-Engineering</li>
+        <li>Lifecycle transitions are one-way</li>
+        <li>Imperial derives from Metric</li>
+      </ul>
+
+<div class="slide-num">16
+
+  </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 17 — FIELD NAMING & DEVELOPMENT RULES
+     ═══════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">16</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Development Rules &amp; Field Naming</h1>
+  <div class="subtitle">Code architecture, naming conventions, and known gotchas</div>
+
+  <div class="cols-2" style="margin-top: 8px;">
+    <div>
+      <div class="section-label">Field Naming Convention</div>
+      <table>
+        <tr>
+<th>Pattern</th>
+<th>Origin</th>
+<th>Rule</th>
+</tr>
+        <tr>
+<td><code>x_studio_*</code></td>
+<td>Odoo Studio</td>
+<td>Read-only in code</td>
+</tr>
+        <tr>
+<td><code>x_kebony_*</code></td>
+<td>Python (bol_report)</td>
+<td>Native codebase field</td>
+</tr>
+        <tr>
+<td><code>kebony_*</code></td>
+<td>Python (manufacturing)</td>
+<td>Newer naming standard</td>
+</tr>
+        <tr>
+<td>Standard Odoo</td>
+<td>Core</td>
+<td>Follow Odoo conventions</td>
+</tr>
+      </table>
+
+      <div class="section-label" style="margin-top: 14px;">Code Architecture Rules</div>
+      <ul>
+        <li>
+<strong>No duplicate logic</strong> — all metric computations centralised in <code>KebonyMetricsMixin</code>
+</li>
+        <li>
+<strong>Studio fields documented exactly as named</strong> — typos in <code>x_studio_word_species</code> and <code>x_studio_customer_catagory</code> are permanent</li>
+        <li>
+<strong>No hidden logic</strong> — all derived fields reproducible from base geometry</li>
+        <li>
+<strong>All computed fields must declare dependencies</strong> via <code>@api.depends</code>
+</li>
+      </ul>
+    </div>
+    <div>
+      <div class="section-label orange">Import &amp; Migration Reference</div>
+      <table>
+        <tr>
+<th>Sheet</th>
+<th>Purpose</th>
+<th>Records</th>
+</tr>
+        <tr>
+<td>MASTERDATA_METRIC_import</td>
+<td>Metric products (81 cols)</td>
+<td>147</td>
+</tr>
+        <tr>
+<td>MASTERDATA_IMPERIAL_import</td>
+<td>Imperial products</td>
+<td>117</td>
+</tr>
+        <tr>
+<td>import_master item</td>
+<td>Master Item grouping</td>
+<td>~70</td>
+</tr>
+        <tr>
+<td>import_master variant</td>
+<td>Master Variant grouping</td>
+<td>~80</td>
+</tr>
+      </table>
+
+      <div class="section-label" style="margin-top: 14px;">Known Field Name Mappings</div>
+      <table>
+        <tr>
+<th>Actual Technical Name</th>
+<th>Old / Simplified Name</th>
+</tr>
+        <tr>
+<td><code>x_studio_master_item_code</code></td>
+<td>x_master_item_code</td>
+</tr>
+        <tr>
+<td><code>x_studio_master_variant_code_1</code></td>
+<td>x_master_variant_code</td>
+</tr>
+        <tr>
+<td><code>x_studio_word_species</code></td>
+<td>x_wood_species</td>
+</tr>
+        <tr>
+<td><code>x_studio_many2one_field_3oj…</code></td>
+<td>Application</td>
+</tr>
+        <tr>
+<td><code>x_studio_many2one_field_6up…</code></td>
+<td>Shape Value</td>
+</tr>
+        <tr>
+<td><code>x_studio_pcslayer</code></td>
+<td>x_pcs_per_layer</td>
+</tr>
+      </table>
+
+      <div class="callout" style="margin-top: 10px;">
+        Studio-generated field names with random suffixes are permanent Odoo identifiers. Always use the exact technical name.
+      </div>
+
+<div class="slide-num">17
+
+  </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 18 — STRATEGIC IMPACT
+     ═══════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">17</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Strategic Impact</h1>
+  <div class="subtitle">Why Product Master Data is infrastructure — not just a catalogue</div>
+
+  <div class="cols-2" style="margin-top: 16px;">
+    <div>
+      <div class="card blue" style="margin-bottom: 12px;">
+        <h3>1. Cubic-Based Margin Logic</h3>
+        <p>Every financial KPI reconciles to m³ through the normalised volume ratio</p>
+      </div>
+      <div class="card green" style="margin-bottom: 12px;">
+        <h3>2. Dryer-Centric Manufacturing</h3>
+        <p>Planning family links products to process parameters and bottleneck constraints</p>
+      </div>
+      <div class="card orange" style="margin-bottom: 12px;">
+        <h3>3. FIFO Integrity</h3>
+        <p>Lot-valuated tracking with mandatory lot assignment prevents cost mixing</p>
+      </div>
+      <div class="card purple">
+        <h3>4. Multi-Entity Operations</h3>
+        <p>Shared product masters across BNV (manufacturing), INC (distribution), Holding</p>
+      </div>
+    </div>
+    <div>
+      <div class="card blue" style="margin-bottom: 12px;">
+        <h3>5. Analytical Accounting</h3>
+        <p>Product category and classification drive GL routing and analytic distribution</p>
+      </div>
+      <div class="card green" style="margin-bottom: 12px;">
+        <h3>6. Trade Compliance</h3>
+        <p>HS codes, commodity codes, and country of origin are first-class governed fields</p>
+      </div>
+      <div class="card orange">
+        <h3>7. No SKU Explosion</h3>
+        <p>Treatment at lot level, no dimensional variants, three-level hierarchy — ~490 products instead of ~11,200</p>
+      </div>
+
+      <div class="callout critical" style="margin-top: 16px;">
+        <strong>Design principle:</strong> Product Master Data is infrastructure. It must be treated with the same rigour as financial chart of accounts or manufacturing Bill of Materials.
+      </div>
+
+<div class="slide-num">18
+
+  </div>
+
+</div>
+</div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">18</div>
+  </div>
+</div>
+
+</body>
+</html>

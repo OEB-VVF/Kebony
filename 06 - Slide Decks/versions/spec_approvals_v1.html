@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0">
+<title>Spec Approvals — Vendor Bills &amp; Purchase Orders</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    body { background: none; padding: 0; gap: 0; }
+    .slide { box-shadow: none; border-radius: 0; margin: 0;
+             page-break-inside: avoid; page-break-after: always; }
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    gap: 30px;
+  }
+
+  .slide {
+    width: 1280px;
+    min-height: 720px;
+    max-height: 720px;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    padding: 38px 50px 36px;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+  }
+
+  .slide::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
+
+  /* ── Title slide ── */
+  .slide.title-slide {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .slide.title-slide::before {
+    height: 8px;
+  }
+  .slide.title-slide h1 {
+    font-size: 36px;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .slide.title-slide .subtitle {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 32px;
+  }
+  .slide.title-slide .meta {
+    font-size: 12px;
+    color: #999;
+    line-height: 1.8;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+  }
+
+  h2 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0f3460;
+    margin-bottom: 10px;
+    margin-top: 14px;
+  }
+
+  h3 {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 16px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #0f3460;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid #0f3460;
+    display: inline-block;
+  }
+
+  .section-label.red { color: #c62828; border-color: #c62828; }
+  .section-label.green { color: #2e7d32; border-color: #2e7d32; }
+  .section-label.orange { color: #e65100; border-color: #e65100; }
+
+  /* ── Flow diagrams ── */
+  .flow-diagram {
+    background: #fafbfc;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 8px 0;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 10.5px;
+    line-height: 1.55;
+    color: #333;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .flow-diagram .label { color: #0f3460; font-weight: 700; }
+  .flow-diagram .highlight { color: #c62828; font-weight: 600; }
+  .flow-diagram .green { color: #2e7d32; font-weight: 600; }
+  .flow-diagram .arrow { color: #999; }
+  .flow-diagram .dim { color: #aaa; }
+  .flow-diagram .blue { color: #0f3460; font-weight: 600; }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    margin: 6px 0;
+  }
+
+  th {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #888;
+    text-align: left;
+    padding: 4px 6px 5px;
+    border-bottom: 2px solid #ddd;
+  }
+
+  td {
+    padding: 4px 6px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #333;
+    vertical-align: top;
+  }
+
+  .muted { color: #bbb; }
+
+  /* ── Columns ── */
+  .cols-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .cols-2.wide-left {
+    grid-template-columns: 1.15fr 0.85fr;
+  }
+
+  .cols-2.wide-right {
+    grid-template-columns: 0.85fr 1.15fr;
+  }
+
+  .cols-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  /* ── Callouts ── */
+  .callout {
+    background: #fff8e1;
+    border-left: 4px solid #ffa000;
+    padding: 10px 14px;
+    font-size: 11px;
+    line-height: 1.5;
+    margin: 8px 0;
+    border-radius: 0 6px 6px 0;
+  }
+
+  .callout.blue {
+    background: #e8eaf6;
+    border-color: #3949ab;
+  }
+
+  .callout.green {
+    background: #e8f5e9;
+    border-color: #2e7d32;
+  }
+
+  .callout.red {
+    background: #ffebee;
+    border-color: #c62828;
+  }
+
+  /* ── Status badges ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  .badge.draft { background: #f5f5f5; color: #666; }
+  .badge.waiting { background: #fff3e0; color: #e65100; }
+  .badge.approved { background: #e8f5e9; color: #2e7d32; }
+  .badge.rejected { background: #ffebee; color: #c62828; }
+  .badge.posted { background: #e8eaf6; color: #283593; }
+
+  /* ── Step boxes ── */
+  .step-box {
+    background: #fafbfc;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin: 6px 0;
+  }
+
+  .step-box h3 {
+    font-size: 12px;
+    margin-bottom: 6px;
+    color: #0f3460;
+  }
+
+  .step-box p, .step-box li {
+    font-size: 11px;
+    line-height: 1.5;
+    color: #444;
+  }
+
+  .step-box ul {
+    padding-left: 16px;
+    margin-top: 4px;
+  }
+
+  /* ── Arrows between steps ── */
+  .step-arrow {
+    text-align: center;
+    font-size: 20px;
+    color: #ccc;
+    margin: 2px 0;
+  }
+
+  /* ── Card grid ── */
+  .card {
+    background: #fafbfc;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px 16px;
+  }
+
+  .card h3 {
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+
+  .card p, .card li {
+    font-size: 10.5px;
+    line-height: 1.5;
+    color: #444;
+  }
+
+  .card ul {
+    padding-left: 14px;
+    margin-top: 4px;
+  }
+
+  /* ── Inline code ── */
+  code {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 10px;
+    background: #f0f0f0;
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: #c62828;
+  }
+
+  p {
+    font-size: 12px;
+    line-height: 1.6;
+    color: #444;
+  }
+
+  li {
+    font-size: 11.5px;
+    line-height: 1.55;
+    color: #444;
+    margin-bottom: 3px;
+  }
+
+  ul { padding-left: 18px; }
+  .slide-number { font-size: 10px; color: #bbb; }
+  /* ── Logo ── */
+  .logo-title {
+    position: absolute; top: 30px; right: 40px;
+    height: 80px; opacity: 0.9;
+  }
+  .slide-footer {
+    position: absolute; bottom: 10px; left: 20px; right: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .prepared-by {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .prepared-by span {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+  .prepared-by img {
+    height: 22px; opacity: 0.7;
+  }
+  .footer-project {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 1 — TITLE
+     ═══════════════════════════════════════════════════════════════ -->
+
+<div class="slide title-slide">
+
+  <img src="VVF-logo.png" alt="VVF" class="logo-title">
+  <h1>Spec Approvals</h1>
+  <div class="subtitle">Multi-Level Approval Workflow for Vendor Bills &amp; Purchase Orders</div>
+  <div class="meta">
+    Kebony Inc. — Odoo 19 Custom Module<br>
+    Prepared by VVF Consulting / Eberhard S.à r.l.-S<br>
+    March 2026 — v2.0
+
+  </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 2 — OVERVIEW
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">1</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Overview — What &amp; Why</h1>
+  <div class="subtitle">A unified approval layer for financial documents</div>
+
+  <div class="cols-2" style="margin-top:12px;">
+    <div>
+      <h2>Business Need</h2>
+      <ul>
+        <li>All <strong>Vendor Bills</strong> and <strong>Purchase Orders</strong> must be approved before posting/confirmation</li>
+        <li>Approval chain driven by the <strong>Business Unit</strong> assigned to each vendor</li>
+        <li>Optional <strong>amount-based thresholds</strong> trigger additional approvers</li>
+        <li>Full audit trail with email notifications at each step</li>
+      </ul>
+
+      <h2>Scope</h2>
+      <ul>
+        <li>
+<code>account.move</code> — Vendor Bills</li>
+        <li>
+<code>purchase.order</code> — Purchase Orders</li>
+        <li>New <code>kebony.approval</code> configuration model</li>
+        <li>Centralized approval list view &amp; follow-up widget</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Key Principles</h2>
+      <div class="card" style="margin-bottom:10px;">
+        <h3>Vendor-Driven Routing</h3>
+        <p>Each vendor has a Business Unit. The BU determines which approval rule applies.</p>
+      </div>
+      <div class="card" style="margin-bottom:10px;">
+        <h3>Sequential Approval</h3>
+        <p>Approver 1 must sign off before Approver 2 is notified. No parallel approval.</p>
+      </div>
+      <div class="card" style="margin-bottom:10px;">
+        <h3>Blocking Workflow</h3>
+        <p>Documents cannot be posted/confirmed until all required approvers have approved.</p>
+      </div>
+      <div class="card">
+        <h3>Rejection Loop</h3>
+        <p>Rejected documents return to the responsible user for corrections, then re-enter the approval chain.</p>
+
+      </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 3 — BUSINESS UNITS
+     ═══════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">2</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Vendor Business Units</h1>
+  <div class="subtitle">Every vendor must have a Business Unit assigned on their partner record</div>
+
+  <div class="cols-2" style="margin-top:12px;">
+    <div>
+      <h2>Business Unit Values</h2>
+      <table>
+        <tr>
+<th>Business Unit</th>
+<th>Description</th>
+<th>Example Vendors</th>
+</tr>
+        <tr>
+<td><strong>Marketing</strong></td>
+<td>Agencies, events, promotional materials</td>
+<td>Ad agencies, event suppliers</td>
+</tr>
+        <tr>
+<td><strong>Production</strong></td>
+<td>Manufacturing and production suppliers</td>
+<td>Raw material, chemicals</td>
+</tr>
+        <tr>
+<td><strong>Logistics</strong></td>
+<td>Transport, freight, shipping</td>
+<td>Carriers, freight forwarders</td>
+</tr>
+        <tr>
+<td><strong>Warehousing</strong></td>
+<td>Storage and warehouse services</td>
+<td>3PL providers, storage</td>
+</tr>
+      </table>
+
+      <div class="callout red" style="margin-top:16px;">
+        <strong>Important:</strong> Business Units may differ depending on the supplier. This means we need <strong>several Approval rules per model</strong> — one per Business Unit configuration.
+      </div>
+    </div>
+    <div>
+      <h2>Vendor Form Configuration</h2>
+      <div class="step-box">
+        <h3>New Fields on <code>res.partner</code>
+</h3>
+        <ul>
+          <li>
+<strong>Supplier Category:</strong> Marketing, Production, Logistics, Warehousing</li>
+          <li>
+<strong>Supplier Dept:</strong> Linked Business Unit selection</li>
+          <li>
+<strong>Business Unit:</strong> Required field for approval routing</li>
+        </ul>
+        <p style="margin-top:8px; font-size:10.5px; color:#888;">
+          These fields appear on the <em>Sales &amp; Purchases</em> tab of the vendor form.
+        </p>
+      </div>
+
+      <div class="callout" style="margin-top:12px;">
+        <strong>Prerequisite:</strong> Vendors need to have a destination "Business Unit" before any approval workflow can route correctly.
+
+      </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 4 — APPROVAL MODEL
+     ═══════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">3</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>New Approvals Model / App</h1>
+  <div class="subtitle">
+<code>kebony.approval</code> — Central configuration for all approval rules</div>
+
+  <div class="cols-2" style="margin-top:8px;">
+    <div>
+      <h2>Core Configuration Fields</h2>
+      <table>
+        <tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+        <tr>
+<td><strong>Approval name</strong></td>
+<td>Descriptive label for the rule</td>
+</tr>
+        <tr>
+<td><strong>Model</strong></td>
+<td>
+<code>account.move</code> or <code>purchase.order</code>
+</td>
+</tr>
+        <tr>
+<td><strong>Company</strong></td>
+<td>Scoped to a specific company</td>
+</tr>
+        <tr>
+<td><strong>Approver 1</strong></td>
+<td>First (mandatory) approver</td>
+</tr>
+        <tr>
+<td><strong>Approver 2</strong></td>
+<td>Second approver (conditional)</td>
+</tr>
+        <tr>
+<td><strong>Business Unit</strong></td>
+<td>Links rule to vendor's BU</td>
+</tr>
+        <tr>
+<td><strong>Business Unit Head</strong></td>
+<td>Auto-resolved from BU config</td>
+</tr>
+      </table>
+
+      <h2>Amount-Based Extra Approver</h2>
+      <div class="step-box">
+        <h3><code>Approver extra</code></h3>
+        <ul>
+          <li>
+<strong>Based on amount</strong> — checkbox to enable threshold</li>
+          <li>
+<strong>Min</strong> — minimum amount (currency) triggering extra approval</li>
+          <li>
+<strong>Amount approver</strong> — user who must approve above threshold</li>
+        </ul>
+        <p style="margin-top:6px; font-size:10.5px; color:#888;">Min &amp; Amount approver fields only displayed if "Based on amount" is checked.</p>
+      </div>
+    </div>
+    <div>
+      <h2>Model Selection Logic</h2>
+      <div class="flow-diagram">
+<span class="label">Select between:</span>
+<span class="dim">  ├─</span> <span class="blue">account.move</span>     <span class="dim">(Vendor Bill approvals)</span>
+<span class="dim">  │   └─</span> for specific vendor
+<span class="dim">  │       Company / BU combo</span>
+<span class="dim">  │</span>
+<span class="dim">  └─</span> <span class="blue">purchase.order</span>   <span class="dim">(PO approvals)</span>
+<span class="dim">      └─</span> for specific vendor
+<span class="dim">          Company / BU combo</span>
+
+<span class="label">Select any other model :</span>
+<span class="dim">  └─</span> <span class="green">Custom fields</span>
+</div>
+
+      <h2>Validation Rules</h2>
+      <div class="card" style="margin-bottom:8px;">
+        <h3>Vendor Bills (<code>account.move</code>)</h3>
+        <p><strong>Always 2 validators:</strong> BU Head + another BU unit head (e.g., Finance)</p>
+      </div>
+      <div class="card">
+        <h3>Purchase Orders (<code>purchase.order</code>)</h3>
+        <ul>
+          <li>
+<strong>1 validator</strong> if one → PO responsible only</li>
+          <li>
+<strong>2 validators</strong> if no → BU Head + another BU head (e.g., Finance)</li>
+        </ul>
+
+      </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 5 — VENDOR BILL WORKFLOW
+     ═══════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">4</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Workflow — Vendor Bills</h1>
+  <div class="subtitle">
+<code>account.move</code> approval lifecycle</div>
+
+  <div class="cols-2 wide-left" style="margin-top:8px;">
+    <div>
+      <h2>Step-by-Step Flow</h2>
+
+      <div class="step-box">
+        <h3>Step 1 — User Confirms the Bill</h3>
+        <ul>
+          <li>User opens Vendor Bill in <span class="badge draft">Draft</span> status</li>
+          <li>Clicks <strong>Confirm</strong>
+</li>
+          <li>System sends email notification to <strong>Approver 1</strong>
+</li>
+          <li>Status → <span class="badge waiting">Waiting for Approval</span>
+</li>
+        </ul>
+      </div>
+
+      <div class="step-arrow">↓</div>
+
+      <div class="step-box">
+        <h3>Step 2 — Approver Reviews</h3>
+        <ul>
+          <li>Approver sees <strong style="color:#2e7d32;">Approve</strong> and <strong style="color:#c62828;">Reject</strong> buttons</li>
+          <li>
+<strong>Approve</strong> → if Approver 2 exists, notification sent to next approver</li>
+          <li>
+<strong>Reject</strong> → email sent to Bill responsible to make changes</li>
+        </ul>
+      </div>
+
+      <div class="step-arrow">↓</div>
+
+      <div class="step-box">
+        <h3>Step 3 — Final Approval &amp; Posting</h3>
+        <ul>
+          <li>Final approver clicks Approve → status changes to <span class="badge approved">Approved</span>
+</li>
+          <li>Users from <strong>"Accounting Department"</strong> group can then <strong>post</strong> the invoice</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <h2>Status Values</h2>
+      <table>
+        <tr>
+<th>Status</th>
+<th>Meaning</th>
+</tr>
+        <tr>
+<td><span class="badge draft">Draft</span></td>
+<td>Initial state — editable</td>
+</tr>
+        <tr>
+<td><span class="badge waiting">Waiting for Approval</span></td>
+<td>Confirmed, pending approver action</td>
+</tr>
+        <tr>
+<td><span class="badge approved">Approved</span></td>
+<td>All approvers signed off</td>
+</tr>
+        <tr>
+<td><span class="badge rejected">Approval Rejected</span></td>
+<td>Returned for changes</td>
+</tr>
+        <tr>
+<td><span class="badge posted">Posted</span></td>
+<td>Standard Odoo posted state</td>
+</tr>
+      </table>
+
+      <h2>Approval Flow Diagram</h2>
+      <div class="flow-diagram">
+<span class="label">User</span> clicks <span class="blue">Confirm</span>
+  <span class="arrow">│</span>
+  <span class="arrow">▼</span>
+<span class="label">Approver 1</span> receives notification
+  <span class="arrow">├──</span> <span class="green">Approve</span> <span class="arrow">──▶</span> <span class="label">Approver 2</span> notified
+  <span class="arrow">│</span>                   <span class="arrow">├──</span> <span class="green">Approve</span> <span class="arrow">──▶</span> <span class="green">✓ Approved</span>
+  <span class="arrow">│</span>                   <span class="arrow">└──</span> <span class="highlight">Reject</span>  <span class="arrow">──▶</span> Back to responsible
+  <span class="arrow">└──</span> <span class="highlight">Reject</span>  <span class="arrow">──▶</span> Back to responsible
+
+<span class="dim">After approval:</span>
+<span class="green">Accounting Dept</span> <span class="arrow">──▶</span> <span class="blue">Post Invoice</span>
+</div>
+
+      <div class="callout red" style="margin-top:8px;">
+        <strong>Rule:</strong> All vendor bills must be approved by their respective BU head. Only <strong>Accounting Department</strong> users can post after approval.
+
+      </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 6 — PO DEVIATION CONTROL
+     ═══════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">5</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Invoice Validation — PO Deviation Control</h1>
+  <div class="subtitle">Strengthening 3-way matching with threshold-based deviation checks</div>
+
+  <div class="cols-2" style="margin-top:12px;">
+    <div>
+      <h2>Why Standard 3-Way Matching Falls Short</h2>
+      <div class="card" style="margin-bottom:10px;">
+        <h3>Odoo Native Behaviour</h3>
+        <p>Standard 3-way matching (PO → Receipt → Invoice) only checks that a receipt exists. It does <strong>not</strong> flag price or quantity deviations between the PO and the vendor bill.</p>
+      </div>
+      <div class="card" style="margin-bottom:10px;">
+        <h3>The Risk</h3>
+        <ul>
+          <li>Vendor invoices higher unit prices than agreed on PO</li>
+          <li>Invoiced quantities exceed received quantities</li>
+          <li>Additional charges or fees not on the original PO</li>
+          <li>All pass through without detection under standard matching</li>
+        </ul>
+      </div>
+
+      <h2>Proposed Enhancement</h2>
+      <div class="step-box">
+        <h3>Deviation Check Before Approval</h3>
+        <p>When a vendor bill is confirmed, the system compares each bill line against the linked PO line and flags deviations exceeding configurable thresholds.</p>
+      </div>
+    </div>
+    <div>
+      <h2>Threshold Configuration</h2>
+      <table>
+        <tr>
+<th>Check</th>
+<th>Comparison</th>
+<th>Threshold</th>
+</tr>
+        <tr>
+<td><strong>Unit Price</strong></td>
+<td>Bill line price vs PO line price</td>
+<td>% tolerance (e.g., 5%)</td>
+</tr>
+        <tr>
+<td><strong>Quantity</strong></td>
+<td>Bill qty vs received qty</td>
+<td>% tolerance (e.g., 10%)</td>
+</tr>
+        <tr>
+<td><strong>Line Total</strong></td>
+<td>Bill line amount vs PO line amount</td>
+<td>Absolute &amp; % tolerance</td>
+</tr>
+        <tr>
+<td><strong>Unmatched Lines</strong></td>
+<td>Bill lines with no PO reference</td>
+<td>Always flagged</td>
+</tr>
+      </table>
+
+      <h2>Workflow Integration</h2>
+      <div class="flow-diagram">
+<span class="label">Bill Confirmed</span>
+  <span class="arrow">│</span>
+  <span class="arrow">▼</span>
+<span class="label">Deviation Check</span>
+  <span class="arrow">├──</span> <span class="green">Within tolerance</span> <span class="arrow">──▶</span> Normal approval flow
+  <span class="arrow">│</span>
+  <span class="arrow">└──</span> <span class="highlight">Exceeds tolerance</span> <span class="arrow">──▶</span> <span class="highlight">Flagged for review</span>
+       <span class="arrow">└──</span> Deviation details visible
+            in Approvals tab
+            <span class="arrow">└──</span> Approver must <span class="green">Accept</span>
+                 or <span class="highlight">Reject</span> deviation</div>
+
+      <div class="callout red" style="margin-top:8px;">
+        <strong>Key rule:</strong> Bills with deviations above threshold <strong>cannot</strong> be approved without explicit acknowledgement of the deviation by the approver.
+
+      </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 7 — PURCHASE ORDER WORKFLOW
+     ═══════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">6</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Workflow — Purchase Orders</h1>
+  <div class="subtitle">
+<code>purchase.order</code> approval lifecycle</div>
+
+  <div class="cols-2 wide-left" style="margin-top:8px;">
+    <div>
+      <h2>Step-by-Step Flow</h2>
+
+      <div class="step-box">
+        <h3>Step 1 — User Confirms the PO</h3>
+        <ul>
+          <li>User opens RFQ / Purchase Order</li>
+          <li>Clicks <strong>Confirm</strong>
+</li>
+          <li>System sends email notification to <strong>Approver 1</strong>
+</li>
+          <li>Status → <span class="badge waiting">Waiting for Approval</span>
+</li>
+        </ul>
+      </div>
+
+      <div class="step-arrow">↓</div>
+
+      <div class="step-box">
+        <h3>Step 2 — Approver Reviews</h3>
+        <ul>
+          <li>Approver sees <strong style="color:#2e7d32;">Approve</strong> and <strong style="color:#c62828;">Reject</strong> buttons</li>
+          <li>
+<strong>Approve</strong> → if Approver 2 exists, notification sent to next approver</li>
+          <li>
+<strong>Reject</strong> → email sent to PO responsible to make changes</li>
+        </ul>
+      </div>
+
+      <div class="step-arrow">↓</div>
+
+      <div class="step-box">
+        <h3>Step 3 — Final Approval</h3>
+        <ul>
+          <li>Final approver clicks Approve → status changes to <span class="badge approved">Approved</span>
+</li>
+          <li>Users from <strong>"PO Department"</strong> group can then proceed with the Purchase Order</li>
+        </ul>
+      </div>
+
+      <div class="callout" style="margin-top:10px;">
+        <strong>PO-Specific:</strong> If only 1 validator is configured, only the PO responsible approves. With 2 validators, the BU Head + another BU head (e.g., Finance) must both approve.
+      </div>
+    </div>
+    <div>
+      <h2>Status Values</h2>
+      <table>
+        <tr>
+<th>Status</th>
+<th>Meaning</th>
+</tr>
+        <tr>
+<td><span class="badge draft">Draft</span></td>
+<td>Initial state (RFQ)</td>
+</tr>
+        <tr>
+<td><span class="badge waiting">Waiting for Approval</span></td>
+<td>Confirmed, pending approval</td>
+</tr>
+        <tr>
+<td><span class="badge approved">Approved</span></td>
+<td>All approvers signed off</td>
+</tr>
+        <tr>
+<td><span class="badge rejected">Approval Rejected</span></td>
+<td>Returned for changes</td>
+</tr>
+        <tr>
+<td><span class="badge posted">Purchase Order</span></td>
+<td>Standard Odoo confirmed PO</td>
+</tr>
+      </table>
+
+      <h2>PO Approval Flow</h2>
+      <div class="flow-diagram">
+<span class="label">User</span> clicks <span class="blue">Confirm</span>
+  <span class="arrow">│</span>
+  <span class="arrow">▼</span>
+<span class="label">Approver 1</span> receives notification
+  <span class="arrow">├──</span> <span class="green">Approve</span> <span class="arrow">──▶</span> <span class="label">Approver 2</span> (if exists)
+  <span class="arrow">│</span>                   <span class="arrow">├──</span> <span class="green">Approve</span> <span class="arrow">──▶</span> <span class="green">✓ Approved</span>
+  <span class="arrow">│</span>                   <span class="arrow">└──</span> <span class="highlight">Reject</span>  <span class="arrow">──▶</span> Back to responsible
+  <span class="arrow">└──</span> <span class="highlight">Reject</span>  <span class="arrow">──▶</span> Back to responsible
+
+<span class="dim">After approval:</span>
+<span class="green">PO Department</span> <span class="arrow">──▶</span> <span class="blue">Confirm PO</span>
+</div>
+
+      <h2>Conditional Validators</h2>
+      <div class="card">
+        <table>
+          <tr>
+<th>Condition</th>
+<th>Validators</th>
+</tr>
+          <tr>
+<td>PO linked to a single responsible</td>
+<td>
+<strong>1</strong> — PO responsible only</td>
+</tr>
+          <tr>
+<td>No single responsible / complex</td>
+<td>
+<strong>2</strong> — BU Head + Finance (or other BU Head)</td>
+</tr>
+        </table>
+
+      </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 7 — APPROVALS FOLLOW-UP
+     ═══════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">7</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Approvals Follow-Up &amp; UI</h1>
+  <div class="subtitle">Embedded widgets, list views, and tracking</div>
+
+  <div class="cols-2" style="margin-top:8px;">
+    <div>
+      <h2>Approvals Tab (on Documents)</h2>
+      <div class="step-box">
+        <p>A new <strong>"Approvals"</strong> tab is added to both Vendor Bill and Purchase Order forms, alongside Invoice Lines, Journal Items, and Other Info.</p>
+        <p style="margin-top:6px;">This tab shows:</p>
+        <ul>
+          <li>Current approval status &amp; history</li>
+          <li>Which approver is next in line</li>
+          <li>Timestamps of each approval/rejection action</li>
+        </ul>
+      </div>
+
+      <h2>Follow-Up Widget</h2>
+      <div class="step-box">
+        <h3>Embedded in Document Form</h3>
+        <ul>
+          <li>
+<strong>Approver 1 / Approver 2</strong> tabs showing individual status</li>
+          <li>
+<strong>Status</strong> color-coded progress bar</li>
+          <li>Created as a <strong>sub-task</strong> linked to the document</li>
+          <li>
+<strong>Statusbar widget</strong> for visual progression</li>
+        </ul>
+      </div>
+
+      <h2>Tags for Tracking</h2>
+      <table>
+        <tr>
+<th>Tag</th>
+<th>Color</th>
+<th>Meaning</th>
+</tr>
+        <tr>
+<td><span class="badge waiting">Waiting for Approval</span></td>
+<td>Orange</td>
+<td>Pending approver action</td>
+</tr>
+        <tr>
+<td><span class="badge approved">Approved</span></td>
+<td>Green</td>
+<td>Approver signed off</td>
+</tr>
+        <tr>
+<td><span class="badge rejected">Rejected</span></td>
+<td>Red</td>
+<td>Approver rejected</td>
+</tr>
+      </table>
+    </div>
+    <div>
+      <h2>Centralized Approval List View</h2>
+      <p style="margin-bottom:8px;">All requested approvals grouped in a single list, sortable and filterable:</p>
+      <table>
+        <tr>
+<th>Column</th>
+<th>Description</th>
+</tr>
+        <tr>
+<td><strong>Date</strong></td>
+<td>Approval request date</td>
+</tr>
+        <tr>
+<td><strong>Delay</strong></td>
+<td>Time elapsed since request</td>
+</tr>
+        <tr>
+<td><strong>Approver</strong></td>
+<td>Assigned approver</td>
+</tr>
+        <tr>
+<td><strong>Supplier</strong></td>
+<td>Vendor on the document</td>
+</tr>
+        <tr>
+<td><strong>Model</strong></td>
+<td>Bill or PO</td>
+</tr>
+        <tr>
+<td><strong>Business Unit</strong></td>
+<td>Vendor's BU</td>
+</tr>
+        <tr>
+<td><strong>Amount</strong></td>
+<td>Document total amount</td>
+</tr>
+        <tr>
+<td><strong>Status</strong></td>
+<td>Current approval status</td>
+</tr>
+      </table>
+      <div class="callout blue" style="margin-top:8px;">
+        <strong>Dynamic fields:</strong> Additional columns adapt based on the Model — Vendor Bill-specific fields vs Purchase Order-specific fields.
+      </div>
+
+      <h2>Invoice Tracking Dashboard</h2>
+      <div class="card">
+        <h3>SUIVI DES FACTURES</h3>
+        <ul>
+          <li>
+<strong>Time filters:</strong> 1 Jour, 1 Mois, 2 Mois</li>
+          <li>
+<strong>Date range:</strong> Custom period selector</li>
+          <li>
+<strong>Reminders:</strong> Overdue approval tracking</li>
+          <li>
+<strong>Maturity:</strong> Payment maturity overview</li>
+        </ul>
+
+      </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 8 — NOTIFICATIONS & ACCESS
+     ═══════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">8</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Notifications &amp; Security</h1>
+  <div class="subtitle">Email workflow, access rights, and audit trail</div>
+
+  <div class="cols-2" style="margin-top:12px;">
+    <div>
+      <h2>Notification System</h2>
+
+      <div class="card" style="margin-bottom:10px;">
+        <h3>On Confirm (User → Approver 1)</h3>
+        <p>Email sent to Approver 1 with document link. Chatter message logged.</p>
+      </div>
+
+      <div class="card" style="margin-bottom:10px;">
+        <h3>On Approve (Approver 1 → Approver 2)</h3>
+        <p>If first approver clicks "Approve" and Approver 2 exists, an email/notification is sent to the next approver.</p>
+      </div>
+
+      <div class="card" style="margin-bottom:10px;">
+        <h3>On Reject (Approver → Responsible)</h3>
+        <p>An email/notification is sent back to the Bill/PO responsible so they can make changes and re-submit.</p>
+      </div>
+
+      <div class="card">
+        <h3>On Final Approval</h3>
+        <p>Status changes to "Approved". Accounting / PO Department users can then post or confirm.</p>
+      </div>
+    </div>
+    <div>
+      <h2>Security &amp; Access Control</h2>
+
+      <table>
+        <tr>
+<th>Role</th>
+<th>Can Do</th>
+</tr>
+        <tr>
+<td><strong>Bill/PO Creator</strong></td>
+<td>Create, edit draft, click Confirm</td>
+</tr>
+        <tr>
+<td><strong>Approver (current)</strong></td>
+<td>See Approve/Reject buttons (only when it's their turn)</td>
+</tr>
+        <tr>
+<td><strong>Approver (not current)</strong></td>
+<td>View only — no action buttons</td>
+</tr>
+        <tr>
+<td><strong>Accounting Department</strong></td>
+<td>Post approved Vendor Bills</td>
+</tr>
+        <tr>
+<td><strong>PO Department</strong></td>
+<td>Confirm approved Purchase Orders</td>
+</tr>
+      </table>
+
+      <h2>Audit Trail</h2>
+      <div class="step-box">
+        <ul>
+          <li>All approval actions logged with <strong>timestamp + user</strong>
+</li>
+          <li>Chatter messages on each state transition</li>
+          <li>Rejection reason tracked for accountability</li>
+          <li>Full history visible in the Approvals tab</li>
+        </ul>
+      </div>
+
+      <div class="callout green" style="margin-top:10px;">
+        <strong>Key design:</strong> Approvers only see Approve/Reject buttons when it is specifically their turn in the chain. This prevents out-of-order approvals.
+
+      </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 10 — BUDGET CONTROL MODULE
+     ═══════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">9</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Budget Control Module</h1>
+  <div class="subtitle">Linked workstream — developed by VVF in sync with the approval workflow</div>
+
+  <div class="cols-2" style="margin-top:12px;">
+    <div>
+      <h2>Why a Dedicated Module</h2>
+      <div class="card" style="margin-bottom:10px;">
+        <h3>Odoo Native Limitations</h3>
+        <p>Odoo’s built-in budget features are basic (analytic-account level only) and do not integrate with manufacturing cost allocation or inventory valuation standards.</p>
+      </div>
+      <div class="card" style="margin-bottom:10px;">
+        <h3>Accounting Standards Requirement</h3>
+        <p>Under <strong>IAS 2 / ASC 330</strong>, manufacturing indirect costs (overhead) must be capitalized into inventory. Budget control and cost allocation are two sides of the same coin — they must use the same cost pools and rates.</p>
+      </div>
+
+      <h2>Scope — What the Module Covers</h2>
+      <ul>
+        <li>
+<strong>Budget definition</strong> per cost centre / department / BU</li>
+        <li>
+<strong>Budget consumption tracking</strong> against POs and vendor bills</li>
+        <li>
+<strong>Threshold alerts</strong> when spend approaches budget limits</li>
+        <li>
+<strong>Integration with approval workflow</strong> — over-budget POs/bills flagged during approval</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Link to Manufacturing Indirect Costs</h2>
+      <div class="flow-diagram">
+<span class="label">Budget Pools</span>
+  <span class="arrow">├──</span> <span class="blue">Direct costs</span>       <span class="dim">(raw material, chemicals)</span>
+  <span class="arrow">│</span>    <span class="arrow">└──</span> tracked via PO/Bill
+  <span class="arrow">│</span>
+  <span class="arrow">└──</span> <span class="blue">Indirect costs</span>     <span class="dim">(overhead, utilities, maint.)</span>
+       <span class="arrow">├──</span> Budget module tracks spend
+       <span class="arrow">└──</span> <span class="green">Same rates</span> feed inventory
+            valuation (IAS 2 / ASC 330)</div>
+
+      <div class="callout blue" style="margin-top:12px;">
+        <strong>One source of truth:</strong> Indirect cost rates defined in the budget module are the same rates used for manufacturing overhead absorption into inventory. No duplication, no drift.
+      </div>
+
+      <h2>Responsibility Split</h2>
+      <table>
+        <tr>
+<th>Component</th>
+<th>Developed By</th>
+</tr>
+        <tr>
+<td>Approval workflow (this deck)</td>
+<td>
+<strong>Odoo</strong> (custom dev)</td>
+</tr>
+        <tr>
+<td>PO deviation checks</td>
+<td>
+<strong>Odoo</strong> (custom dev)</td>
+</tr>
+        <tr>
+<td>Budget control module</td>
+<td><strong>VVF Consulting</strong></td>
+</tr>
+        <tr>
+<td>Manufacturing cost allocation</td>
+<td><strong>VVF Consulting</strong></td>
+</tr>
+      </table>
+
+      <div class="callout green" style="margin-top:10px;">
+        <strong>Sequencing:</strong> The budget module ships alongside or shortly after the approval workflow, so that budget checks can integrate into the approval chain from day one.
+
+      </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 11 — IMPLEMENTATION SUMMARY
+     ═══════════════════════════════════════════════════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">10</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Implementation Summary</h1>
+  <div class="subtitle">Technical components, data model, and responsibility split</div>
+
+  <div class="cols-3" style="margin-top:12px;">
+    <div>
+      <div class="section-label">New Models</div>
+      <div class="card" style="margin-bottom:10px;">
+        <h3><code>kebony.approval</code></h3>
+        <ul>
+          <li>Approval name</li>
+          <li>Model (selection)</li>
+          <li>Company (many2one)</li>
+          <li>Approver 1 (many2one)</li>
+          <li>Approver 2 (many2one)</li>
+          <li>Business Unit (selection)</li>
+          <li>Business Unit Head (related)</li>
+          <li>Based on amount (boolean)</li>
+          <li>Min amount (monetary)</li>
+          <li>Amount approver (many2one)</li>
+        </ul>
+      </div>
+      <div class="card" style="margin-bottom:10px;">
+        <h3><code>kebony.approval.deviation</code></h3>
+        <ul>
+          <li>Bill line (many2one)</li>
+          <li>PO line (many2one)</li>
+          <li>Deviation type (price / qty / unmatched)</li>
+          <li>Expected vs actual values</li>
+          <li>Deviation % and absolute</li>
+          <li>Acknowledged (boolean)</li>
+          <li>Acknowledged by (many2one)</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="section-label green">Modified Models</div>
+      <div class="card" style="margin-bottom:10px;">
+        <h3><code>account.move</code></h3>
+        <ul>
+          <li>Approval status field</li>
+          <li>Approvals tab in form view</li>
+          <li>Deviation summary &amp; detail</li>
+          <li>Follow-up widget</li>
+          <li>Confirm button override</li>
+          <li>Approve / Reject buttons</li>
+        </ul>
+      </div>
+      <div class="card" style="margin-bottom:10px;">
+        <h3><code>purchase.order</code></h3>
+        <ul>
+          <li>Approval status field</li>
+          <li>Approvals tab in form view</li>
+          <li>Follow-up widget</li>
+          <li>Confirm button override</li>
+          <li>Approve / Reject buttons</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3><code>res.partner</code></h3>
+        <ul>
+          <li>Business Unit field (selection)</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="section-label orange">Delivery &amp; Responsibility</div>
+      <div class="card" style="margin-bottom:10px;">
+        <h3>Odoo Custom Dev</h3>
+        <ul>
+          <li>Approval workflow engine</li>
+          <li>PO deviation checks</li>
+          <li>Approval configuration views</li>
+          <li>Centralized approval list</li>
+          <li>Email templates (4)</li>
+          <li>Security groups (3)</li>
+        </ul>
+      </div>
+      <div class="card" style="margin-bottom:10px;">
+        <h3>VVF Consulting</h3>
+        <ul>
+          <li>Budget control module</li>
+          <li>Manufacturing indirect cost allocation</li>
+          <li>Budget ↔ approval integration</li>
+        </ul>
+      </div>
+      <div class="callout blue" style="margin-top:8px;">
+        <strong>Sign-off sequence:</strong> Customer validates this spec → Odoo confirms feasibility → Odoo develops workflow → VVF delivers budget module in parallel.
+      </div>
+    </div>
+
+  </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 12 — VERSION LOG
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">11</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Version Log</h1>
+  <div class="subtitle">Document revision history</div>
+
+  <table style="margin-top:24px; width:80%;">
+    <tr>
+<th>Version</th>
+<th>Date</th>
+<th>Author</th>
+<th>Changes</th>
+</tr>
+    <tr>
+      <td><strong>v1.0</strong></td>
+      <td>March 2026</td>
+      <td>VVF Consulting</td>
+      <td>Initial spec — approval workflow for Vendor Bills &amp; Purchase Orders (BU-based routing, sequential approval, notifications, follow-up UI)</td>
+    </tr>
+    <tr>
+      <td><strong>v2.0</strong></td>
+      <td>27 March 2026</td>
+      <td>VVF Consulting</td>
+      <td>
+        <ul style="margin:0; padding-left:16px;">
+          <li>Added PO deviation control (threshold-based checks on price, qty, line total)</li>
+          <li>Added Budget Control Module scope (VVF-developed, linked to manufacturing indirect costs / IAS 2)</li>
+          <li>Updated Implementation Summary with responsibility split (Odoo vs VVF)</li>
+        </ul>
+      </td>
+    </tr>
+  </table>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">12</div>
+  </div>
+</div></body></html>

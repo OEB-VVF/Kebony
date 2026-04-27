@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0">
+<title>VVF Engagement — Scope &amp; Budget Update</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    body { background: none; padding: 0; min-height: auto; }
+    .slide { box-shadow: none; border-radius: 0; margin: 0;
+             page-break-inside: avoid; page-break-after: always; }
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f5f5f5;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  .slide {
+    width: 1280px;
+    min-height: 720px;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    padding: 48px 56px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Top accent bar */
+  .slide::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
+
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 28px;
+    font-weight: 400;
+  }
+
+  .columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+    margin-bottom: 0;
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #0f3460;
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #0f3460;
+    display: inline-block;
+  }
+
+  /* ── Timeline ── */
+  .timeline {
+    position: relative;
+    padding-left: 20px;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 4px;
+    bottom: 4px;
+    width: 2px;
+    background: #ddd;
+  }
+
+  .tl-item {
+    position: relative;
+    margin-bottom: 14px;
+    padding-left: 16px;
+  }
+
+  .tl-item::before {
+    content: '';
+    position: absolute;
+    left: -19px;
+    top: 6px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ccc;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #ccc;
+  }
+
+  .tl-item.done::before { background: #2e7d32; box-shadow: 0 0 0 2px #2e7d32; }
+  .tl-item.shifted::before { background: #e65100; box-shadow: 0 0 0 2px #e65100; }
+  .tl-item.new::before { background: #0f3460; box-shadow: 0 0 0 2px #0f3460; }
+
+  .tl-date {
+    font-size: 11px;
+    font-weight: 600;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .tl-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-top: 1px;
+  }
+
+  .tl-detail {
+    font-size: 11.5px;
+    color: #666;
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 3px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .badge.ok { background: #e8f5e9; color: #2e7d32; }
+  .badge.moved { background: #fff3e0; color: #e65100; }
+  .badge.new-scope { background: #e3f2fd; color: #0f3460; }
+
+  /* ── New requirements ── */
+  .req-list {
+    list-style: none;
+    margin-top: 4px;
+  }
+
+  .req-list li {
+    font-size: 12.5px;
+    color: #333;
+    padding: 6px 0 6px 24px;
+    position: relative;
+    border-bottom: 1px solid #f0f0f0;
+    line-height: 1.4;
+  }
+
+  .req-list li::before {
+    content: '+';
+    position: absolute;
+    left: 4px;
+    top: 6px;
+    font-weight: 700;
+    color: #0f3460;
+    font-size: 14px;
+  }
+
+  .req-list li .req-note {
+    color: #888;
+    font-size: 11px;
+    display: block;
+  }
+
+  /* ── Budget table ── */
+  .budget-section {
+    margin-top: 4px;
+  }
+
+  .budget-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  table caption {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #0f3460;
+    text-align: left;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid #0f3460;
+    display: inline-block;
+  }
+
+  th {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #888;
+    text-align: right;
+    padding: 4px 8px 6px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  th:first-child { text-align: left; }
+
+  td {
+    padding: 5px 8px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #333;
+  }
+
+  td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+
+  tr.subtotal td {
+    font-weight: 600;
+    border-top: 2px solid #1a1a2e;
+    border-bottom: none;
+    color: #1a1a2e;
+    padding-top: 8px;
+  }
+
+  tr.discount td { color: #2e7d32; font-weight: 500; }
+  tr.grand-total td {
+    font-weight: 700;
+    font-size: 14px;
+    color: #0f3460;
+    border-top: 2px solid #0f3460;
+    padding-top: 10px;
+    border-bottom: none;
+  }
+
+  tr.section-header td {
+    font-weight: 600;
+    color: #1a1a2e;
+    padding-top: 10px;
+    font-size: 12px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .muted { color: #aaa; }
+
+  /* ── Summary cards (bottom-left) ── */
+  .summary-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .summary-card {
+    background: #f8f9fb;
+    border-radius: 6px;
+    padding: 10px 10px;
+    text-align: center;
+  }
+
+  .summary-card .num {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a2e;
+    line-height: 1;
+  }
+
+  .summary-card .num.accent { color: #0f3460; }
+  .summary-card .num.green { color: #2e7d32; }
+
+  .summary-card .label {
+    font-size: 9px;
+    color: #888;
+    margin-top: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-weight: 500;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    position: absolute;
+    bottom: 16px;
+    left: 56px;
+    right: 56px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #bbb;
+  }
+
+  /* ── Arrow annotation ── */
+  .shift-arrow {
+    display: inline-block;
+    color: #e65100;
+    font-weight: 600;
+    font-size: 11px;
+  }
+
+  .allocation-table td:first-child { font-weight: 500; }
+
+  /* ── Compact table for bigger datasets ── */
+  .compact-table { font-size: 10.5px; }
+  .compact-table td { padding: 2px 6px; }
+  .compact-table th { padding: 2px 6px 4px; }
+  .compact-table tr.section-header td { padding-top: 5px; font-size: 10.5px; }
+  .compact-table tr.subtotal td { padding-top: 4px; }
+  .compact-table tr.grand-total td { font-size: 12px; padding-top: 6px; }
+  .compact-table .section-label { margin-bottom: 6px; padding-bottom: 4px; }
+  .slide-number { font-size: 10px; color: #bbb; }
+  /* ── Logo ── */
+  .logo-title {
+    position: absolute; top: 30px; right: 40px;
+    height: 80px; opacity: 0.9;
+  }
+  .slide-footer {
+    position: absolute; bottom: 10px; left: 20px; right: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .prepared-by {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .prepared-by span {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+  .prepared-by img {
+    height: 22px; opacity: 0.7;
+  }
+  .footer-project {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<div class="slide">
+
+  <h1>VVF Engagement — Scope Evolution &amp; Budget Update</h1>
+  <p class="subtitle">Kebony · Odoo 19 Implementation · March 2026</p>
+
+  <div class="columns">
+
+<!-- LEFT COLUMN: Timeline + Context -->
+    <div>
+      <div class="section-label">Timeline — Original vs. Revised</div>
+
+      <div class="timeline">
+        <div class="tl-item done">
+          <div class="tl-date">January 2026</div>
+          <div class="tl-title">US Operations Go-Live <span class="badge ok">Complete</span>
+</div>
+          <div class="tl-detail">Hypercare finished. No major functional gaps remaining.</div>
+        </div>
+
+        <div class="tl-item shifted">
+          <div class="tl-date">April 2026 <span class="shift-arrow">→ July 2026</span>
+</div>
+          <div class="tl-title">Belgium + Manufacturing + Factoring <span class="badge moved">Moved</span>
+</div>
+          <div class="tl-detail">Factoring programme requires additional months. Go-live aligned to single customer communication wave.</div>
+        </div>
+
+        <div class="tl-item new">
+          <div class="tl-date">Q2 – Q3 2026</div>
+          <div class="tl-title">Extended Scope <span class="badge new-scope">New</span>
+</div>
+          <div class="tl-detail">CRM, ticketing, DWH, middleware, EDI, accounting revision — requirements emerged during Phase 1.</div>
+        </div>
+
+      <div style="margin-top: 20px;">
+        <div class="section-label">New Requirements</div>
+        <ul class="req-list">
+          <li>
+<strong>Data Warehouse</strong> — Full reporting solution beyond Odoo dashboards<span class="req-note">Odoo native reporting too limited for group-level needs</span>
+</li>
+          <li>
+<strong>Accounting Principles Revision</strong> — Complete review of chart &amp; rules<span class="req-note">Alignment across US + Belgium entities</span>
+</li>
+          <li>
+<strong>Middleware Layer</strong> — Centralised electronic exchange hub<span class="req-note">Odoo ↔ MES · Odoo ↔ Customers/Suppliers</span>
+</li>
+          <li>
+<strong>EDI with Suppliers</strong> — Not in original scope<span class="req-note">Electronic purchase order &amp; invoice exchange</span>
+</li>
+        </ul>
+
+      </div>
+
+<!-- Summary cards (bottom-left) -->
+      <div class="summary-row">
+        <div class="summary-card">
+          <div class="num">381</div>
+          <div class="label">Total 2026 (days)</div>
+        </div>
+        <div class="summary-card">
+          <div class="num accent">€391k</div>
+          <div class="label">2026 Budget</div>
+        </div>
+        <div class="summary-card">
+          <div class="num">€500k</div>
+          <div class="label">Grand Total</div>
+        </div>
+
+      </div>
+
+<!-- RIGHT COLUMN: Budget -->
+    <div>
+
+<!-- Scope breakdown in days -->
+      <div class="section-label">Scope — Days by Work Stream</div>
+      <table class="compact-table">
+        <thead>
+          <tr>
+            <th>Work Stream</th>
+            <th>Original</th>
+            <th>New</th>
+            <th>2026</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+<td>Analytical Analysis &amp; Implementation</td>
+<td class="muted">—</td>
+<td>10</td>
+<td>10</td>
+</tr>
+          <tr>
+<td>Manufacturing</td>
+<td>75</td>
+<td class="muted">—</td>
+<td>75</td>
+</tr>
+          <tr>
+<td>MaWood Manufacturing Metrics</td>
+<td>5</td>
+<td class="muted">—</td>
+<td>5</td>
+</tr>
+          <tr>
+<td>Hyper Care US</td>
+<td>20</td>
+<td class="muted">—</td>
+<td>20</td>
+</tr>
+          <tr>
+<td>Sales Workflow Localisation</td>
+<td>10</td>
+<td class="muted">—</td>
+<td>10</td>
+</tr>
+          <tr>
+<td>Purchase Workflow Localisation</td>
+<td>10</td>
+<td class="muted">—</td>
+<td>10</td>
+</tr>
+          <tr>
+<td>BNV (Ledger, Peppol, Workflow)</td>
+<td>20</td>
+<td class="muted">—</td>
+<td>20</td>
+</tr>
+          <tr>
+<td>NAS / KAS</td>
+<td>5</td>
+<td class="muted">—</td>
+<td>5</td>
+</tr>
+          <tr>
+<td>Historical Data</td>
+<td>20</td>
+<td class="muted">—</td>
+<td>20</td>
+</tr>
+          <tr>
+<td>HR</td>
+<td>5</td>
+<td>10</td>
+<td>15</td>
+</tr>
+          <tr>
+<td>CRM</td>
+<td>31</td>
+<td class="muted">—</td>
+<td>31</td>
+</tr>
+          <tr>
+<td>Campaigning</td>
+<td>15</td>
+<td class="muted">—</td>
+<td>15</td>
+</tr>
+          <tr>
+<td>E-commerce</td>
+<td class="muted">—</td>
+<td>10</td>
+<td>10</td>
+</tr>
+          <tr>
+<td>Middleware</td>
+<td class="muted">—</td>
+<td>10</td>
+<td>10</td>
+</tr>
+          <tr>
+<td>Ticketing</td>
+<td>10</td>
+<td class="muted">—</td>
+<td>10</td>
+</tr>
+          <tr class="section-header"><td colspan="4">Management Reporting</td></tr>
+          <tr>
+<td>  In Odoo</td>
+<td>20</td>
+<td class="muted">—</td>
+<td>20</td>
+</tr>
+          <tr>
+<td>  Data Warehouse</td>
+<td class="muted">—</td>
+<td>30</td>
+<td>30</td>
+</tr>
+          <tr>
+<td>EDI with Suppliers</td>
+<td class="muted">—</td>
+<td>10</td>
+<td>10</td>
+</tr>
+          <tr>
+<td>Extended Hypercare</td>
+<td>25</td>
+<td>30</td>
+<td>55</td>
+</tr>
+
+          <tr class="subtotal">
+            <td>Total Days</td>
+            <td>271</td>
+            <td>110</td>
+            <td>381</td>
+          </tr>
+        </tbody>
+      </table>
+
+<!-- EUR section -->
+      <div style="margin-top: 10px;">
+        <div class="section-label">Budget — k€</div>
+        <table class="compact-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Original</th>
+              <th>New</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+<td>50% OEB</td>
+<td>156</td>
+<td>63</td>
+<td></td>
+</tr>
+            <tr>
+<td>50% OT</td>
+<td>136</td>
+<td>55</td>
+<td></td>
+</tr>
+            <tr class="subtotal">
+<td>Total in EUR</td>
+<td>291</td>
+<td>118</td>
+<td>410</td>
+</tr>
+            <tr class="discount">
+<td>Discount</td>
+<td></td>
+<td>(18)</td>
+<td></td>
+</tr>
+            <tr>
+<td>Additional Budget</td>
+<td></td>
+<td>100</td>
+<td></td>
+</tr>
+            <tr class="subtotal">
+<td>Total 2026</td>
+<td>291</td>
+<td>100</td>
+<td>391</td>
+</tr>
+          </tbody>
+        </table>
+
+      </div>
+
+<!-- Grand total -->
+      <div style="margin-top: 10px;">
+        <div class="section-label">Full Project — k€</div>
+        <table class="compact-table">
+          <tbody>
+            <tr>
+<td>2025 (completed)</td>
+<td></td>
+<td></td>
+<td>82</td>
+</tr>
+            <tr>
+<td>Mitigation</td>
+<td></td>
+<td></td>
+<td>27</td>
+</tr>
+            <tr>
+<td>2026</td>
+<td></td>
+<td></td>
+<td>391</td>
+</tr>
+            <tr class="grand-total">
+<td>Grand Total</td>
+<td></td>
+<td></td>
+<td>€500k</td>
+</tr>
+          </tbody>
+        </table>
+      </div>
+
+  <div class="footer">
+    <span>VVF Consulting · Confidential</span>
+    <span>Prepared March 2026</span>
+
+  </div>
+
+</div>
+</div>
+</div>
+</div>
+
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">1</div>
+  </div>
+</div>
+
+</body>
+</html>

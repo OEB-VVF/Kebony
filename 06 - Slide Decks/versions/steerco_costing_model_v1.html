@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0">
+<title>SteerCo — Costing Model</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    body { background: none; padding: 0; gap: 0; }
+    .slide { box-shadow: none; border-radius: 0; margin: 0;
+             page-break-inside: avoid; page-break-after: always; }
+  }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f5f5f5; display: flex; flex-direction: column;
+    align-items: center; padding: 20px; gap: 30px;
+  }
+  .slide {
+    width: 1280px; min-height: 720px; max-height: 720px;
+    background: #fff; border-radius: 4px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    padding: 38px 50px 36px; position: relative; overflow: hidden;
+  }
+  .slide::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px;
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
+  .slide.title-slide {
+    display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
+  }
+  .slide.title-slide::before { height: 8px; }
+  .slide.title-slide h1 { font-size: 38px; line-height: 1.2; margin-bottom: 8px; }
+  .slide.title-slide .subtitle { font-size: 17px; color: #555; margin-bottom: 32px; }
+  .slide.title-slide .meta { font-size: 12px; color: #999; line-height: 1.8; }
+
+  h1 { font-size: 24px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  h2 { font-size: 16px; font-weight: 600; color: #0f3460; margin-bottom: 10px; margin-top: 14px; }
+  h3 { font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+  .subtitle { font-size: 12px; color: #888; margin-bottom: 18px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+
+  .card {
+    background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 8px;
+    padding: 16px 18px;
+  }
+  .card.selected { border: 2px solid #2e7d32; background: #f1f8e9; }
+  .card.dimmed { opacity: 0.55; }
+
+  .callout {
+    margin-top: 12px; padding: 10px 14px; font-size: 11.5px; border-radius: 4px;
+  }
+  .callout.blue { background: #e3f2fd; border-left: 3px solid #1565c0; }
+  .callout.green { background: #e8f5e9; border-left: 3px solid #2e7d32; }
+  .callout.orange { background: #fff3e0; border-left: 3px solid #e65100; }
+
+  .tag {
+    display: inline-block; padding: 2px 8px; border-radius: 3px;
+    font-size: 10px; font-weight: 600;
+  }
+  .tag.green { background: #e8f5e9; color: #2e7d32; }
+  .tag.red { background: #ffebee; color: #c62828; }
+  .tag.blue { background: #e3f2fd; color: #1565c0; }
+  .tag.orange { background: #fff3e0; color: #e65100; }
+  .tag.grey { background: #f5f5f5; color: #616161; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 8px 0; }
+  th { background: #f8f9fa; padding: 8px 12px; text-align: left; font-weight: 600;
+       color: #1a1a2e; border-bottom: 2px solid #dee2e6; }
+  td { padding: 7px 12px; border-bottom: 1px solid #eee; color: #333; vertical-align: top; }
+
+  ul { font-size: 12px; line-height: 1.7; padding-left: 18px; }
+  ul li { margin-bottom: 4px; }
+  p { font-size: 12px; line-height: 1.6; color: #444; }
+
+  .slide-number { font-size: 10px; color: #bbb; }
+  /* ── Logo ── */
+  .logo-title {
+    position: absolute; top: 30px; right: 40px;
+    height: 80px; opacity: 0.9;
+  }
+  .slide-footer {
+    position: absolute; bottom: 10px; left: 20px; right: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .prepared-by {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .prepared-by span {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+  .prepared-by img {
+    height: 22px; opacity: 0.7;
+  }
+  .footer-project {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+  .big-number { font-size: 32px; font-weight: 700; color: #0f3460; }
+  .label-sm { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #888; }
+
+  .flow-box {
+    display: inline-block; padding: 8px 16px; border-radius: 6px;
+    font-size: 12px; font-weight: 600; text-align: center;
+  }
+  .flow-box.dark { background: #1a1a2e; color: #fff; }
+  .flow-box.blue { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+  .flow-box.green { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+  .flow-box.orange { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
+  .flow-arrow { display: inline-block; font-size: 18px; color: #bbb; margin: 0 8px; vertical-align: middle; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ SLIDE 1 — TITLE ═══════════════════ -->
+
+<div class="slide title-slide">
+
+  <img src="VVF-logo.png" alt="VVF" class="logo-title">
+  <h1>Costing Model</h1>
+  <div class="subtitle">Inventory Valuation, COGS Decomposition &amp; Margin Framework</div>
+  <div class="meta">
+    Steering Committee — Executive Summary<br>
+    March 2026
+
+</div>
+
+<!-- ═══════════════════ SLIDE 2 — THE DECISION ═══════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">1</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Valuation Method — Option B+ <span class="tag green">DECIDED</span>
+</h1>
+  <div class="subtitle">SteerCo decision 23 March 2026 — FIFO + Anglo-Saxon COGS + reporting layer if needed</div>
+
+  <div class="three-col">
+    <div class="card dimmed">
+      <h3>Standard Cost</h3>
+      <p><span class="tag red">Not recommended</span></p>
+      <ul style="margin-top:8px;">
+        <li>FG valued at budget price</li>
+        <li>4 variance accounts needed</li>
+        <li>Hides reality until variance analysis</li>
+        <li>Manual revaluation at year-end</li>
+      </ul>
+    </div>
+    <div class="card selected">
+      <h3>Option B+ : FIFO + SKU Averaging</h3>
+      <p><span class="tag green">Confirmed — 23 Mar 2026</span></p>
+      <ul style="margin-top:8px;">
+        <li>
+<strong>Books:</strong> Lot-based actual cost (FIFO)</li>
+        <li>
+<strong>Reports:</strong> Quarterly SKU-averaged margin</li>
+        <li>Full traceability lot-by-lot</li>
+        <li>Self-reconciling — no variance accounts</li>
+        <li>Auditor's preference (IAS 2.23)</li>
+      </ul>
+    </div>
+    <div class="card dimmed">
+      <h3>Weighted Average</h3>
+      <p><span class="tag orange">Ruled out</span></p>
+      <ul style="margin-top:8px;">
+        <li>Smooth cost, no lot noise</li>
+        <li>Destroys lot traceability forever</li>
+        <li>Cannot trace cost back to MO</li>
+        <li>Prevents specific lot analysis</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout green" style="margin-top: 16px;">
+    <strong>What "FIFO" really means at Kebony:</strong> Each lot carries its own actual production cost. FIFO is the <em>default reservation order</em> (oldest lot proposed first), not a cost averaging method. Operators can override and pick any lot. The cost follows the specific lot sold — true specific identification per IAS 2.23.
+
+</div>
+
+<!-- ═══════════════════ SLIDE 3 — COGS DECOMPOSITION ═══════════════════ -->
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">2</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>COGS Decomposition — 5 Cost Components</h1>
+  <div class="subtitle">Every invoice line carries a full cost breakdown for margin analysis</div>
+
+  <div class="two-col">
+    <div>
+      <table>
+        <thead>
+          <tr>
+<th>Component</th>
+<th>Source</th>
+<th>Method</th>
+</tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Wood (raw material)</strong></td>
+            <td>PO price + landed cost</td>
+            <td>Actual per lot (FIFO layer)</td>
+          </tr>
+          <tr>
+            <td><strong>Chemicals</strong></td>
+            <td>Ready-mix MO cost</td>
+            <td>FIFO per mix batch</td>
+          </tr>
+          <tr>
+            <td><strong>Conversion</strong></td>
+            <td>Std rate × <strong>actual</strong> hours</td>
+            <td>Stacking + Autoclave + Dryer</td>
+          </tr>
+          <tr>
+            <td><strong>Machining (RDK)</strong></td>
+            <td>Two-step: std at MO, actual at bill</td>
+            <td>Settles back to FG/COGS</td>
+          </tr>
+          <tr>
+            <td><strong>Packaging</strong></td>
+            <td>BOM component</td>
+            <td>FIFO per packaging lot</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout blue" style="margin-top: 14px;">
+        <strong>Anglo-Saxon model:</strong> All 5 components stay on the balance sheet (inventory) until the product is sold. COGS hits P&amp;L only at invoice time. This replaces the current Napoleonic model where conversion costs are expensed at production.
+      </div>
+
+    <div>
+      <h3>US Entity — Additional Cost Layers</h3>
+      <p style="margin-bottom: 10px;">On top of product COGS, four accrual-based costs are computed per invoice line:</p>
+      <table>
+        <thead>
+          <tr>
+<th>Accrual</th>
+<th>Rate</th>
+<th>Trigger</th>
+</tr>
+        </thead>
+        <tbody>
+          <tr>
+<td>Marketing</td>
+<td>4% / 1.5%</td>
+<td>Distributor only</td>
+</tr>
+          <tr>
+<td>Sales Rep</td>
+<td>Variable</td>
+<td>If rep assigned</td>
+</tr>
+          <tr>
+<td>Royalties</td>
+<td>5%</td>
+<td>Wood, no consignment</td>
+</tr>
+          <tr>
+<td>Management Fees</td>
+<td>14% / 5%</td>
+<td>No consignment</td>
+</tr>
+        </tbody>
+      </table>
+      <p style="margin-top: 10px;"><strong>Full margin = Revenue - COGS - Freight - Accruals - Adjustments</strong></p>
+      <p>Visible on every posted invoice. Recomputable on demand.</p>
+
+    </div>
+
+<!-- ═══════════════════ SLIDE 4 — TIMELINE ═══════════════════ -->
+</div>
+</div>
+<div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">3</div>
+  </div>
+</div>
+<div class="slide">
+  <h1>Implementation &amp; Key Decisions</h1>
+  <div class="subtitle">What's needed to go live with Option B+</div>
+
+  <div class="two-col">
+    <div>
+      <h2>Timeline</h2>
+      <table>
+        <thead>
+          <tr>
+<th>When</th>
+<th>What</th>
+<th>Effort</th>
+</tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Pre Go-live</strong></td>
+            <td>Product categories &amp; WC setup</td>
+            <td><span class="tag grey">Config</span></td>
+          </tr>
+          <tr>
+            <td>
+<strong>Go-live</strong><br>July 2026</td>
+            <td>FIFO as system of record<br>Per-lot margin on every invoice<br>COGS analytical distribution<br>RDK settlement automation</td>
+            <td><span class="tag blue">8 days</span></td>
+          </tr>
+          <tr>
+            <td><strong>Q4 2026</strong></td>
+            <td>Quarterly SKU margin averaging<br>(reporting layer — no journal entries)</td>
+            <td><span class="tag blue">2 days</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div>
+      <h2>Decisions — Confirmed</h2>
+      <div class="card" style="border-color: #2e7d32; margin-bottom: 12px;">
+        <h3 style="color: #2e7d32;">SteerCo 23 March 2026 — Approved</h3>
+        <ul>
+          <li>
+<s>Confirm Option B+</s> — <strong>Anglo-Saxon + FIFO + reporting layer if needed</strong>
+</li>
+          <li>
+<s>Confirm switch from Napoleonic to Anglo-Saxon posting</s> — <strong>Confirmed</strong>
+</li>
+          <li>
+<s>Confirm Belgian GAAP &amp; IFRS IAS 2 compliance</s> — <strong>Validated</strong>
+</li>
+        </ul>
+      </div>
+
+      <h2>Key Benefits</h2>
+      <ul>
+        <li>
+<strong>Full traceability:</strong> Sale → Lot → MO → actual cost breakdown</li>
+        <li>
+<strong>Self-reconciling:</strong> No variance accounts, no year-end revaluation</li>
+        <li>
+<strong>Two views from one GL:</strong> Lot-level precision in books, smoothed SKU margin in reports</li>
+        <li>
+<strong>Auditor-preferred:</strong> Specific identification under IAS 2.23</li>
+      </ul>
+
+</div>
+</div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">4</div>
+  </div>
+</div>
+</body></html>

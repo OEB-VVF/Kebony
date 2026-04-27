@@ -1,6 +1,6 @@
 
   
-## **Version 1.1 – FIFO + 3-Stage Absorption + External Treatment Doctrine**
+## **Version 1.2 – 3-Stage Absorption + External Treatment Doctrine**
 
 ---
 ## **1. Purpose**
@@ -12,7 +12,7 @@ This document defines how Kebony’s industrial manufacturing landscape is imple
 
 ### **2.1 Costing Doctrine**
 
-Raw materials are valued under FIFO. Finished goods are valued under FIFO. Conversion costs are absorbed through Work Centers. Conversion absorption is split into three internal pools: Stacking, Autoclave, and Dryer. Total absorbed indirect cost remains equal to the legacy “Kebony hour” total; only allocation granularity is improved. No multi-layer GL explosion is implemented in Phase 1. Contribution margin decomposition is achieved via analytic distribution, not via GL fragmentation.
+Raw materials are valued under FIFO. Finished goods valuation (Standard Cost vs. Full FIFO) is an **open decision pending CFO approval** — see [[Costing Architecture & COGS Decomposition]] for the full analysis of Option A (Standard) vs. Option B (FIFO). Conversion costs are absorbed through Work Centers. Conversion absorption is split into three internal pools: Stacking, Autoclave, and Dryer. Total absorbed indirect cost remains equal to the legacy “Kebony hour” total; only allocation granularity is improved. No multi-layer GL explosion is implemented in Phase 1. Contribution margin decomposition is achieved via analytic distribution, not via GL fragmentation.
 
 ### **2.2 Transformation Boundaries**
 
@@ -141,7 +141,8 @@ This prevents over-concentration of cost on dryer stage and improves transparenc
 
 ## **6. Accounting Flow Summary**
 
-  
+> **Note:** This section shows the generic flow direction only. For detailed journal entries with Belgian PCMN account numbers, variance treatment, and the Option A vs. Option B distinction, see [[Costing Architecture & COGS Decomposition]].
+
 Raw Receipt:
 
 Dr Raw Inventory / Cr GRNI (FIFO layer created)
@@ -149,31 +150,51 @@ Mix MO Consumption:
 Dr WIP-Mix / Cr Raw Chemical
 Completion: Dr Ready-Mix / Cr WIP-Mix
 
-  
 Kebonisation MO Consumption:
 Dr WIP / Cr Raw Inventory
 Dr WIP / Cr Ready-Mix
-  
 
 Kebonisation Completion:
 Dr Semi-FG or FG / Cr WIP
-
-  
+*(FG valued at standard or actual FIFO depending on costing option — see [[Costing Architecture & COGS Decomposition]])*
 
 Subcontract Machining:
-Dr WIP-Machining / Cr FG (transfer to subcontractor)
+Dr WIP-Machining / Cr Semi-FG (transfer to subcontractor)
 MO Completion at standard: Dr FG / Cr WIP-Machining (standard cost from price list)
 Vendor Bill (actual): Dr WIP-Machining / Cr AP
-Variance: Dr Machining Variance (or FG revaluation) / Cr WIP-Machining
+Variance: Dr Machining Variance / Cr WIP-Machining
   *(allocation rule TBD – see INV-1)*
-
-  
 
 Sale:
 
 Dr COGS-FG / Cr FG Inventory
 
-COGS posted to single GL account. Analytic distribution provides contribution margin structure.
+COGS posted to single GL account. Analytic distribution (actual % from producing MO) provides contribution margin structure — see [[Costing Architecture & COGS Decomposition]] §3.
+
+---
+
+### 6.bis Odoo 19 Wiring Requirements (Kebony BNV)
+
+Validated end-to-end on `kebonyprod-test-31051334` on 2026-04-20. Full vertical slice posted the doctrine-compliant JEs. Without any one of these parameters, valuation JEs **silently don't post** — moves complete, stock values update, but no GL impact. See [[Accounting & Margin Architecture]] §13 "Odoo 19 Implementation Parameters" for the full checklist.
+
+**Three things every deployment (test or prod) must configure:**
+
+1. **`stock.location.valuation_account_id`** on every internal + production location. This is the new gate in Odoo 19 (replaces `product.category.property_stock_valuation_account_id` as the primary source). Mapping: Raw → 300, WIP → 320, FG → 330, Production virtual → 320.
+
+2. **Company-dependent property writes need BNV context**: `property_cost_method`, `property_valuation`, `property_stock_valuation_account_id`, `property_stock_account_production_cost_id`. Writing without `context={'company_id': <BNV>, 'allowed_company_ids': [<BNV>]}` silently misses BNV.
+
+3. **`res.company.anglo_saxon_accounting = True`** on Kebony BNV (SteerCo decision 23 Mar 2026). Required for full-absorption JE posting.
+
+**Also note**: `stock.valuation.layer` model was removed in Odoo 19. Value now sits on `stock.move` directly (`value`, `is_valued`, `remaining_value`, `account_move_id`). Any old script / ad-hoc query that searches `stock.valuation.layer` will fail on Odoo 19.
+
+### 6.ter Install Sequencing (Production Rollout)
+
+Order matters to avoid dirty state:
+
+1. **Accounting parametrisation first** (can deploy to prod standalone — no manufacturing module required): wires the config above on Kebony BNV. Unblocks PO-receipt JEs + future MO JEs.
+2. **Master data audit + fix** (53 fixable FGs + 26 gaps + imperial scrub per audit report). Must complete before step 3.
+3. **Ready-Mix chemical MO + RDK subcontract MO** validated in test (closes the last doctrine gaps in the test env).
+4. **THEN install `kebony_manufacturing` on production** as a clean cut-over. Until then, don't install — post_init_hook binds products to planning families and creates work centers; on dirty master data it produces bad state that's painful to unwind.
 
 ---
 
@@ -204,7 +225,7 @@ Managerial waterfall preserved without GL fragmentation.
 
 ## **8. Inventory & Traceability**
 
-FIFO maintained end-to-end. Lot traceability preserved across all transformations. Cubic volume, board count, and capacity equivalents are snapshot at movement time. No dynamic recalculation allowed.
+FIFO maintained for raw materials end-to-end. FG valuation depends on costing option (see [[Costing Architecture & COGS Decomposition]]). Lot traceability preserved across all transformations. Cubic volume, board count, and capacity equivalents are snapshot at movement time. No dynamic recalculation allowed.
 
 ---
 
@@ -252,16 +273,92 @@ Sales, margin, and volume by treatment remain reportable via lot attributes with
 
 ---
 
-## **10. Phase 1 Exclusions**
+## **10. Cost Version Framework (Budget / Standard / Gap Analysis)**
+
+### **10.1 Purpose**
+
+The Cost Version framework stores **period-versioned** budget and standard cost references. It is the "what should it cost" baseline that enables:
+
+- Gap analysis: budget vs actual cost per product, per family, per work centre
+- BOM generation: scrap-adjusted wood consumption, WC operation hours
+- Product cost cards: standard cost per m³ visible on every product
+
+### **10.2 Architecture**
+
+One `kebony.cost.version` header per monthly period per company, containing four child line types:
+
+| Child Model | Purpose | Key Fields | Closed Loop? |
+|---|---|---|---|
+| **BU Budget Line** | Top-down departmental budget | BU (analytic) + GL account + planned amount | — |
+| **WC Cost Line** | Work centre rate by GL cost nature | WC + GL account + rate/hour | **YES** — links WC to GL account |
+| **Product Price Line** | Standard prices for RM, chemicals | Product + standard price per UoM | — |
+| **Family Line** | Production parameter snapshot + computed cost card | Family + hours + scrap % + computed costs per m³ | — |
+
+### **10.3 The Closed Loop**
+
+The WC Cost Line is the key architectural element. Each line represents one GL account's contribution to a work centre's hourly rate:
+
+```
+Work Centre: Dryer
+  GL 620000 (Personnel)     →  €25.00/hour
+  GL 610000 (Energy)        →  €12.50/hour
+  GL 630000 (Depreciation)  →  €8.00/hour
+  ─────────────────────────────────────
+  Total Dryer Rate           =  €45.50/hour
+```
+
+Combined with planning family reference hours and typical load volume, this produces the standard conversion cost per m³:
+
+```
+Dryer cost/m³ = (dryer_hours × total_dryer_rate) / typical_dryer_load_volume
+             = (54h × €45.50/h) / 49.4 m³
+             = €49.74/m³
+```
+
+When the MO closes, the **actual** GL account balances can be compared against the **absorbed** amounts (budget rate × actual hours) to compute:
+
+- **Price variance**: (actual rate − budget rate) × actual hours
+- **Volume variance**: (actual hours − budget hours) × budget rate
+- **Efficiency variance**: per family, per WC, per GL account
+
+### **10.4 Family Cost Card (Computed)**
+
+Each family line automatically computes:
+
+| Field | Formula |
+|---|---|
+| Scrap factor | 1 / (1 − internal_scrap% − b_grade_scrap%) |
+| Wood cost / m³ | scrap_factor × raw wood standard price |
+| Chemical cost / m³ | mix_consumption_per_m3 × ready-mix standard price |
+| Conversion cost / m³ | Σ(hours × WC_rate) / typical_load_volume |
+| **Total standard cost / m³** | Wood + Chemical + Conversion |
+
+### **10.5 BOM Generation Integration**
+
+The planning family's `Push BoM to Products` button now creates:
+
+1. **Wood component**: qty = scrap_factor (e.g., 1.07 m³ raw per 1 m³ FG)
+2. **Chemical component**: qty = mix_consumption_per_m3 (kg per m³)
+3. **3 WC operations**: Stacking, Autoclave, Dryer (hours from family reference)
+
+The raw wood input (Radiata vs Scots Pine) is resolved per product via the Studio field `x_studio_raw_material_origin_id_3` on `product.template`. There is no native `raw_wood_product_id` field on the planning family; the BoM generation reads the raw material reference directly from each product being processed.
+
+### **10.6 Product Cost Card**
+
+Every product with a planning family shows a non-stored cost card pulled from the active (locked) cost version. This gives controllers instant visibility into the standard cost breakdown per product, enabling comparison against actual FIFO cost.
+
+---
+
+## **11. Phase 1 Exclusions**
 
 
 No real-time labor tracking. No advanced variance accounting for internal production (external machining uses standard-then-adjust with variance — see §3.6). No chemical overhead micro-splitting. No dynamic allocation automation. No GL-level COGS explosion.
 
 ---
 
-## **11. Strategic Outcome**
+## **12. Strategic Outcome**
 
 
-This architecture preserves industrial truth, FIFO integrity, bottleneck logic, traceability, and contribution margin clarity. It minimizes SKU complexity, avoids variant fragility, supports subcontracting stages, and provides stable foundation for April go-live while remaining extensible.
+This architecture preserves industrial truth, FIFO integrity, bottleneck logic, traceability, and contribution margin clarity. It minimizes SKU complexity, avoids variant fragility, supports subcontracting stages, and provides stable foundation for go-live while remaining extensible. The cost version framework adds a complete budget/standard layer on top, enabling gap analysis without compromising the FIFO valuation.
 
 ---

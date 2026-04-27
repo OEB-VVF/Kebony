@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0">
+<title>SteerCo — Support & Ticketing</title>
+<!--
+  Version: 0.1  (2026-04-15)
+  Changelog:
+    0.1  Initial draft — INC + Belgium ticket snapshot for SteerCo.
+-->
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    body { background: none; padding: 0; gap: 0; }
+    .slide { box-shadow: none; border-radius: 0; margin: 0;
+             page-break-inside: avoid; page-break-after: always; }
+  }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f5f5f5; display: flex; flex-direction: column;
+    align-items: center; padding: 20px; gap: 30px;
+  }
+  .slide {
+    width: 1280px; min-height: 720px; max-height: 720px;
+    background: #fff; border-radius: 4px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    padding: 32px 44px 30px; position: relative; overflow: hidden;
+  }
+  .slide::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px;
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
+
+  h1 { font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 2px; }
+  .subtitle { font-size: 11px; color: #888; margin-bottom: 18px; }
+  h3 { font-size: 12px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; letter-spacing: 0.3px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+  .card {
+    background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 6px;
+    padding: 12px 14px;
+  }
+
+  /* KPI tiles */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+  .kpi {
+    background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 6px;
+    padding: 10px 12px; text-align: center;
+  }
+  .kpi .value { font-size: 24px; font-weight: 700; color: #0f3460; line-height: 1.1; }
+  .kpi .label { font-size: 9.5px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+  .kpi.accent .value { color: #2e7d32; }
+  .kpi.warn   .value { color: #e65100; }
+
+  /* Mix bars */
+  .mix-bar {
+    display: flex; height: 22px; border-radius: 4px; overflow: hidden;
+    font-size: 9.5px; font-weight: 600; color: #fff; margin: 6px 0 4px;
+  }
+  .mix-bar > div { display: flex; align-items: center; justify-content: center; }
+  .mix-bug      { background: #c62828; }
+  .mix-feature  { background: #1565c0; }
+  .mix-howto    { background: #2e7d32; }
+  .mix-other    { background: #9e9e9e; }
+  .mix-legend { font-size: 9.5px; color: #555; display: flex; gap: 10px; flex-wrap: wrap; }
+  .mix-legend span::before {
+    content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 2px;
+    margin-right: 4px; vertical-align: middle;
+  }
+  .legend-bug::before     { background: #c62828; }
+  .legend-feature::before { background: #1565c0; }
+  .legend-howto::before   { background: #2e7d32; }
+  .legend-other::before   { background: #9e9e9e; }
+
+  /* Callouts */
+  .callout {
+    padding: 8px 10px; font-size: 10.5px; border-radius: 4px; margin-top: 10px;
+    line-height: 1.45;
+  }
+  .callout.blue   { background: #e3f2fd; border-left: 3px solid #1565c0; }
+  .callout.green  { background: #e8f5e9; border-left: 3px solid #2e7d32; }
+  .callout.orange { background: #fff3e0; border-left: 3px solid #e65100; }
+  .callout.red    { background: #ffebee; border-left: 3px solid #c62828; }
+
+  .tag {
+    display: inline-block; padding: 1px 6px; border-radius: 3px;
+    font-size: 9px; font-weight: 600;
+  }
+  .tag.green  { background: #e8f5e9; color: #2e7d32; }
+  .tag.red    { background: #ffebee; color: #c62828; }
+  .tag.blue   { background: #e3f2fd; color: #1565c0; }
+  .tag.orange { background: #fff3e0; color: #e65100; }
+  .tag.grey   { background: #f5f5f5; color: #616161; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 10.5px; margin: 5px 0; }
+  th { background: #f8f9fa; padding: 6px 8px; text-align: left; font-weight: 600;
+       color: #1a1a2e; border-bottom: 2px solid #dee2e6; }
+  td { padding: 5px 8px; border-bottom: 1px solid #eee; color: #333; vertical-align: top; }
+
+  ul { font-size: 10.5px; line-height: 1.55; padding-left: 14px; }
+  ul li { margin-bottom: 3px; }
+  p  { font-size: 10.5px; line-height: 1.5; color: #444; }
+
+  .slide-label {
+    position: absolute; top: 14px; right: 18px;
+    font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+    color: #0f3460; opacity: 0.5;
+  }
+  .slide-footer {
+    position: absolute; bottom: 10px; left: 20px; right: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE — SUPPORT & TICKETING
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-label">Support &amp; Ticketing</div>
+
+  <h1>Support &amp; Ticketing — Operational Snapshot</h1>
+  <div class="subtitle">Two active streams · INC (US) customisation support · Belgium accounting</div>
+
+  <!-- Headline KPIs -->
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="value">106</div>
+      <div class="label">Total tickets raised</div>
+    </div>
+    <div class="kpi accent">
+      <div class="value">88 / 11</div>
+      <div class="label">INC — raised / open (12.5%)</div>
+    </div>
+    <div class="kpi warn">
+      <div class="value">18 / 11</div>
+      <div class="label">Belgium — raised / open (61%)</div>
+    </div>
+    <div class="kpi">
+      <div class="value">~30%</div>
+      <div class="label">Bugs closed next-day (INC)</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+
+    <!-- LEFT: INC -->
+    <div class="card">
+      <h3>INC (US) — Customisation Support <span class="tag green">Healthy</span></h3>
+      <p>88 tickets raised · 11 open · open ratio <b>12.5%</b>. Operational rhythm is stable.</p>
+
+      <div class="mix-bar">
+        <div class="mix-bug"     style="width:30%">Bugs 30%</div>
+        <div class="mix-feature" style="width:30%">Features 30%</div>
+        <div class="mix-howto"   style="width:30%">How-to 30%</div>
+        <div class="mix-other"   style="width:10%">Other</div>
+      </div>
+      <div class="mix-legend">
+        <span class="legend-bug">Bugs — resolved D+1</span>
+        <span class="legend-feature">New functionality</span>
+        <span class="legend-howto">How-to / enablement</span>
+        <span class="legend-other">Other</span>
+      </div>
+
+      <div class="callout green">
+        <b>Read-across:</b> ~26 "new functionality" tickets = <b>customer-pull roadmap pipeline</b>
+        (not support noise). ~26 "how-to" tickets = <b>training / documentation gap</b>,
+        cheap to reduce with enablement material.
+      </div>
+    </div>
+
+    <!-- RIGHT: Belgium -->
+    <div class="card">
+      <h3>Belgium — Accounting Support <span class="tag orange">Qualifying</span></h3>
+      <p>18 tickets raised · 11 open · open ratio <b>61%</b> — high on paper, but driven by
+         known structural items, not responsiveness.</p>
+
+      <table>
+        <thead><tr><th>Driver</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>PEPOL for BNV (regulatory)</td><td><span class="tag blue">Scheduled July</span></td></tr>
+          <tr><td>Main subject — approval pending with Odoo</td><td><span class="tag orange">Waiting Odoo</span></td></tr>
+          <tr><td>Items awaiting internal responsible</td><td><span class="tag grey">Follow-up today</span></td></tr>
+          <tr><td>Remaining BAU</td><td><span class="tag green">In flow</span></td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout orange">
+        <b>Not a red flag</b> — backlog composition is explainable (regulatory timing +
+        external approval + internal ownership). Full qualification to follow; status may
+        shift after today's internal sync.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom: takeaways -->
+  <div class="card" style="margin-top: 14px;">
+    <h3>SteerCo Takeaways</h3>
+    <ul>
+      <li><b>INC support is healthy</b> — 12.5% open ratio, next-day bug resolution, no escalations.</li>
+      <li><b>Roadmap demand signal:</b> ~26 INC tickets classified as new functionality — users actively pulling on the roadmap.</li>
+      <li><b>Enablement opportunity:</b> ~26 INC how-to tickets → candidate for batched training / documentation push.</li>
+      <li><b>Belgium backlog is structural, not operational</b> — PEPOL July, Odoo approvals, internal ownership. Revisit next SteerCo with qualified breakdown.</li>
+    </ul>
+  </div>
+
+  <div class="slide-footer">
+    <span>Prepared by OEB — Kebony ERP Programme</span>
+    <span>SteerCo · 2026-04-16</span>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Outbound Consignment Program — Requirements for Validation</title>
+<!--
+  Version: 0.8  (2026-04-20)
+  Audience: CEO · Head of US · CFO (copy · decides on financial / accounting Qs)
+  Scope:   Outbound consignment-at-customer program. Selling entity =
+           Kebony BNV from July 2026. Launch scope = 5 profiles, 1..N
+           distributors, aging dynamic per contract (default 90d),
+           full-pack invoicing, stock stays on BNV BS until invoice.
+  Format:  Document-style memo (A4 print-friendly), not a deck.
+  Changelog:
+    0.8 — Softened §6 tone: dropped explanatory framing that read as
+          lecturing CFO/CEO on an obvious WCR concept. §6 now states
+          mechanics, inputs, and levers — no commentary.
+    0.7 — Removed CSO from sign-off and dropped Q13–Q14. Selling entity
+          is Kebony BNV from July 2026; no EU activation step. Q3 reframed
+          to "decided at CEO sign-off — implementation immediate on
+          validation". CFO restored as decider on financial/accounting Qs.
+    0.6 — Toned down WC messaging. CFO moved from sign-off scope to
+          "copied for information" due to WCR impact. §6 reframed as
+          operational information, not a go/no-go gate.
+    0.5 — Added §3.4 Freight Capitalisation: internal transfer + transport
+          PO + provision + vendor bill flow with full accounting. Decision
+          confirmed: capitalise freight into distributor inventory (ASC 330).
+          New Q15 for CFO on variance treatment.
+    0.4 — Removed undefined "Phase 2" references. No second phase is
+          scoped or committed; "Deferred" list stands on its own.
+    0.3 — Removed proposed timeline section. Build estimated at ~1 week
+          including testing; timeline belongs in the implementation ticket.
+    0.2 — Added CFO + CSO to sign-off. Working Capital section (§6) with
+          CFO controls and risk framing. EU optionality flagged in scope
+          and new Q13–Q14 for CSO. Validation split per role.
+    0.1 — Initial draft for CEO + Head of US.
+-->
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @page { size: A4; margin: 18mm; }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .page { box-shadow: none; margin: 0; padding: 0; max-width: none; }
+    .no-print { display: none; }
+    h2, h3 { page-break-after: avoid; }
+    table { page-break-inside: avoid; }
+  }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f5f5f5; color: #1a1a2e; line-height: 1.55;
+    padding: 32px 20px;
+  }
+  .page {
+    max-width: 860px; margin: 0 auto; background: #fff;
+    border-radius: 6px; box-shadow: 0 2px 24px rgba(0,0,0,0.08);
+    padding: 48px 56px; position: relative; overflow: hidden;
+  }
+  .page::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px;
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
+
+  /* Header block */
+  .memo-head {
+    padding-bottom: 18px; margin-bottom: 24px;
+    border-bottom: 2px solid #0f3460;
+  }
+  .memo-head .eyebrow {
+    font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: #0f3460; font-weight: 600;
+  }
+  .memo-head h1 {
+    font-size: 26px; font-weight: 700; color: #1a1a2e;
+    margin: 6px 0 4px; line-height: 1.2;
+  }
+  .memo-head .sub {
+    font-size: 14px; color: #555; font-weight: 500;
+  }
+  .memo-meta {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 12px; margin-top: 16px;
+  }
+  .memo-meta .item {
+    background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 4px;
+    padding: 8px 10px;
+  }
+  .memo-meta .item .k {
+    font-size: 9px; letter-spacing: 0.8px; text-transform: uppercase;
+    color: #888; font-weight: 600; display: block;
+  }
+  .memo-meta .item .v {
+    font-size: 12px; color: #1a1a2e; font-weight: 500; margin-top: 2px;
+  }
+
+  /* Callout */
+  .callout {
+    padding: 12px 16px; border-radius: 4px;
+    font-size: 13px; line-height: 1.55;
+    margin: 18px 0 24px;
+  }
+  .callout.navy { background: #e8eaf6; border-left: 4px solid #1a1a2e; }
+  .callout.blue { background: #e3f2fd; border-left: 4px solid #1565c0; }
+  .callout.green { background: #e8f5e9; border-left: 4px solid #2e7d32; }
+  .callout.orange { background: #fff3e0; border-left: 4px solid #e65100; }
+
+  /* Headings */
+  h2 {
+    font-size: 18px; font-weight: 700; color: #0f3460;
+    margin: 28px 0 10px; padding-bottom: 4px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  h3 {
+    font-size: 14px; font-weight: 600; color: #1a1a2e;
+    margin: 18px 0 6px;
+  }
+  p { font-size: 13px; margin-bottom: 10px; }
+  ul, ol { margin: 0 0 10px 22px; font-size: 13px; }
+  ul li, ol li { margin-bottom: 4px; }
+
+  /* Tables */
+  table {
+    width: 100%; border-collapse: collapse; margin: 10px 0 18px;
+    font-size: 12.5px;
+  }
+  th {
+    background: #0f3460; color: #fff;
+    padding: 8px 10px; text-align: left;
+    font-size: 11.5px; font-weight: 600; letter-spacing: 0.3px;
+  }
+  td {
+    padding: 7px 10px; border-bottom: 1px solid #eee;
+    vertical-align: top; line-height: 1.5;
+  }
+  tr:nth-child(even) td { background: #fafbfc; }
+  td.num { text-align: center; font-weight: 600; color: #0f3460; width: 36px; }
+  td.rec { font-weight: 600; color: #2e7d32; }
+
+  /* Path cards */
+  .paths { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 12px 0 18px; }
+  .path {
+    border: 1px solid #e0e0e0; border-radius: 6px;
+    background: #fafbfc; padding: 14px 16px;
+  }
+  .path h3 { margin-top: 0; color: #0f3460; }
+  .path h3 .tag {
+    display: inline-block; background: #0f3460; color: #fff;
+    font-size: 10px; font-weight: 600; padding: 2px 7px;
+    border-radius: 3px; margin-right: 6px; letter-spacing: 0.4px;
+  }
+  .path ol { margin-left: 18px; }
+
+  /* Checklist */
+  .checklist {
+    background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 6px;
+    padding: 14px 18px; margin: 14px 0;
+  }
+  .checklist li {
+    list-style: none; padding: 4px 0; font-size: 13px;
+    border-bottom: 1px dashed #eee;
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .checklist li::before {
+    content: '☐ '; color: #0f3460; font-weight: 700; margin-right: 4px;
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 32px; padding-top: 14px;
+    border-top: 1px solid #e0e0e0;
+    font-size: 11px; color: #888; text-align: center;
+  }
+
+  /* Tags */
+  .pill {
+    display: inline-block; padding: 2px 8px; border-radius: 3px;
+    font-size: 10.5px; font-weight: 600;
+  }
+  .pill.green { background: #e8f5e9; color: #2e7d32; }
+  .pill.blue { background: #e3f2fd; color: #1565c0; }
+  .pill.grey { background: #f0f0f0; color: #555; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="memo-head">
+    <div class="eyebrow">Kebony BNV · Requirements Memo · Selling entity from July 2026</div>
+    <h1>Outbound Consignment Program</h1>
+    <div class="sub">For sign-off — CEO · Head of US · copy CFO (decides on financial &amp; accounting questions)</div>
+    <div class="memo-meta">
+      <div class="item"><span class="k">Status</span><div class="v">Draft · no code started</div></div>
+      <div class="item"><span class="k">Author</span><div class="v">Olivier Eberhard · VVF</div></div>
+      <div class="item"><span class="k">Date</span><div class="v">2026-04-20</div></div>
+      <div class="item"><span class="k">Version</span><div class="v">0.8</div></div>
+    </div>
+  </div>
+
+  <div class="callout navy">
+    <strong>Purpose.</strong> Operating model, data, controls, and open decisions for selling Kebony profiles through distributors on consignment. For <strong>CEO · Head of US</strong> sign-off before any code is developed. <strong>CFO is on copy</strong> — decides on financial &amp; accounting questions (§6, Q9–Q12, Q15).
+  </div>
+  <div class="callout blue">
+    <strong>Selling entity.</strong> From <strong>July 2026</strong>, consignment sales flow through <strong>Kebony BNV</strong>. A single selling entity means no separate geographic rollout step — distributor addresses and currencies are set per agreement.
+  </div>
+
+  <h2>1 · Executive Summary</h2>
+  <p>The CEO has directed that Kebony sell selected profiles through <strong>consignment stock held at distributor locations</strong>. The distributor holds the goods physically; Kebony retains ownership until invoice. Invoicing is triggered two ways:</p>
+  <ol>
+    <li>The distributor reports a pack sold (partial or full) → Kebony invoices the <strong>full pack</strong> immediately.</li>
+    <li>If a pack remains unsold after a contractual aging period (<strong>default 90 days</strong>), Kebony auto-invoices the full pack to the distributor.</li>
+  </ol>
+  <p>The program launches with <strong>5 profiles</strong> and scales to more products or distributors through configuration — no code change required.</p>
+
+  <h2>2 · Business Scope</h2>
+  <table>
+    <tr><th style="width:34%">Item</th><th>Value</th></tr>
+    <tr><td>Selling entity</td><td><strong>Kebony BNV</strong> (from July 2026)</td></tr>
+    <tr><td>Program start</td><td>Immediate upon CEO sign-off — implementation starts on validation</td></tr>
+    <tr><td>Products in scope at launch</td><td><strong>5 profiles</strong> — list to be confirmed by Head of US</td></tr>
+    <tr><td>Distributors in scope</td><td>Configurable: 1..N contracts, each with 1..N shipping addresses</td></tr>
+    <tr><td>Aging trigger</td><td><strong>Dynamic per contract</strong> — default 90 days, editable on each agreement</td></tr>
+    <tr><td>Invoicing unit</td><td><strong>Always full pack</strong> — never partial</td></tr>
+    <tr><td>Currency</td><td>Per agreement — Kebony BNV supports multi-currency natively</td></tr>
+    <tr><td>Balance-sheet treatment</td><td>Stock remains on <strong>Kebony BNV balance sheet</strong> until invoiced</td></tr>
+  </table>
+
+  <h2>3 · End-to-End Operating Flow</h2>
+
+  <h3>3.1 Supply to distributor</h3>
+  <ol>
+    <li>Internal transfer: main US warehouse → distributor consignment location.</li>
+    <li>Dedicated route + picking type <em>"Resupply Consignment at Customer"</em> — makes all consignment moves filterable.</li>
+    <li>Goods arrive at distributor — <strong>no revenue, no COGS, no accrual</strong> (internal move).</li>
+    <li>Arrival date is the <strong>clock start</strong> for each lot (pack).</li>
+  </ol>
+
+  <h3>3.2 Sale — two trigger paths</h3>
+  <div class="paths">
+    <div class="path">
+      <h3><span class="tag">A</span>Distributor reports pack sold</h3>
+      <ol>
+        <li>Distributor sends report (CSV or in-app wizard; a self-service portal is deferred — see §7).</li>
+        <li>Kebony posts invoice for the <strong>full pack</strong> — regardless of whether distributor sold all of it.</li>
+        <li>Stock moves off consignment location; DR COGS / CR Inventory, revenue recognised.</li>
+      </ol>
+    </div>
+    <div class="path">
+      <h3><span class="tag">B</span>Aging trigger (automatic)</h3>
+      <ol>
+        <li>Daily cron scans lots on consignment locations.</li>
+        <li>If <code>today − arrival_date &gt; agreement.aging_days</code> and lot not yet invoiced → auto-invoice full pack.</li>
+        <li>Same accounting posting as Path A.</li>
+      </ol>
+    </div>
+  </div>
+
+  <h3>3.3 Revenue recognition</h3>
+  <ul>
+    <li><strong>No</strong> revenue on supply transfer (internal move).</li>
+    <li>Revenue + COGS recognised at invoice posting (Path A or Path B).</li>
+    <li>All existing Kebony accrual rules apply at invoice time (royalties, mgmt fees, marketing, sales rep).</li>
+  </ul>
+
+  <h3>3.4 Freight capitalisation (transfer cost accounting)</h3>
+  <p>Under <strong>ASC 330</strong>, freight incurred to bring inventory to its present location is capitalised into inventory value. Because Kebony retains ownership of consigned stock, transport from the US warehouse to the distributor <strong>must be capitalised</strong>, not expensed — giving COGS at invoice time the true landed cost per pack.</p>
+
+  <p style="font-size:12.5px; color:#555; margin-top:4px;">Mechanics reuse Odoo's landed cost pattern already in use for inbound receipts.</p>
+
+  <table>
+    <tr><th style="width:7%">Step</th><th style="width:32%">Event</th><th>Journal entry</th></tr>
+    <tr><td class="num">1</td><td>Internal transfer created (main WH → distributor)</td><td>No financial entry (internal stock move, same entity)</td></tr>
+    <tr><td class="num">2</td><td>Purchase Order raised to freight carrier (estimated cost)</td><td>No entry on PO creation</td></tr>
+    <tr><td class="num">3</td><td>Goods received at distributor · <code>stock.landed.cost</code> posted against the transfer picking (based on carrier PO estimate)</td><td><strong>DR</strong> Inventory @ distributor (allocated freight / pack)<br><strong>CR</strong> Accrued Freight — Consignment <em>(provision)</em></td></tr>
+    <tr><td class="num">4</td><td>Vendor bill received from carrier</td><td><strong>DR</strong> Accrued Freight — Consignment<br><strong>CR</strong> Accounts Payable<br>Variance (if any) → per Q15 policy</td></tr>
+    <tr><td class="num">5</td><td>Consignment invoice fires (reported sale or 90-day aging)</td><td><strong>DR</strong> COGS (enriched unit cost = product cost + capitalised freight)<br><strong>CR</strong> Inventory<br><strong>DR</strong> AR · <strong>CR</strong> Revenue</td></tr>
+  </table>
+
+  <div class="callout navy">
+    <strong>Design notes.</strong>
+    <ul style="margin:6px 0 0 18px;">
+      <li>Freight allocation: proportional to <strong>pack count</strong> per shipment (same as inbound landed cost today).</li>
+      <li>Each lot at the distributor location carries enriched <code>x_studio_unit_cost</code> = product standard cost + allocated freight; COGS pulls this at invoice time.</li>
+      <li>New GL account "<strong>Accrued Freight — Consignment</strong>" added to the US chart of accounts (AP-side accrual).</li>
+      <li>Transfer picking can only be validated once the carrier PO is linked — enforced in UI to prevent unprovisioned transfers.</li>
+    </ul>
+  </div>
+
+  <div class="callout orange">
+    <strong>WC link.</strong> Capitalised freight joins the WC envelope in §6 — minor at unit level but material at fleet volume.
+  </div>
+
+  <h2>4 · Proposed Data Model</h2>
+
+  <h3>4.1 Model <code>kebony.consignment.agreement</code> — one record per contract</h3>
+  <table>
+    <tr><th style="width:26%">Field</th><th style="width:22%">Type</th><th>Purpose</th></tr>
+    <tr><td><code>partner_id</code></td><td>many2one res.partner</td><td>Distributor</td></tr>
+    <tr><td><code>shipping_address_ids</code></td><td>many2many res.partner</td><td>One or more ship-to locations</td></tr>
+    <tr><td><code>product_ids</code></td><td>many2many product.product</td><td>Products covered (5 profiles at launch)</td></tr>
+    <tr><td><code>product_category_id</code></td><td>many2one product.category</td><td>Alternative: derive list from master code/category</td></tr>
+    <tr><td><code>aging_days</code></td><td>integer</td><td>Auto-invoice threshold (default 90)</td></tr>
+    <tr><td><code>pricelist_id</code></td><td>many2one product.pricelist</td><td>Price applied at invoice</td></tr>
+    <tr><td><code>auto_invoice</code></td><td>boolean</td><td>Enable / disable Path B</td></tr>
+    <tr><td><code>state</code></td><td>selection</td><td>draft / active / closed</td></tr>
+    <tr><td><code>notes</code></td><td>text</td><td>Contract reference, commercial terms</td></tr>
+  </table>
+
+  <h3>4.2 Stock layer</h3>
+  <ul>
+    <li>One <code>stock.location</code> per distributor address · <code>usage = internal</code> · <code>x_is_consignment_out = True</code> · linked to the agreement.</li>
+    <li><code>stock.lot</code> gains <code>consignment_entry_date</code> (clock start) and <code>consignment_invoice_id</code> (set-once idempotency).</li>
+  </ul>
+
+  <h3>4.3 Invoice layer</h3>
+  <p>Both Path A and Path B call one shared method <code>_create_consignment_invoice(lot)</code> which posts the full-pack line, sets <code>lot.consignment_invoice_id</code>, and triggers the standard US accrual posting.</p>
+
+  <h2>5 · Robustness Controls</h2>
+  <table>
+    <tr><th style="width:34%">Control</th><th>Mechanism</th></tr>
+    <tr><td>One invoice per pack, ever</td><td><code>stock.lot.consignment_invoice_id</code> set-once · cron &amp; wizard both check</td></tr>
+    <tr><td>No double invoice</td><td>Cron skips any lot with <code>consignment_invoice_id</code> already set</td></tr>
+    <tr><td>Dry-run mode</td><td>Cron can preview — logs packs that <em>would</em> be invoiced, posts nothing (CFO review gate)</td></tr>
+    <tr><td>Audit trail</td><td>Clock start per lot · invoice date · trigger source (cron vs user)</td></tr>
+    <tr><td>Full-pack enforcement</td><td>Invoice qty = pack size on the lot, never the partial qty reported</td></tr>
+    <tr><td>Access control</td><td>Agreement + auto-invoice toggle restricted to US Controller group</td></tr>
+    <tr><td>Alerting (optional)</td><td>Email to Head of US + CSM N days before auto-invoice fires (see Q5)</td></tr>
+  </table>
+
+  <h2>6 · Working Capital</h2>
+
+  <h3>6.1 Exposure formula</h3>
+  <div class="callout blue">
+    <code>WCR ≈ annual_consignment_volume × unit_cost × aging_days / 365</code>
+  </div>
+
+  <h3>6.2 Inputs required (Head of US)</h3>
+  <table>
+    <tr><th style="width:46%">Input</th><th>Purpose</th></tr>
+    <tr><td>Forecast annual volume per profile (packs)</td><td>Envelope sizing</td></tr>
+    <tr><td>Pilot distributor volume (first 90 days)</td><td>Ramp exposure</td></tr>
+    <tr><td>Unit cost per profile</td><td><code>volume × cost</code></td></tr>
+    <tr><td>Target distributor turn rate (days to sell a pack)</td><td>Stress test vs. 90-day backstop</td></tr>
+  </table>
+
+  <h3>6.3 Levers available</h3>
+  <table>
+    <tr><th style="width:34%">Lever</th><th>Mechanism</th></tr>
+    <tr><td>Monthly dashboard</td><td>Accounting Hub widget: open packs × unit cost × age, by distributor + profile</td></tr>
+    <tr><td>Aging buckets</td><td>0–30 / 31–60 / 61–90 / &gt; 90 days, per distributor</td></tr>
+    <tr><td>Pause transfers</td><td>Agreement <code>state = paused</code> blocks new supply without closing the contract</td></tr>
+    <tr><td>Optional WCR cap per contract</td><td><code>max_open_value</code> field (Q9)</td></tr>
+  </table>
+
+  <h2>7 · Deferred — Not Included at Launch</h2>
+  <p>The items below are intentionally out of scope. Each would require a separate business case and implementation effort:</p>
+  <ul>
+    <li><strong>Distributor self-service portal</strong> — at launch, distributors report sales by CSV upload or via an in-app wizard operated by Kebony.</li>
+    <li><strong>Returns / swaps of consigned packs</strong> — handled manually by the US controller at launch (credit note + manual stock reversal).</li>
+    <li><strong>Automated replenishment</strong> from distributor stock levels — supply is manual (Head of US triggers transfer).</li>
+    <li><strong>Consignment-specific commissions / rebates</strong> — existing Kebony accrual logic applies unchanged.</li>
+  </ul>
+
+  <h2>8 · Open Questions — Require Decision Before Build</h2>
+
+  <h3>Operational · CEO · Head of US</h3>
+  <table>
+    <tr><th style="width:5%">#</th><th style="width:36%">Question</th><th style="width:22%">Option A</th><th style="width:22%">Option B</th><th>Recommendation</th></tr>
+    <tr><td class="num">Q1</td><td>Does the 90-day clock reset on a partial sale from a pack?</td><td>Reset on any movement</td><td>Keep arrival date — no reset</td><td class="rec">B</td></tr>
+    <tr><td class="num">Q2</td><td>Which 5 profiles are in scope at launch?</td><td>To be listed</td><td>—</td><td>Pending Head of US</td></tr>
+    <tr><td class="num">Q3</td><td>Which distributor(s) go live first?</td><td>Named at sign-off</td><td>—</td><td class="rec">Decided at CEO sign-off · implementation immediate on validation</td></tr>
+    <tr><td class="num">Q4</td><td>Pricing at invoice: contract pricelist or std list price?</td><td>Pricelist per agreement</td><td>Standard list price</td><td class="rec">A</td></tr>
+    <tr><td class="num">Q5</td><td>Who receives pre-auto-invoice alert?</td><td>Head of US + CSM</td><td>CFO only</td><td>Pending</td></tr>
+    <tr><td class="num">Q6</td><td>Distributor reports &gt; 1 pack (e.g. 1.2 packs)</td><td>Round up to 2 packs</td><td>Error — manual review</td><td>Pending</td></tr>
+    <tr><td class="num">Q7</td><td>Formal dispatch note at supply?</td><td>Yes — standard DO</td><td>No — invoice only</td><td class="rec">A</td></tr>
+    <tr><td class="num">Q8</td><td>Can Head of US override aging per contract?</td><td>Yes — editable on agreement</td><td>No — system-wide 90</td><td class="rec">A</td></tr>
+  </table>
+
+  <h3>Financial &amp; Accounting · CFO decides</h3>
+  <table>
+    <tr><th style="width:5%">#</th><th style="width:36%">Question</th><th style="width:22%">Option A</th><th style="width:22%">Option B</th><th>Recommendation</th></tr>
+    <tr><td class="num">Q9</td><td>Hard WCR cap per agreement that blocks new transfers?</td><td>Yes — <code>max_open_value</code> enforced</td><td>No — monitor only, no block</td><td>Pending CFO</td></tr>
+    <tr><td class="num">Q10</td><td>WCR exposure reporting cadence</td><td>Monthly dashboard on Accounting Hub</td><td>Weekly email to CFO</td><td>Pending CFO</td></tr>
+    <tr><td class="num">Q11</td><td>Credit limit check at auto-invoice time</td><td>Block if distributor AR &gt; limit</td><td>Invoice anyway, flag controller</td><td>Pending CFO</td></tr>
+    <tr><td class="num">Q12</td><td>Treatment of returns after auto-invoice fires</td><td>Credit note + re-consign</td><td>Credit note only</td><td>Pending CFO</td></tr>
+    <tr><td class="num">Q15</td><td>Freight variance (vendor bill ≠ provision)</td><td>Threshold — &gt; 5 % retro-adjusts inventory, rest P&amp;L</td><td>Always expense variance to P&amp;L</td><td>Pending CFO</td></tr>
+  </table>
+
+  <h2>9 · Validation Requested</h2>
+  <p style="font-size:13px; color:#555; margin-bottom:12px;">Each role has a distinct validation scope. Please reply with your portion.</p>
+
+  <div class="two-col" style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px;">
+    <div class="checklist">
+      <div style="font-size:11px; letter-spacing:0.8px; text-transform:uppercase; color:#0f3460; font-weight:700; margin-bottom:8px;">CEO</div>
+      <ul style="margin:0; padding:0;">
+        <li>Strategic intent &amp; pilot distributor selection</li>
+        <li>Q3 decided at sign-off · implementation starts immediately on validation</li>
+      </ul>
+    </div>
+    <div class="checklist">
+      <div style="font-size:11px; letter-spacing:0.8px; text-transform:uppercase; color:#0f3460; font-weight:700; margin-bottom:8px;">Head of US <span style="font-weight:500; color:#888;">· primary operational owner</span></div>
+      <ul style="margin:0; padding:0;">
+        <li>Product scope — list of the 5 profiles</li>
+        <li>Distributor shipping addresses for launch</li>
+        <li>Volume + unit cost inputs for §6.2</li>
+        <li>Decisions on Q1, Q2, Q4, Q5, Q6, Q7, Q8</li>
+      </ul>
+    </div>
+    <div class="checklist">
+      <div style="font-size:11px; letter-spacing:0.8px; text-transform:uppercase; color:#0f3460; font-weight:700; margin-bottom:8px;">CFO <span style="font-weight:500; color:#888;">· on copy, decides on financial &amp; accounting</span></div>
+      <ul style="margin:0; padding:0;">
+        <li>Decisions on Q9, Q10, Q11, Q12, Q15</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout green">
+    <strong>Next step.</strong> Please reply with decisions on your portion of the open questions, or request a 30-minute review call. No code will be written before sign-off.
+  </div>
+
+  <div class="footer">
+    Olivier Eberhard · VVF Consulting · Outbound Consignment Program v0.8 · 2026-04-20
+  </div>
+</div>
+</body>
+</html>

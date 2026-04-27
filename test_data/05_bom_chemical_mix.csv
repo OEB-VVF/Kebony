@@ -1,0 +1,4 @@
+id,product_tmpl_id,product_qty,product_uom_id,type,company_id/.id,bom_line_ids/product_id,bom_line_ids/product_qty,bom_line_ids/product_uom_id
+BOM_READYMIX,Kebony Ready-Mix,1000,kg,normal,3,Furfuryl Alcohol (FA),650,kg
+BOM_READYMIX,,,,,,Citric Acid,50,kg
+BOM_READYMIX,,,,,,Water (Process),300,kg

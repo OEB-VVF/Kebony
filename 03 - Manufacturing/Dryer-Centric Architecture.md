@@ -60,22 +60,44 @@ Represents:
 - Family-compatible batch grouping
 - Scheduling sub-unit (start/finish times)
 
+Each autoclave batch is loaded onto **one chariot**. The chariot dimensions
+are a **shared physical constant** for the Kebony site (one autoclave, one
+chariot geometry for all planning families) and live in
+**Settings → Manufacturing → Autoclave Chariot** — not on the planning
+family, not hardcoded.
+
+| Dimension | Setting key | Default | Rule |
+|---|---|---|---|
+| **Length** | `kebony.chariot_length_m` | `12.8` m | Includes spacing between piles. |
+| **Piles along length** | *(derived)* | — | `floor(chariot_length_m / product_length_m)`. Typically **2, 3, or 4**. Example at default: 3.0 m boards → 4 piles; 4.0 m boards → 3. |
+| **Height** | `kebony.chariot_height_units` | `3.0` | Height expressed in **process-pack units** (full = 1.0, half = 0.5). Valid stack totals today: `1.0, 1.5, 2.0, 2.5, 3.0`. |
+
+The height is expressed in process-pack units for now (uniform board
+thickness across most SKUs). When we need product-thickness-aware stacking,
+we'll add a second setting `kebony.chariot_height_mm` and compute
+`height_units = floor(chariot_height_mm / board_thickness_mm)` per product.
+Until then, `chariot_height_units` is the editable knob.
+
 Example reference: **DL-26-0001-AC1**
 
 ### **Level 3 – Process Pack (PP)**
 
-Each AC contains typically **5–8 process packs**.
+Each AC contains between **2 and 12** process packs depending on product length and the full/half mix (see chariot geometry above).
 
 Represents:
-- Homogeneous grouping of boards (same planning family)
+- Homogeneous grouping of boards (same planning family, same product)
 - Smallest physical unit moving through production
-- Created during entry stacking
+- Created during **entry stacking** from white-wood (or rough-sawn) input packs
+
+Every process pack is **1.0 (full)** or **0.5 (half)** — no other values. The `pack_unit` field captures this.
 
 Attributes:
 - Planning family
-- Total volume
-- Total linear meters
-- Board count
+- Input product (WW or RS parent being stacked)
+- Output product (RS or FG being produced)
+- Input pack qty — **always 0.5 or 1.0**
+- Output pack qty — integer count of full output packs planned
+- Planned and actual board count, linear meters, m³ (see `Process Pack & Pack-as-Unit.md`)
 - Raw lots included
 - QC downgrade flag (if any)
 

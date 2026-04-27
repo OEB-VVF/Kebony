@@ -1,7 +1,7 @@
 # Kebony — Documentation Index
 
 > Single entry point for all Kebony Odoo 19 documentation.
-> Updated: 2026-02-27
+> Updated: 2026-03-13
 
 ---
 
@@ -42,7 +42,15 @@ Product architecture, physical metrics, and cross-entity operational features.
 | [[Product Master Data]] | Core product architecture & field definitions | Active |
 | [[Metrics & Physical Units]] | Linear m, boards, volume m3, mixin architecture | Active |
 | [[Pack Reservation]] | Pack selection, full-pack-first, lot lifecycle | Active |
+| [[Stock Locations & Warehouses]] | Belgian warehouse topology (Kallo, RDK, TabakNatie), location types, stock flows | Active |
 | [[Analytical Accounting Architecture]] | 3 analytic plans (Country, BU, CM Level), allocation rules, P&L waterfall | White Paper |
+| [[Budget & Performance Architecture]] | Budget framework, performance reporting | Active |
+| [[Electronic Signatures]] | Odoo Sign integration, approval workflows | Active |
+| [[Knowledge Architecture]] | Obsidian → Odoo Knowledge sync, article structure | Active |
+| [[Spec Approvals]] | Specification approval workflows | Active |
+| [[FSC Certification & Compliance]] | FSC chain-of-custody, certification tracking | Active |
+| [[Project Management (EXCO & Hypercare)]] | VVF PM module installed at Kebony — CEO dashboard + hypercare tickets | Pointer |
+| [[Localized Send Framework]] | Entity-specific document sending (email templates, attachments) | Active |
 
 ---
 
@@ -58,6 +66,8 @@ End-to-end manufacturing documentation, from conceptual landscape to Odoo implem
 | [[Planning Considerations]] | Planning primitives, capacity model, families | Frozen |
 | [[Workflow Diagrams]] | Mermaid diagrams (A4 portrait), MES traceability | Active |
 | [[Stock & Lot Enrichment]] | Inventory enrichment — cubic, capacity, traceability | Frozen |
+| [[Costing Architecture & COGS Decomposition]] | Standard vs FIFO, COGS decomposition, RDK settlement, Belgian PCMN | Decision Pending |
+| [[RAP MPS - Current Replenishment Logic]] | Current replenishment/MPS logic analysis | Active |
 
 ---
 
@@ -70,6 +80,10 @@ US-only features for Kebony Inc. — accounting, accruals, margin, consignment.
 |---|---|---|
 | [[Accounting & Margin Architecture]] | FIFO, chart of accounts, accruals, margin, COGS, landed costs, journal map, month-end close | Active |
 | [[Consignment & Biewer]] | Consignment stock, blank valuation, Biewer PO generation, pricing table | Active |
+| [[Landed Cost Automation]] | Automated landed cost allocation for US imports | Active |
+| [[Sales & Cash Dashboard]] | Sales & cash collection dashboard | Active |
+| [[Prepayment Flag]] | Prepayment invoice detection and handling | Active |
+| [[Reception BOL & Inbound Logistics]] | Inbound BOL processing, reception workflows | Active |
 
 ---
 
@@ -79,6 +93,30 @@ Implementation phasing and step-by-step delivery plan.
 
 - [[Working Plan]] — Step-by-step phase delivery (Phases 1-9)
 - [[Backlog]] — Living checklist: bugs, tech debt, feature requests, deferred decisions
+
+---
+
+## 06 - Slide Decks
+
+Auto-generated HTML presentations derived from vault documents. **Never edit directly** — regenerate from source.
+
+| Deck | Source | Audience |
+|------|--------|----------|
+| `costing_architecture.html` | [[Costing Architecture & COGS Decomposition]] | CFO / Finance |
+| `vvf_budget.html` | Budget data (standalone) | Board / Management |
+| `vvf_it_opex.html` | IT run rate data (standalone) | Board / Management |
+
+See [[06 - Slide Decks/README]] for conventions and workflow.
+
+---
+
+## 07 - Validation
+
+Test plans, validation reports, and proposed change documents.
+
+| Document | Scope | Status |
+|---|---|---|
+| Accrual Engine - Proposed Changes v1.html | Accrual engine redesign validation | Active |
 
 ---
 

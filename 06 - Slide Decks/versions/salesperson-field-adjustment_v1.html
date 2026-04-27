@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0">
+<title>Sales Responsibility Tracking</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    body { background: none; padding: 0; gap: 0; }
+    .slide { box-shadow: none; border-radius: 0; margin: 0;
+             page-break-inside: avoid; page-break-after: always; }
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    gap: 30px;
+  }
+
+  .slide {
+    width: 1280px;
+    min-height: 720px;
+    max-height: 720px;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    padding: 38px 50px 36px;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+  }
+
+  .slide::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
+
+  /* ── Title slide ── */
+  .slide.title-slide {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .slide.title-slide::before { height: 8px; }
+  .slide.title-slide h1 {
+    font-size: 38px;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .slide.title-slide .subtitle {
+    font-size: 17px;
+    color: #555;
+    margin-bottom: 32px;
+  }
+  .slide.title-slide .meta {
+    font-size: 12px;
+    color: #999;
+    line-height: 1.8;
+  }
+
+  h1 { font-size: 24px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  h2 { font-size: 16px; font-weight: 600; color: #0f3460; margin-bottom: 10px; margin-top: 14px; }
+  h3 { font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+  .subtitle { font-size: 12px; color: #888; margin-bottom: 18px; }
+
+  .section-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1.2px; color: #0f3460; margin-bottom: 8px;
+    padding-bottom: 4px; border-bottom: 2px solid #0f3460; display: inline-block;
+  }
+  .section-label.green { color: #2e7d32; border-color: #2e7d32; }
+  .section-label.orange { color: #e65100; border-color: #e65100; }
+  .section-label.red { color: #c62828; border-color: #c62828; }
+
+  /* ── Layout ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+
+  .card {
+    background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 8px;
+    padding: 16px 18px;
+  }
+
+  .callout {
+    margin-top: 12px; padding: 10px 14px; font-size: 11.5px; border-radius: 4px;
+  }
+  .callout.blue { background: #e3f2fd; border-left: 3px solid #1565c0; }
+  .callout.green { background: #e8f5e9; border-left: 3px solid #2e7d32; }
+  .callout.orange { background: #fff3e0; border-left: 3px solid #e65100; }
+  .callout.red { background: #ffebee; border-left: 3px solid #c62828; }
+
+  .tag {
+    display: inline-block; padding: 2px 8px; border-radius: 3px;
+    font-size: 10px; font-weight: 600;
+  }
+  .tag.green { background: #e8f5e9; color: #2e7d32; }
+  .tag.red { background: #ffebee; color: #c62828; }
+  .tag.blue { background: #e3f2fd; color: #1565c0; }
+  .tag.orange { background: #fff3e0; color: #e65100; }
+  .tag.grey { background: #f5f5f5; color: #616161; }
+
+  /* ── Tables ── */
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 8px 0; }
+  th { background: #f8f9fa; padding: 8px 12px; text-align: left; font-weight: 600;
+       color: #1a1a2e; border-bottom: 2px solid #dee2e6; font-size: 11px; }
+  td { padding: 7px 12px; border-bottom: 1px solid #eee; color: #333; vertical-align: top; }
+
+  ul { font-size: 12px; line-height: 1.7; padding-left: 18px; }
+  ul li { margin-bottom: 4px; }
+  p { font-size: 12px; line-height: 1.6; color: #444; }
+
+  .slide-number { font-size: 10px; color: #bbb; }
+
+  /* ── Logo ── */
+  .logo-title {
+    position: absolute; top: 30px; right: 40px;
+    height: 80px; opacity: 0.9;
+  }
+  .slide-footer {
+    position: absolute; bottom: 10px; left: 20px; right: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .prepared-by {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .prepared-by span {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+  .prepared-by img {
+    height: 22px; opacity: 0.7;
+  }
+  .footer-project {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+  .footer-page {
+    font-size: 10px; color: #bbb;
+  }
+  .big-number { font-size: 36px; font-weight: 700; color: #0f3460; }
+  .label-sm { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #888; }
+
+  .flow-box {
+    display: inline-block; padding: 8px 16px; border-radius: 6px;
+    font-size: 12px; font-weight: 600; text-align: center;
+  }
+  .flow-box.dark { background: #1a1a2e; color: #fff; }
+  .flow-box.blue { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+  .flow-box.green { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+  .flow-box.orange { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
+  .flow-box.red { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+  .flow-arrow { display: inline-block; font-size: 18px; color: #bbb; margin: 0 8px; vertical-align: middle; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ SLIDE 1 — TITLE ═══════════════════ -->
+<div class="slide title-slide">
+  <img src="VVF-logo.png" alt="VVF" class="logo-title">
+  <h1>Sales Responsibility Tracking</h1>
+  <div class="subtitle">Who sold the deal? &mdash; Odoo field adjustment proposal</div>
+  <div class="meta">
+    Requested by Tom DeKeyser, CEO &mdash; 30 March 2026<br>
+    Prepared by Olivier Eberhard &mdash; April 2026
+  </div>
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">1</div>
+  </div>
+</div>
+
+<!-- ═══════════════════ SLIDE 2 — CURRENT STATE ═══════════════════ -->
+<div class="slide">
+  <h1>Current State &mdash; Key Role Missing</h1>
+  <div class="subtitle">A sale involves up to three parties. The Kebony sales owner is never captured.</div>
+
+  <table>
+    <tr>
+      <th>Role</th>
+      <th>Who</th>
+      <th>Example</th>
+      <th>Tracked?</th>
+    </tr>
+    <tr>
+      <td><strong>Kebony Sales Responsible</strong></td>
+      <td>Internal Kebony employee who owns the customer relationship</td>
+      <td>Sami Kivisto, Andy Hehl, Jim Dowd, Mark Aromi</td>
+      <td><span class="tag red">NOT TRACKED</span></td>
+    </tr>
+    <tr>
+      <td><strong>Back Office Person</strong></td>
+      <td>Admin staff processing the order</td>
+      <td>Bethany Dunnam, Briawna Willingham</td>
+      <td><span class="tag orange">Mislabeled as &ldquo;Salesperson&rdquo;</span></td>
+    </tr>
+    <tr>
+      <td><strong>External Sales Agent</strong></td>
+      <td>Partner company representing Kebony <span class="tag blue">US only</span></td>
+      <td>Rob Langenfeld Sales, Mako, Onshore</td>
+      <td><span class="tag green">Sales Representative field</span></td>
+    </tr>
+  </table>
+
+  <div class="callout red" style="margin-top: 18px;">
+    <strong>Gap:</strong> Tom&rsquo;s requirement &mdash; &ldquo;all sales should be tracked and linked to one sales rep&rdquo; &mdash; refers to the <strong>Kebony Sales Responsible</strong>. This role has no field today.
+  </div>
+
+  <h2>Current &ldquo;Salesperson&rdquo; field contains back-office staff</h2>
+  <div class="two-col">
+    <div>
+      <table>
+        <tr><th>Person</th><th>Role</th><th># Orders</th></tr>
+        <tr><td>Bethany Dunnam</td><td><span class="tag orange">Back Office</span></td><td>42</td></tr>
+        <tr><td>Briawna Willingham</td><td><span class="tag orange">Back Office</span></td><td>20</td></tr>
+        <tr><td>Ann Kelican</td><td><span class="tag orange">Back Office</span></td><td>3</td></tr>
+        <tr><td>Olga Trichet</td><td><span class="tag orange">Back Office</span></td><td>1</td></tr>
+      </table>
+    </div>
+    <div>
+      <div class="callout blue">
+        <strong>Note:</strong> The <em>Sales Representative</em> field (external agents) is partially populated on 31 / 66 US orders. Europe does not use external agents as of today.
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">2</div>
+  </div>
+</div>
+
+<!-- ═══════════════════ SLIDE 3 — SOLUTION ═══════════════════ -->
+<div class="slide">
+  <h1>Proposed Solution &mdash; Three Fields, Three Roles</h1>
+  <div class="subtitle">One new field, one relabel, one unchanged.</div>
+
+  <table>
+    <tr>
+      <th>Field Label</th>
+      <th>Technical Name</th>
+      <th>Type</th>
+      <th>Contains</th>
+      <th>Action</th>
+    </tr>
+    <tr>
+      <td><strong>Sales Responsible</strong></td>
+      <td style="font-family: monospace; font-size: 11px; color: #0f3460;">x_kebony_sales_responsible_id</td>
+      <td>res.users</td>
+      <td>Kebony employee who owns the deal</td>
+      <td><span class="tag red">NEW &mdash; create</span></td>
+    </tr>
+    <tr>
+      <td><strong>Back Office Person</strong></td>
+      <td style="font-family: monospace; font-size: 11px; color: #0f3460;">user_id</td>
+      <td>res.users</td>
+      <td>Admin staff handling the order</td>
+      <td><span class="tag orange">RELABEL</span> from &ldquo;Salesperson&rdquo;</td>
+    </tr>
+    <tr>
+      <td><strong>External Sales Agent</strong></td>
+      <td style="font-family: monospace; font-size: 11px; color: #0f3460;">x_studio_sales_representative</td>
+      <td>res.partner</td>
+      <td>Agent company <span class="tag blue">US only</span></td>
+      <td><span class="tag green">KEEP</span> as-is</td>
+    </tr>
+  </table>
+
+  <h2>Migration</h2>
+  <div class="two-col">
+    <div>
+      <div class="section-label">Step 1 &mdash; Relabel</div>
+      <p>Rename <code>user_id</code> from &ldquo;Salesperson&rdquo; to &ldquo;Back Office Person&rdquo;. No data change &mdash; just a clearer label.</p>
+
+      <div class="section-label" style="margin-top: 14px;">Step 2 &mdash; New field</div>
+      <p>Create <code>x_kebony_sales_responsible_id</code> (Many2one &rarr; res.users) on sale.order and account.move. Required on SO confirmation.</p>
+    </div>
+    <div>
+      <div class="section-label green">Step 3 &mdash; Propagation</div>
+      <div style="margin: 10px 0;">
+        <span class="flow-box green">Sales Order</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-box green">Invoice</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-box green">Credit Note</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-box green">Reports</span>
+      </div>
+      <p>Sales Responsible flows automatically through the entire document chain.</p>
+
+      <div class="callout green" style="margin-top: 12px;">
+        The external sales agent field stays untouched &mdash; it is correctly used for US agent commission tracking.
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">3</div>
+  </div>
+</div>
+
+<!-- ═══════════════════ SLIDE 4 — REPORTING ═══════════════════ -->
+<div class="slide">
+  <h1>What This Unlocks</h1>
+  <div class="subtitle">Full reporting across all sales dimensions</div>
+
+  <div class="two-col">
+    <div>
+      <div class="section-label red">Before</div>
+      <table>
+        <tr><th>Report Dimension</th><th>Available?</th></tr>
+        <tr><td>Sales by Region / Area</td><td><span class="tag green">Yes</span></td></tr>
+        <tr><td>Sales by Country</td><td><span class="tag green">Yes</span></td></tr>
+        <tr><td>Sales by External Agent</td><td><span class="tag green">Yes</span></td></tr>
+        <tr><td>Sales by Kebony Sales Owner</td><td><span class="tag red">No</span></td></tr>
+        <tr><td>Sales by Back Office</td><td><span class="tag orange">Mislabeled</span></td></tr>
+      </table>
+    </div>
+    <div>
+      <div class="section-label green">After</div>
+      <table>
+        <tr><th>Report Dimension</th><th>Available?</th></tr>
+        <tr><td>Sales by Region / Area</td><td><span class="tag green">Yes</span></td></tr>
+        <tr><td>Sales by Country</td><td><span class="tag green">Yes</span></td></tr>
+        <tr><td>Sales by External Agent</td><td><span class="tag green">Yes</span></td></tr>
+        <tr><td>Sales by Kebony Sales Owner</td><td><span class="tag green">Yes</span></td></tr>
+        <tr><td>Sales by Back Office</td><td><span class="tag green">Yes</span></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <h2 style="margin-top: 20px;">Example: Combined Analysis</h2>
+  <div class="callout blue">
+    &ldquo;Show me all Q1 sales where Sami Kivisto is the sales owner, broken down by external agent and country.&rdquo;<br>
+    <strong>Today:</strong> Impossible. <strong>After:</strong> One pivot table filter.
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">4</div>
+  </div>
+</div>
+
+<!-- ═══════════════════ SLIDE 5 — IMPLEMENTATION ═══════════════════ -->
+<div class="slide">
+  <h1>Implementation</h1>
+  <div class="subtitle">Minimal technical effort, process alignment required</div>
+
+  <div class="two-col">
+    <div>
+      <div style="text-align: center; padding: 16px 0;">
+        <div class="big-number">2-3h</div>
+        <div class="label-sm">Total implementation time</div>
+      </div>
+
+      <table>
+        <tr><th>Task</th><th>Time</th></tr>
+        <tr><td>Create new field + relabel user_id</td><td>20 min</td></tr>
+        <tr><td>Add to SO + Invoice form views</td><td>30 min</td></tr>
+        <tr><td>SO &rarr; Invoice propagation logic</td><td>30 min</td></tr>
+        <tr><td>Add to pivot / reporting views</td><td>20 min</td></tr>
+        <tr><td>Test end-to-end with US data</td><td>1 hour</td></tr>
+      </table>
+    </div>
+    <div>
+      <div class="section-label">Process Change</div>
+      <ul>
+        <li>When creating an SO, select the <strong>Kebony employee</strong> who owns the customer relationship</li>
+        <li>Field is <strong>required on SO confirmation</strong> &mdash; cannot confirm without it</li>
+        <li>Back Office Person auto-fills with logged-in user (unchanged)</li>
+        <li>External sales agent stays optional (US only &mdash; not used in Europe as of today)</li>
+      </ul>
+
+      <div class="callout orange" style="margin-top: 16px;">
+        <strong>Next step:</strong> Validate approach with Joris &amp; Sami, then brief Andy and back-office teams on the new field.
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+    <div class="slide-number">5</div>
+  </div>
+</div>
+
+</body>
+</html>

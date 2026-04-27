@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0">
+<title>Chain of Custody — FSC/PEFC Certification Architecture</title>
+<!-- v1.1 | 2026-04-22 | Workshop follow-up: MO hard block (Kebo+RDK), SO cert toggle, invoice-as-proof, ICC-ES axis -->
+<!-- v1.0 | 2026-04-09 | Initial version -->
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    body { background: none; padding: 0; gap: 0; }
+    .slide { box-shadow: none; border-radius: 0; margin: 0; page-break-inside: avoid; page-break-after: always; }
+  }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #f5f5f5; display: flex; flex-direction: column; align-items: center; padding: 20px; gap: 30px; }
+  .slide { width: 1280px; min-height: 720px; max-height: 720px; background: #fff; border-radius: 4px; box-shadow: 0 2px 20px rgba(0,0,0,0.08); padding: 38px 50px 36px; position: relative; overflow: hidden; page-break-after: always; }
+  .slide::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); }
+  .slide.title-slide { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
+  .slide.title-slide::before { height: 8px; }
+  .slide.title-slide h1 { font-size: 36px; line-height: 1.2; margin-bottom: 8px; }
+  .slide.title-slide .subtitle { font-size: 16px; color: #555; margin-bottom: 32px; }
+  .slide.title-slide .meta { font-size: 12px; color: #999; line-height: 1.8; }
+  h1 { font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  h2 { font-size: 15px; font-weight: 600; color: #0f3460; margin-bottom: 10px; margin-top: 14px; }
+  h3 { font-size: 12px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  .subtitle { font-size: 12px; color: #888; margin-bottom: 16px; }
+  .section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: #0f3460; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 2px solid #0f3460; display: inline-block; }
+  .section-label.red { color: #c62828; border-color: #c62828; }
+  .section-label.green { color: #2e7d32; border-color: #2e7d32; }
+  .section-label.orange { color: #e65100; border-color: #e65100; }
+  .section-label.purple { color: #6a1b9a; border-color: #6a1b9a; }
+  .flow-diagram { background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px 20px; margin: 8px 0; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 10.5px; line-height: 1.55; color: #333; white-space: pre; overflow-x: auto; }
+  .flow-diagram .label { color: #0f3460; font-weight: 700; }
+  .flow-diagram .highlight { color: #c62828; font-weight: 600; }
+  .flow-diagram .green { color: #2e7d32; font-weight: 600; }
+  .flow-diagram .blue { color: #0f3460; font-weight: 600; }
+  .flow-diagram .dim { color: #aaa; }
+  .flow-diagram .orange { color: #e65100; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; margin: 6px 0; }
+  th { background: #f8f9fa; padding: 6px 10px; text-align: left; font-weight: 600; color: #1a1a2e; border-bottom: 2px solid #dee2e6; }
+  td { padding: 5px 10px; border-bottom: 1px solid #eee; color: #333; vertical-align: top; }
+  tr:hover td { background: #f8f9fa; }
+  table.compact { font-size: 10px; }
+  table.compact th, table.compact td { padding: 3px 6px; }
+  .tag { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 9px; font-weight: 600; letter-spacing: 0.3px; }
+  .tag.green { background: #e8f5e9; color: #2e7d32; }
+  .tag.red { background: #ffebee; color: #c62828; }
+  .tag.orange { background: #fff3e0; color: #e65100; }
+  .tag.blue { background: #e3f2fd; color: #1565c0; }
+  .tag.purple { background: #f3e5f5; color: #6a1b9a; }
+  .tag.grey { background: #f5f5f5; color: #616161; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .card { background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 8px; padding: 14px 16px; }
+  .card h3 { margin-bottom: 6px; }
+  .callout { margin-top: 10px; padding: 8px 12px; font-size: 10.5px; border-radius: 4px; }
+  .callout.blue { background: #e3f2fd; border-left: 3px solid #1565c0; }
+  .callout.green { background: #e8f5e9; border-left: 3px solid #2e7d32; }
+  .callout.orange { background: #fff3e0; border-left: 3px solid #e65100; }
+  .callout.red { background: #ffebee; border-left: 3px solid #c62828; }
+  .callout.purple { background: #f3e5f5; border-left: 3px solid #6a1b9a; }
+  .slide-number { font-size: 10px; color: #bbb; }
+  .slide-footer {
+    position: absolute; bottom: 10px; left: 20px; right: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .prepared-by {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .prepared-by span {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+  .prepared-by img {
+    height: 22px; opacity: 0.7;
+  }
+  .footer-project {
+    font-size: 9px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+  ul { font-size: 11px; line-height: 1.6; padding-left: 16px; }
+  ul li { margin-bottom: 3px; }
+  p { font-size: 11px; line-height: 1.6; color: #444; }
+  td.check { text-align: center; font-size: 13px; }
+  .big-number { font-size: 48px; font-weight: 700; color: #0f3460; line-height: 1; }
+  .big-label { font-size: 12px; color: #888; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 1 — TITLE                                            -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="slide title-slide">
+  <h1>Chain of Custody<br>Certification Architecture</h1>
+  <div class="subtitle">FSC, PEFC and ICC-ES traceability in Odoo 19 — from receipt to invoice</div>
+  <div class="meta">
+    Kebony ERP Implementation<br>
+    April 2026 &mdash; Architecture v1.1 (post-workshop)<br>
+    <br>
+    Standards: FSC-STD-40-004 V3-1 &bull; PEFC ST 2002:2020 &bull; ICC-ES (US building codes)<br>
+    Dual CoC scheme: FSC + PEFC (depends on country of origin &amp; supplier)<br>
+    Plus product-level US code axis: ICC-ES (added April 2026)
+  </div>
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 2 — WHY THIS MATTERS                                 -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="slide">
+  <h1>Why Chain of Custody in the ERP?</h1>
+  <div class="subtitle">The auditor's question: "Show me the chain from this invoice back to the source."</div>
+
+  <div class="two-col" style="margin-top: 16px;">
+    <div class="card">
+      <h3>Today's reality</h3>
+      <ul>
+        <li>3 Studio fields on product + company (static text)</li>
+        <li>FSC code printed on BOL/invoice via QWeb template fallback</li>
+        <li><strong>No lot-level traceability</strong></li>
+        <li><strong>No claim propagation</strong> through stock moves or manufacturing</li>
+        <li>No evidence (attachments) linked to receipts</li>
+        <li>No supplier certificate verification records</li>
+        <li>Hardcoded species/origin text on Reception BOL</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>What an auditor expects</h3>
+      <ul>
+        <li>Inbound claim evidence per lot (supplier cert + source doc)</li>
+        <li>Material accounting records (input % &rarr; output claim)</li>
+        <li>Unbroken traceability: receipt &rarr; stock &rarr; production &rarr; shipment</li>
+        <li>Sales document control (claim + cert code on delivery/invoice)</li>
+        <li>Nonconforming product records</li>
+        <li>Supplier certificate register</li>
+        <li><strong>5-year record retention</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout red" style="margin-top: 16px;">
+    <strong>Gap:</strong> Today we can print FSC on documents, but we cannot <em>prove</em> the claim.
+    An auditor asking "which certified lots went into this shipment?" gets no system answer.
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 3 — KEBONY'S CERTIFICATION MODEL                     -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="slide">
+  <h1>Kebony's Certification Model</h1>
+  <div class="subtitle">Percentage method today, transitioning to 100% certified input</div>
+
+  <div class="two-col" style="margin-top: 12px;">
+    <div>
+      <div class="section-label orange">Current state</div>
+      <div class="card" style="margin-top: 8px;">
+        <div style="display:flex; gap: 30px; align-items: center; margin-bottom: 12px;">
+          <div style="text-align:center;">
+            <div class="big-number">70%</div>
+            <div class="big-label">certified input per lot</div>
+          </div>
+          <div style="font-size:28px; color:#ccc;">&rarr;</div>
+          <div style="text-align:center;">
+            <div class="big-number" style="color:#e65100;">FSC Mix</div>
+            <div class="big-label">output claim</div>
+          </div>
+        </div>
+        <p>Inbound wood arrives as <strong>"FSC Mix 70%"</strong>. Under the percentage method,
+        the certified content ratio determines the output claim.</p>
+      </div>
+
+      <div class="section-label green" style="margin-top: 16px;">Target state</div>
+      <div class="card" style="margin-top: 8px;">
+        <div style="display:flex; gap: 30px; align-items: center; margin-bottom: 12px;">
+          <div style="text-align:center;">
+            <div class="big-number" style="color:#2e7d32;">100%</div>
+            <div class="big-label">certified input per lot</div>
+          </div>
+          <div style="font-size:28px; color:#ccc;">&rarr;</div>
+          <div style="text-align:center;">
+            <div class="big-number" style="color:#2e7d32;">FSC 100%</div>
+            <div class="big-label">output claim</div>
+          </div>
+        </div>
+        <p>When all input is 100% certified, the system naturally transitions
+        to physical separation &mdash; output carries <strong>"FSC 100%"</strong>.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Control methods supported</div>
+      <table style="margin-top: 8px;">
+        <tr>
+          <th>Method</th>
+          <th>Description</th>
+          <th>Status</th>
+        </tr>
+        <tr>
+          <td><strong>Percentage</strong></td>
+          <td>Output claim = f(% certified input in period)</td>
+          <td><span class="tag orange">Active today</span></td>
+        </tr>
+        <tr>
+          <td><strong>Physical separation</strong></td>
+          <td>Certified / non-certified kept apart</td>
+          <td><span class="tag blue">Future (100%)</span></td>
+        </tr>
+        <tr>
+          <td><strong>Credit</strong></td>
+          <td>Credits earned on input, spent on output</td>
+          <td><span class="tag grey">Not needed</span></td>
+        </tr>
+      </table>
+
+      <div class="callout blue" style="margin-top: 16px;">
+        <strong>Design principle:</strong> The system tracks certified % per lot and per period.
+        When input reaches 100%, no process change is needed &mdash; the math just gives
+        "FSC 100%" output automatically.
+      </div>
+
+      <div class="callout green" style="margin-top: 10px;">
+        <strong>Scope:</strong> All Kebony entities globally. <strong>Both FSC and PEFC</strong> &mdash;
+        scheme depends on country of origin and supplier. Certificate codes differ by company
+        (INC, BNV, Holding). Multi-company + multi-scheme natively supported.
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 4 — DESIGN PRINCIPLE                                 -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="slide">
+  <h1>Design Principle</h1>
+  <div class="subtitle">Certification travels with the material flow</div>
+
+  <div class="flow-diagram" style="margin-top: 16px; font-size: 11px; line-height: 1.7;">
+<span class="label">INBOUND</span>                         <span class="label">INTERNAL</span>                          <span class="label">OUTBOUND</span>
+<span class="dim">───────────────────────</span>        <span class="dim">──────────────────────────</span>        <span class="dim">───────────────────────</span>
+
+  Vendor doc + cert           Internal transfer              Delivery picking
+       <span class="dim">│</span>                          <span class="dim">│</span>                             <span class="dim">│</span>
+       <span class="dim">▼</span>                          <span class="dim">▼</span>                             <span class="dim">▼</span>
+  <span class="blue">PO Line</span>                    Move lines inherit          <span class="highlight">Claim validated</span>
+  (planned claim)             cert data from lot          against source lots
+       <span class="dim">│</span>                          <span class="dim">│</span>                             <span class="dim">│</span>
+       <span class="dim">▼</span>                          <span class="dim">▼</span>                             <span class="dim">▼</span>
+  <span class="blue">Receipt</span>                    <span class="green">Dryer Load → MO</span>            Delivery slip prints:
+       <span class="dim">│</span>                     cert validation at            scheme + claim + code
+       <span class="dim">▼</span>                     action_done                        <span class="dim">│</span>
+  <span class="green">Lot created</span>                    <span class="dim">│</span>                             <span class="dim">▼</span>
+  claim + supplier cert        <span class="dim">▼</span>                        <span class="orange">Invoice mirrors claim</span>
+  + evidence attached      <span class="green">cert.trace.link</span>
+       <span class="dim">│</span>                   input → output
+       <span class="dim">▼</span>
+  <span class="blue">stock.move.line</span>
+  cert data stored
+  </div>
+
+  <div class="callout blue" style="margin-top: 12px;">
+    <strong>Key rule:</strong> Users never retype certification data downstream. It auto-propagates
+    from receipt lot through every movement to the final shipment. The system, not the user,
+    guarantees the chain.
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 5 — DATA MODEL OVERVIEW                              -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="slide">
+  <h1>Data Model — What Lives Where</h1>
+  <div class="subtitle">Three layers: master data, transactional traceability, compliance</div>
+
+  <div class="three-col" style="margin-top: 12px;">
+    <div class="card" style="border-top: 3px solid #0f3460;">
+      <div class="section-label">Master / Control</div>
+      <h3>certificate.product.group</h3>
+      <p style="font-size:10px;">Product group + control method + scheme</p>
+      <h3 style="margin-top:8px;">partner.certificate</h3>
+      <p style="font-size:10px;">Supplier cert code, validity, evidence</p>
+      <h3 style="margin-top:8px;">product.template</h3>
+      <p style="font-size:10px;">cert_relevant flag, default group</p>
+      <div class="callout blue" style="margin-top:10px; font-size:9px;">
+        Reference data. Not audit evidence.
+        Coexists with existing x_studio_fsc_* fields.
+      </div>
+    </div>
+
+    <div class="card" style="border-top: 3px solid #2e7d32;">
+      <div class="section-label green">Transactional</div>
+      <h3>purchase.order.line</h3>
+      <p style="font-size:10px;">Planned inbound claim + supplier cert</p>
+      <h3 style="margin-top:8px;">stock.lot <span class="tag green">Primary carrier</span></h3>
+      <p style="font-size:10px;">Claim, %, evidence, quarantine flag</p>
+      <h3 style="margin-top:8px;">stock.move.line</h3>
+      <p style="font-size:10px;">Claim at every movement (the audit chain)</p>
+      <h3 style="margin-top:8px;">cert.trace.link</h3>
+      <p style="font-size:10px;">Input → output link (MO, repacking)</p>
+      <h3 style="margin-top:8px;">cert.claim.period + ledger</h3>
+      <p style="font-size:10px;">% accounting: certified input / total</p>
+    </div>
+
+    <div class="card" style="border-top: 3px solid #e65100;">
+      <div class="section-label orange">Compliance</div>
+      <h3>stock.picking (outbound)</h3>
+      <p style="font-size:10px;">Claim validation gate</p>
+      <h3 style="margin-top:8px;">sale.order.line / invoice line</h3>
+      <p style="font-size:10px;">Claim + cert code for printing</p>
+      <h3 style="margin-top:8px;">cert.nonconformity</h3>
+      <p style="font-size:10px;">Issue log: missing claim, mixing, etc.</p>
+      <h3 style="margin-top:8px;">mrp.production</h3>
+      <p style="font-size:10px;">Cert validation at MO completion</p>
+      <div class="callout orange" style="margin-top:10px; font-size:9px;">
+        Hooks into existing Dryer Load → MO flow
+        (kebony_manufacturing Phase 6+)
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 6 — BUSINESS RULES                                   -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="slide">
+  <h1>Business Rules</h1>
+  <div class="subtitle">Five rules that make the system audit-proof</div>
+
+  <div style="margin-top: 12px;">
+    <table>
+      <tr>
+        <th style="width: 30px;">#</th>
+        <th style="width: 200px;">Rule</th>
+        <th>What happens</th>
+        <th style="width: 120px;">Enforcement</th>
+      </tr>
+      <tr>
+        <td><strong>1</strong></td>
+        <td><strong>Receipt gating</strong></td>
+        <td>If product is cert-relevant: require scheme, claim (%), supplier cert code, lot.
+            If missing &rarr; soft warning or quarantine. Configurable per entity.</td>
+        <td><span class="tag orange">Warn / Block</span></td>
+      </tr>
+      <tr>
+        <td><strong>2</strong></td>
+        <td><strong>Claim propagation</strong></td>
+        <td>Cert data auto-flows: receipt lot &rarr; internal moves &rarr; MO &rarr; delivery.
+            No manual retyping. All wood products are lot-tracked (no exceptions).</td>
+        <td><span class="tag green">Automatic</span></td>
+      </tr>
+      <tr>
+        <td><strong>3</strong></td>
+        <td><strong>Mixing control</strong></td>
+        <td><strong>Kebonisation and RDK MOs: hard block, no override</strong> &mdash; all consumed lots must share the same scheme &amp; claim.
+            Other MO types (repacks, grade-downs): warn or block, configurable. Override requires justification &rarr; logged as nonconformity.</td>
+        <td><span class="tag red">Hard block</span> <span class="tag orange">+ Warn/Block</span></td>
+      </tr>
+      <tr>
+        <td><strong>4</strong></td>
+        <td><strong>Outbound validation</strong></td>
+        <td>Before delivery with certified claim: verify source lots exist, qty supports claim,
+            evidence attached, cert code available for printing.</td>
+        <td><span class="tag orange">Warn / Block</span></td>
+      </tr>
+      <tr>
+        <td><strong>5</strong></td>
+        <td><strong>Audit packet</strong></td>
+        <td>From any lot/MO/picking/invoice: open full traceability view &mdash;
+            source docs, movements, trace links, output docs, nonconformities.</td>
+        <td><span class="tag blue">One-click</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="callout green" style="margin-top: 16px;">
+    <strong>Simplicity principle:</strong> Warn by default, block only where configured.
+    Bulk receipts (containers) support partial claim with per-lot override.
+    The system must <em>help</em> the warehouse, not slow it down.
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 7 — REPORTS                                          -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="slide">
+  <h1>Audit Reports</h1>
+  <div class="subtitle">Seven reports that answer every auditor question</div>
+
+  <table style="margin-top: 16px;">
+    <tr>
+      <th style="width:30px;">#</th>
+      <th style="width:250px;">Report</th>
+      <th>What it proves</th>
+      <th style="width:80px;">Phase</th>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td><strong>Certified inbound register</strong></td>
+      <td>Date, supplier, cert code, product, claim in, qty, lot, source doc, attachment status</td>
+      <td><span class="tag green">MVP</span></td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><strong>Certified stock by lot/location</strong></td>
+      <td>Lot, product, location, scheme, claim, qty on hand, hold flag &mdash; proves segregation</td>
+      <td><span class="tag green">MVP</span></td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><strong>Input-to-output traceability</strong></td>
+      <td>From any shipment: inbound lots consumed, qty, resulting claim &mdash; <em>the core audit report</em></td>
+      <td><span class="tag green">MVP</span></td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><strong>Certified sales register</strong></td>
+      <td>Delivery, invoice, customer, product, qty, claim out, cert code, linked lots</td>
+      <td><span class="tag green">MVP</span></td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><strong>Supplier certificate register</strong></td>
+      <td>Supplier, scheme, cert code, validity dates, verification evidence</td>
+      <td><span class="tag green">MVP</span></td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td><strong>Claim ledger / annual volume summary</strong></td>
+      <td>By period + product group: certified input, total input, %, output claimed, closing balance</td>
+      <td><span class="tag green">MVP</span></td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td><strong>Nonconformity / corrective action</strong></td>
+      <td>Issue type, lot, action taken, status &mdash; proves governance</td>
+      <td><span class="tag blue">Phase 2</span></td>
+    </tr>
+  </table>
+
+  <div class="callout blue" style="margin-top: 16px;">
+    <strong>Auditor test:</strong> Start from any invoice &rarr; click through to source lots &rarr;
+    see supplier cert &rarr; see % calculation &rarr; confirm claim is supported. Should take &lt; 2 minutes.
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 8 — PHASING                                          -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="slide">
+  <h1>Implementation Phases</h1>
+  <div class="subtitle">MVP first, then manufacturing chain, then advanced features</div>
+
+  <div class="three-col" style="margin-top: 16px;">
+    <div class="card" style="border-top: 3px solid #2e7d32;">
+      <div class="section-label green">MVP &mdash; Audit-proof baseline</div>
+      <ul style="font-size:10.5px;">
+        <li>Inbound claim capture (PO &rarr; receipt &rarr; lot) with % tracking</li>
+        <li>Lot-level traceability fields</li>
+        <li>Move-line auto-propagation</li>
+        <li>Claim period + ledger (70% &rarr; 100%)</li>
+        <li>Outbound claim validation</li>
+        <li>Supplier certificate register</li>
+        <li>Reports #1&ndash;#6</li>
+        <li>Migration: coexist with x_studio_fsc_* fields</li>
+      </ul>
+      <div class="callout green" style="font-size:9px; margin-top:8px;">
+        <strong>Survives an FSC audit.</strong> Covers inbound evidence,
+        material accounting, outbound claim proof, and 5-year retention.
+      </div>
+    </div>
+
+    <div class="card" style="border-top: 3px solid #0f3460;">
+      <div class="section-label">Phase 2 &mdash; Manufacturing chain</div>
+      <ul style="font-size:10.5px;">
+        <li>cert.trace.link for MO input &rarr; output</li>
+        <li>Dryer Load integration (kebony_manufacturing)</li>
+        <li>Nonconformity workflow + report</li>
+        <li>Annual volume summary report</li>
+        <li>Audit packet generator (one-click PDF)</li>
+      </ul>
+      <div class="callout blue" style="font-size:9px; margin-top:8px;">
+        <strong>Full production traceability.</strong> Hooks into existing
+        Dryer Load &rarr; MO flow (Phases 6&ndash;8 already complete).
+      </div>
+    </div>
+
+    <div class="card" style="border-top: 3px solid #e65100;">
+      <div class="section-label orange">Phase 3 &mdash; Advanced</div>
+      <ul style="font-size:10.5px;">
+        <li>Credit method support (if needed)</li>
+        <li>Complaint / internal audit workflows</li>
+        <li>FSC database API verification (info.fsc.org)</li>
+        <li>Certification health dashboard</li>
+      </ul>
+      <div class="callout orange" style="font-size:9px; margin-top:8px;">
+        <strong>Nice-to-have.</strong> Only build if business requires it.
+        Credit method unlikely for Kebony.
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 9 — UI TOUCHPOINTS                                   -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="slide">
+  <h1>UI Touchpoints</h1>
+  <div class="subtitle">Where users interact with certification data &mdash; minimal, non-intrusive</div>
+
+  <div class="two-col" style="margin-top: 16px;">
+    <div>
+      <div class="card" style="margin-bottom: 12px;">
+        <h3>Receipt &mdash; Certification tab</h3>
+        <ul style="font-size:10px;">
+          <li>Scheme, claim (%), supplier cert code, product group</li>
+          <li>Source document reference + date</li>
+          <li>Attachment widget (drag &amp; drop evidence)</li>
+          <li>Quarantine toggle if data incomplete</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Lot &mdash; Chain of Custody smart button</h3>
+        <ul style="font-size:10px;">
+          <li>Inbound documents</li>
+          <li>Full movement history</li>
+          <li>Consumed-by / delivered-in links</li>
+          <li>Certification status + claim</li>
+          <li>Nonconformities (if any)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom: 12px;">
+        <h3>MO &mdash; Certification Validation</h3>
+        <ul style="font-size:10px;">
+          <li>Consumed certified qty (auto-computed from lots)</li>
+          <li>Supported output claim</li>
+          <li>Conflict warnings</li>
+        </ul>
+      </div>
+
+      <div class="card" style="margin-bottom: 12px;">
+        <h3>Delivery &mdash; Claim Validation block</h3>
+        <ul style="font-size:10px;">
+          <li>Supported / unsupported indicator (green/red)</li>
+          <li>Output claim to print</li>
+          <li>Certificate code</li>
+          <li>Link to full audit packet</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Supplier &mdash; Certificate register tab</h3>
+        <ul style="font-size:10px;">
+          <li>One2many: certificates with validity + evidence</li>
+          <li>Expired/suspended = visual warning</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 10 — OPEN QUESTIONS                                  -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 11 — APRIL 2026 WORKSHOP OUTCOMES (overview)          -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="slide">
+  <h1>April 2026 Workshop — Outcomes</h1>
+  <div class="subtitle">Five decisions hardening the architecture</div>
+
+  <div class="two-col" style="margin-top: 12px;">
+    <div class="card">
+      <h3>1 · MO mixing — hard block</h3>
+      <p>Kebonisation and RDK MOs must not mix different certifications. Enforced in Python at <code>action_confirm</code> and <code>action_done</code>. <strong>No override.</strong> Other MO types keep the warn/block toggle.</p>
+    </div>
+    <div class="card">
+      <h3>2 · SO certification toggle</h3>
+      <p>New toggle on <code>sale.order.line</code> mirroring the minimum-quantity-guarantee toggle. Fields: <em>scheme required</em> + <em>claim required</em>. Filters reservation + gates delivery.</p>
+    </div>
+    <div class="card">
+      <h3>3 · RDK subcontract validation</h3>
+      <p>Contractual no-mixing clause + technical check. Inputs blocked if mixed. Output claim declared by subcontractor reconciled against inputs &rarr; mismatch auto-quarantines &amp; logs a nonconformity.</p>
+    </div>
+    <div class="card">
+      <h3>4 · Invoice = proof of certification</h3>
+      <p>Every certified line prints scheme + claim + cert code. For US-bound lines: add ESR number (ICC-ES). Reconstruction chain invoice &rarr; delivery &rarr; lot &rarr; vendor must hold for 5 years.</p>
+    </div>
+  </div>
+
+  <div class="callout orange" style="margin-top: 12px;">
+    <strong>5 · New axis — ICC-ES.</strong> US building-code compliance certification added alongside FSC/PEFC.
+    Lives on <em>product.template</em>, not on the lot. US market only. No mixing concept — it's a SKU attribute.
+    See next slide for detail.
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 12 — ICC-ES SECOND AXIS                               -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="slide">
+  <h1>ICC-ES — Second Certification Axis</h1>
+  <div class="subtitle">US building-code compliance · sits alongside FSC/PEFC, not inside it</div>
+
+  <table>
+    <tr>
+      <th style="width: 180px;">Dimension</th>
+      <th>FSC / PEFC</th>
+      <th>ICC-ES</th>
+    </tr>
+    <tr>
+      <td><strong>Purpose</strong></td>
+      <td>Chain of custody &mdash; origin &amp; handling of the wood</td>
+      <td>Building-code compliance &mdash; performance of the finished product</td>
+    </tr>
+    <tr>
+      <td><strong>Carrier</strong></td>
+      <td><code>stock.lot</code> (per-lot)</td>
+      <td><code>product.template</code> (per SKU)</td>
+    </tr>
+    <tr>
+      <td><strong>Mixing concept</strong></td>
+      <td>Yes &mdash; mixing at MO contaminates the claim</td>
+      <td>No &mdash; it's a SKU attribute</td>
+    </tr>
+    <tr>
+      <td><strong>Market scope</strong></td>
+      <td>Global (customer-driven)</td>
+      <td>US only (code-driven)</td>
+    </tr>
+    <tr>
+      <td><strong>Renewal</strong></td>
+      <td>Annual CoC audit</td>
+      <td>Annual fee + retained testing evidence</td>
+    </tr>
+    <tr>
+      <td><strong>Surfaced on</strong></td>
+      <td>Invoice line: scheme + claim + cert code</td>
+      <td>Product spec sheet; submittal PDF; invoice footer</td>
+    </tr>
+    <tr>
+      <td><strong>Risk of loss</strong></td>
+      <td>Contamination / missing evidence</td>
+      <td>ESR expiry / recipe change / QA gap</td>
+    </tr>
+  </table>
+
+  <h2 style="margin-top: 12px;">Fields on <code>product.template</code></h2>
+  <table class="compact">
+    <tr><th>Field</th><th>Purpose</th></tr>
+    <tr><td><code>x_kebony_icc_esr_number</code></td><td>ESR report number (e.g. ESR-3144)</td></tr>
+    <tr><td><code>x_kebony_icc_esr_valid_to</code></td><td>Expiry &mdash; triggers renewal alert 90 days out</td></tr>
+    <tr><td><code>x_kebony_icc_esr_scope</code></td><td>Covered use categories (structural, decking, cladding, fire&hellip;)</td></tr>
+    <tr><td><code>x_kebony_icc_attachment_ids</code></td><td>ESR PDF + underlying test reports</td></tr>
+    <tr><td><code>x_kebony_icc_us_relevant</code></td><td>Gates ICC checks to US-bound products only</td></tr>
+  </table>
+
+  <div class="callout red" style="margin-top: 10px;">
+    <strong>Governance.</strong> 90-day expiry alert. Lapsed ESR on a US-bound SO line = hard block (regulatory risk, not commercial).
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SLIDE 13 — OPEN QUESTIONS                                   -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="slide">
+  <h1>Open Questions &amp; Decisions Needed</h1>
+  <div class="subtitle">Items to resolve before development starts</div>
+
+  <table style="margin-top: 16px;">
+    <tr>
+      <th style="width:30px;">#</th>
+      <th style="width:280px;">Question</th>
+      <th>Context / Options</th>
+      <th style="width:100px;">Who decides</th>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td><strong>PEFC claim labels</strong></td>
+      <td><span class="tag green">Confirmed</span> Dual scheme: FSC + PEFC depending on origin/supplier.
+          Need: exact PEFC claim labels used (e.g. "PEFC Certified", "PEFC 70%") and
+          which supplier/origin combinations trigger which scheme.</td>
+      <td>Quality</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><strong>Lot tracking</strong></td>
+      <td><span class="tag green">Confirmed</span> All wood products will be lot-tracked, no exception.
+          Missing setup to be corrected. Accessories are not cert-relevant.</td>
+      <td><span class="tag grey">Resolved</span></td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><strong>Enforcement level</strong></td>
+      <td>Soft warnings vs. hard blocks on receipt/delivery &mdash; global default or per entity?
+          Who can override?</td>
+      <td>Quality / COO</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><strong>DDP imports (US)</strong></td>
+      <td>Can vendor bill claim diverge from physical receipt claim? If yes, which takes precedence?</td>
+      <td>US Finance</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><strong>Claim period length</strong></td>
+      <td>Monthly? Quarterly? Annual? Determines granularity of % accounting.</td>
+      <td>Quality</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td><strong>Hardcoded BOL text</strong></td>
+      <td>Reception BOL has fixed "Radiata: FSC Mix 70%..." text. Make data-driven?</td>
+      <td>Operations</td>
+    </tr>
+  </table>
+
+  <div class="callout purple" style="margin-top: 16px;">
+    <strong>New Odoo module:</strong> <code>kebony_certification</code> &mdash; depends on
+    <code>kebony_bol_report</code> (for Studio field coexistence) and <code>stock</code>,
+    <code>purchase</code>, <code>sale</code>, <code>mrp</code>.
+    Phase 2 adds dependency on <code>kebony_manufacturing</code> (Dryer Load integration).
+  </div>
+
+  <div class="slide-footer">
+    <div class="prepared-by"><span>Prepared by</span><img src="VVF-logo.png" alt="VVF"></div>
+    <div class="footer-project">Project ERP Implementation Kebony</div>
+  </div>
+</div>
+
+</body>
+</html>

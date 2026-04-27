@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0">
+<title>EXCO Projects — CEO User Guide</title>
+<!--
+  Version: 0.1  (2026-04-17)
+  Audience: CEO + EXCO (Executive Committee) members
+  Scope:   EXCO Projects app only. Hypercare / ticketing is a separate
+           audience and has its own guide.
+  Style:   Matches Kebony SteerCo deck pattern (1280x720, Inter font,
+           navy gradient header, KPI tiles, callouts).
+
+  Screenshots: drop PNGs into ./exco_user_guide_assets/ with these names:
+    01-dashboard.png
+    02-portfolio-kanban.png
+    03-project-form.png
+    04-task-view.png
+    05-gantt.png
+-->
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    body { background: none; padding: 0; gap: 0; }
+    .slide { box-shadow: none; border-radius: 0; margin: 0;
+             page-break-inside: avoid; page-break-after: always; }
+  }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f5f5f5; display: flex; flex-direction: column;
+    align-items: center; padding: 20px; gap: 30px;
+  }
+  .slide {
+    width: 1280px; min-height: 720px; max-height: 720px;
+    background: #fff; border-radius: 4px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    padding: 32px 44px 30px; position: relative; overflow: hidden;
+  }
+  .slide::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px;
+    background: linear-gradient(90deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
+
+  h1 { font-size: 28px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  h2 { font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 2px; }
+  h3 { font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; letter-spacing: 0.3px; }
+  .subtitle { font-size: 12px; color: #888; margin-bottom: 18px; }
+
+  .card {
+    background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 6px;
+    padding: 14px 16px;
+  }
+
+  /* KPI tiles */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+  .kpi {
+    background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 6px;
+    padding: 12px; text-align: center;
+  }
+  .kpi .value { font-size: 22px; font-weight: 700; color: #0f3460; line-height: 1.1; }
+  .kpi .label { font-size: 9.5px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+  .kpi.accent .value { color: #e65100; }
+  .kpi.danger .value { color: #c62828; }
+
+  /* Layouts */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .media-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; }
+
+  /* Screenshot area */
+  .screenshot {
+    background: #f0f0f0;
+    border: 1px dashed #b0b0b0;
+    border-radius: 6px;
+    min-height: 340px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+  .screenshot img {
+    width: 100%; height: 100%; object-fit: contain;
+    display: block;
+  }
+  .screenshot .placeholder {
+    text-align: center; color: #999; font-size: 11px;
+    padding: 20px;
+  }
+  .screenshot .placeholder strong { display: block; font-size: 13px; color: #666; margin-bottom: 6px; }
+
+  /* Callouts */
+  .callout {
+    padding: 10px 12px; font-size: 11.5px; border-radius: 4px; margin-top: 10px;
+    line-height: 1.5;
+  }
+  .callout.blue   { background: #e3f2fd; border-left: 3px solid #1565c0; }
+  .callout.green  { background: #e8f5e9; border-left: 3px solid #2e7d32; }
+  .callout.orange { background: #fff3e0; border-left: 3px solid #e65100; }
+  .callout.navy   { background: #e8eaf6; border-left: 3px solid #1a1a2e; }
+
+  .tag {
+    display: inline-block; padding: 2px 7px; border-radius: 3px;
+    font-size: 10px; font-weight: 600; margin-right: 4px;
+  }
+  .tag.green  { background: #e8f5e9; color: #2e7d32; }
+  .tag.blue   { background: #e3f2fd; color: #1565c0; }
+  .tag.orange { background: #fff3e0; color: #e65100; }
+  .tag.grey   { background: #f0f0f0; color: #555; }
+
+  /* Step list */
+  .steps { counter-reset: step; padding: 0; list-style: none; }
+  .steps li {
+    position: relative; padding: 8px 0 8px 42px;
+    font-size: 12.5px; line-height: 1.5; color: #333;
+    border-bottom: 1px solid #eee;
+  }
+  .steps li:last-child { border-bottom: none; }
+  .steps li::before {
+    counter-increment: step; content: counter(step);
+    position: absolute; left: 0; top: 8px;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #0f3460; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 12px;
+  }
+  .steps li b { color: #1a1a2e; }
+  .steps li code {
+    background: #f0f0f0; padding: 1px 6px; border-radius: 3px;
+    font-family: 'SF Mono', Monaco, 'Courier New', monospace; font-size: 11px;
+    color: #0f3460;
+  }
+
+  ul { font-size: 12px; line-height: 1.6; padding-left: 18px; }
+  ul li { margin-bottom: 4px; }
+  p { font-size: 12.5px; line-height: 1.6; color: #444; }
+
+  .slide-label {
+    position: absolute; top: 14px; right: 18px;
+    font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+    color: #0f3460; opacity: 0.5;
+  }
+  .slide-footer {
+    position: absolute; bottom: 10px; left: 20px; right: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 9.5px; color: #aaa; font-weight: 500; letter-spacing: 0.5px;
+  }
+
+  /* Stage pipeline visual */
+  .stage-pipeline {
+    display: flex; align-items: stretch; gap: 4px; margin: 12px 0;
+  }
+  .stage-pipeline .stage {
+    flex: 1; padding: 10px 8px; text-align: center; font-size: 10.5px;
+    border-radius: 4px; font-weight: 600; position: relative;
+  }
+  .stage-pipeline .stage:not(:last-child)::after {
+    content: '→'; position: absolute; right: -14px; top: 50%;
+    transform: translateY(-50%); font-size: 14px; color: #bbb; font-weight: 400;
+  }
+  .stage.non-alloc { background: #fff3e0; color: #e65100; }
+  .stage.allocated { background: #fff9c4; color: #9e6d00; }
+  .stage.progress  { background: #e3f2fd; color: #1565c0; }
+  .stage.done      { background: #e8f5e9; color: #2e7d32; }
+
+  .cover-hero {
+    text-align: center; margin-top: 80px;
+  }
+  .cover-hero h1 {
+    font-size: 48px; color: #0f3460; margin-bottom: 10px; letter-spacing: -0.5px;
+  }
+  .cover-hero .sub {
+    font-size: 16px; color: #666; margin-bottom: 40px;
+  }
+  .cover-audience {
+    display: flex; justify-content: center; gap: 16px; margin-top: 24px;
+  }
+  .cover-audience .pill {
+    padding: 10px 20px; border: 2px solid #0f3460; border-radius: 30px;
+    font-weight: 600; color: #0f3460; font-size: 13px;
+  }
+
+  .pp-badge {
+    display: inline-block; width: 40px; height: 40px;
+    background: #0f3460; color: #fff; border-radius: 6px;
+    font-weight: 700; font-size: 14px; line-height: 40px;
+    text-align: center; letter-spacing: -0.5px;
+  }
+  .pp-badge::before { content: ''; display: block; height: 2px; background: #e65100; }
+
+  /* Field anatomy diagram */
+  .field-diagram {
+    display: grid; grid-template-columns: 180px 1fr; gap: 8px;
+    font-size: 11.5px; align-items: start;
+  }
+  .field-diagram .fname { font-weight: 600; color: #1a1a2e; padding: 6px 0; }
+  .field-diagram .fdesc { color: #555; padding: 6px 0; }
+  .field-diagram .frow { display: contents; }
+  .field-diagram .frow.sep > * { border-top: 1px solid #eee; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 1 — COVER
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-label">Cover · v0.1</div>
+  <div class="cover-hero">
+    <div style="display: inline-block; background: #0f3460; color: #fff; width: 80px; height: 80px;
+                border-radius: 12px; font-weight: 700; font-size: 28px; line-height: 80px;
+                margin-bottom: 24px; letter-spacing: -1px;">PP</div>
+    <h1>EXCO Projects</h1>
+    <div class="sub">Executive portfolio tracking · CEO user guide</div>
+    <div class="cover-audience">
+      <div class="pill">👔 CEO</div>
+      <div class="pill">🏛 Executive Committee</div>
+    </div>
+    <div style="margin-top: 50px; color: #999; font-size: 11px;">
+      Kebony ERP Programme · April 2026
+    </div>
+  </div>
+  <div class="slide-footer">
+    <span>Prepared by OEB / VVF</span>
+    <span>v0.1 · 2026-04-17</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 2 — WHAT EXCO PROJECTS IS
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-label">Overview</div>
+  <h1>What is EXCO Projects?</h1>
+  <div class="subtitle">An executive view of every strategic initiative running across Kebony</div>
+
+  <div class="two-col" style="margin-top: 16px;">
+    <div class="card">
+      <h3>THE PROBLEM</h3>
+      <ul style="margin-top: 8px;">
+        <li>What strategic projects are active, allocated, stalled or done</li>
+        <li>Who owns each one and what domain it covers</li>
+        <li>Which ones are overdue, at risk, or coming up</li>
+      </ul>
+      <p style="margin-top: 10px;">Spreadsheets and emails don't give that. Projects get tracked 12 different ways across 12 owners.</p>
+    </div>
+    <div class="card">
+      <h3>THE SOLUTION</h3>
+      <p><b>EXCO Projects</b> gives:</p>
+      <ul style="margin-top: 8px;">
+        <li><b>Dashboard</b> — KPIs + upcoming deadlines</li>
+        <li><b>Project Portfolio</b> — kanban of every strategic project, grouped by stage</li>
+        <li><b>Gantt</b> — timeline view across all projects</li>
+      </ul>
+      <p style="margin-top: 10px;">Each project has an <b>owner</b> who manages tasks underneath. The portfolio updates automatically as task work progresses.</p>
+    </div>
+  </div>
+
+  <div class="callout navy" style="margin-top: 18px;">
+    <b>Mental model:</b> <i>Two levels — portfolio (projects on a kanban) and execution (tasks inside a project). The portfolio auto-updates as task activity happens.</i>
+  </div>
+
+  <div class="three-col" style="margin-top: 14px;">
+    <div class="card" style="text-align: center;">
+      <div style="font-size: 28px;">📋</div>
+      <h3 style="margin-top: 8px;">10 PRECONFIGURED DOMAINS</h3>
+      <p style="font-size: 11px;">Finance · Production · Supply Chain · Quality · Certification · Sales · Marketing · US Market · IT · Odoo<br><br><i>Fully customizable — add, rename, or disable via Configuration.</i></p>
+    </div>
+    <div class="card" style="text-align: center;">
+      <div style="font-size: 28px;">🎯</div>
+      <h3 style="margin-top: 8px;">4 STAGES</h3>
+      <p style="font-size: 11px;">Non-Allocated → Allocated → In Progress → Done</p>
+    </div>
+    <div class="card" style="text-align: center;">
+      <div style="font-size: 28px;">🔁</div>
+      <h3 style="margin-top: 8px;">AUTO-TRANSITION</h3>
+      <p style="font-size: 11px;">Projects move through stages automatically as their tasks progress</p>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>EXCO Projects · CEO User Guide</span>
+    <span>2 / 7</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 3 — DASHBOARD
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-label">Dashboard</div>
+  <h1>The EXCO Dashboard</h1>
+  <div class="subtitle">Your home screen · 4 KPIs + upcoming deadlines · refreshes on open</div>
+
+  <div class="media-grid" style="margin-top: 12px;">
+    <div class="screenshot">
+      <img src="./exco_user_guide_assets/01-dashboard.png" alt="EXCO Dashboard"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"/>
+      <div class="placeholder" style="display:none;">
+        <strong>01-dashboard.png</strong>
+        EXCO Dashboard with 4 KPI tiles:<br>
+        In Progress · CEO Inbox · Active Total · Overdue<br>
+        + "Upcoming Deadlines" card below
+      </div>
+    </div>
+    <div>
+      <h3>THE 4 KPI TILES</h3>
+      <ul style="margin-top: 8px;">
+        <li><b>In Progress</b> — projects where work is actually happening (at least one task moved to "Ongoing")</li>
+        <li><b>CEO Inbox (Non-Allocated)</b> — projects created but not yet assigned to an owner. The action list for allocation.</li>
+        <li><b>Active Total</b> — everything not done (overview of total load)</li>
+        <li><b>Overdue</b> — projects past their planned end date, highlighted red</li>
+      </ul>
+
+      <div class="callout blue" style="margin-top: 10px;">
+        <b>Tip:</b> Click any tile to drill into the portfolio kanban filtered to just those projects.
+      </div>
+
+      <h3 style="margin-top: 16px;">UPCOMING DEADLINES</h3>
+      <p>Shows the <b>8 projects closest to their planned end date</b> in the next 30 days. Name, owner, domain, due date. A "what to worry about this month" at-a-glance.</p>
+    </div>
+  </div>
+
+  <div class="callout navy">
+    <b>When to use it:</b> Start your morning here. 30 seconds of KPIs tells you if anything changed overnight — new overdue? New project in your inbox? Then move on.
+  </div>
+
+  <div class="slide-footer">
+    <span>EXCO Projects · CEO User Guide</span>
+    <span>3 / 7</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 4 — PROJECT PORTFOLIO (KANBAN)
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-label">Project Portfolio</div>
+  <h1>The Portfolio Kanban</h1>
+  <div class="subtitle">Every strategic project, grouped by stage · drag to move · click a name to zoom in</div>
+
+  <div class="media-grid" style="margin-top: 12px;">
+    <div class="screenshot">
+      <img src="./exco_user_guide_assets/02-portfolio-kanban.png" alt="Project Portfolio Kanban"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"/>
+      <div class="placeholder" style="display:none;">
+        <strong>02-portfolio-kanban.png</strong>
+        Kanban with 4 columns:<br>
+        Non-Allocated · Allocated · In Progress · Done<br>
+        Each card = one project
+      </div>
+    </div>
+    <div>
+      <h3>THE 4 PORTFOLIO STAGES</h3>
+      <ul style="margin-top: 6px;">
+        <li><b>Non-Allocated</b> — Project created but no owner yet</li>
+        <li><b>Allocated</b> — Owner assigned; no task progress yet</li>
+        <li><b>In Progress</b> — First task moved to "Ongoing" — work is live</li>
+        <li><b>Done</b> — All tasks finished</li>
+      </ul>
+
+      <div class="callout green" style="margin-top: 10px;">
+        <b>Auto-transition:</b> Cards move automatically as task activity happens. The kanban is a read-out, not a manual tracker.
+      </div>
+
+      <h3 style="margin-top: 14px;">HOW TO NAVIGATE</h3>
+      <ul>
+        <li><b>Click a project name</b> → zooms into its tasks</li>
+        <li><b>Click elsewhere on the card</b> → opens project form</li>
+        <li><b>"New" top-left</b> → create a new project (auto-flagged EXCO)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>EXCO Projects · CEO User Guide</span>
+    <span>4 / 7</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 5 — CREATING A PROJECT
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-label">Create a project</div>
+  <h1>Creating a new EXCO project</h1>
+  <div class="subtitle">4 fields, 30 seconds · fill them, save, assign</div>
+
+  <div class="media-grid" style="margin-top: 12px;">
+    <div class="screenshot">
+      <img src="./exco_user_guide_assets/03-project-form.png" alt="Project creation form"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"/>
+      <div class="placeholder" style="display:none;">
+        <strong>03-project-form.png</strong>
+        Project form with Portfolio section showing:<br>
+        EXCO Project toggle · Domain · Priority<br>
+        + Planned Date (native Odoo range)
+      </div>
+    </div>
+    <div>
+      <h3>FIELDS YOU FILL</h3>
+      <div class="field-diagram">
+        <div class="frow">
+          <div class="fname">Project name</div>
+          <div class="fdesc">What it's called, e.g. "Q2 US marketing plan"</div>
+        </div>
+        <div class="frow sep">
+          <div class="fname">Project Manager</div>
+          <div class="fdesc">The owner. Usually a C-team member or senior lead.</div>
+        </div>
+        <div class="frow sep">
+          <div class="fname">Domain</div>
+          <div class="fdesc">One of the 10 (Finance, IT…). Drives reporting.</div>
+        </div>
+        <div class="frow sep">
+          <div class="fname">Priority</div>
+          <div class="fdesc">Low / Medium / High — shows as stars on the card.</div>
+        </div>
+        <div class="frow sep">
+          <div class="fname">Planned Date</div>
+          <div class="fdesc">Start → End range. Used by Gantt + "Overdue" KPI.</div>
+        </div>
+        <div class="frow sep">
+          <div class="fname">EXCO Project</div>
+          <div class="fdesc">Toggle (already ON when created here). Marks it visible in the EXCO portfolio.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout blue" style="margin-top: 14px;">
+    <b>Quick path:</b> <i>Portfolio → New → name → Domain + Priority → Planned Date → Project Manager → save (☁)</i>. Without a Project Manager, the project sits in <span class="tag orange">Non-Allocated</span>. Once an owner is set, it auto-moves to <span class="tag grey">Allocated</span>.
+  </div>
+
+  <div class="callout green" style="margin-top: 10px;">
+    <b>Tip — Tasks smart button:</b> Once saved, the project form has a <b>Tasks</b> button at the top (shows "0 / 0 (0%)" when empty). Click it to jump straight into the task kanban for that project — fastest path from project form to the tasks view.
+  </div>
+
+  <div class="slide-footer">
+    <span>EXCO Projects · CEO User Guide</span>
+    <span>5 / 7</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 6 — DRILLING INTO TASKS
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-label">Drill down</div>
+  <h1>Zooming into a project</h1>
+  <div class="subtitle">Clicking a project name takes you to its task list · that's where the owner's team operates</div>
+
+  <div class="media-grid" style="margin-top: 12px;">
+    <div class="screenshot">
+      <img src="./exco_user_guide_assets/04-task-view.png" alt="Task view inside a project"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"/>
+      <div class="placeholder" style="display:none;">
+        <strong>04-task-view.png</strong>
+        Task kanban inside a specific EXCO project.<br>
+        3 columns: Non-Allocated · Ongoing · Done.<br>
+        Each card = one task belonging to this project.
+      </div>
+    </div>
+    <div>
+      <h3>WHAT YOU SEE</h3>
+      <p>The <b>tasks</b> that make up this project. Owner + team break the project into actionable tasks here. Useful to check progress when needed.</p>
+
+      <h3 style="margin-top: 14px;">TASK STAGES</h3>
+      <div class="stage-pipeline">
+        <div class="stage non-alloc">Non-Allocated</div>
+        <div class="stage progress">Ongoing</div>
+        <div class="stage done">Done</div>
+      </div>
+
+      <div class="callout green" style="margin-top: 10px;">
+        <b>The magic:</b> When the <b>first</b> task moves to Ongoing, the <b>parent project</b> auto-moves to "In Progress" on the EXCO portfolio kanban. When <b>all</b> tasks are Done, the project moves to Done. No manual updates needed.
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin-top: 14px;">NAVIGATION — WHEN IN A PROJECT</h3>
+  <div class="three-col" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+    <div class="card">
+      <h3 style="color: #0f3460;">⬅️ GO BACK</h3>
+      <p>Click <b>"EXCO Projects"</b> in the breadcrumb to return to the portfolio.</p>
+    </div>
+    <div class="card">
+      <h3 style="color: #0f3460;">➕ NEW TASK</h3>
+      <p>Click <b>"+"</b> in any stage column. Creates a task within this project.</p>
+    </div>
+    <div class="card">
+      <h3 style="color: #0f3460;">📊 TASK GANTT</h3>
+      <p>Click the <b>Gantt icon</b> in the top-right view switcher — shows this project's tasks on a timeline.</p>
+    </div>
+    <div class="card">
+      <h3 style="color: #0f3460;">⚙️ EDIT PROJECT</h3>
+      <p>Click the gear ⚙ next to the title to reopen the project form.</p>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>EXCO Projects · CEO User Guide</span>
+    <span>6 / 7</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 7 — GANTT
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-label">Gantt</div>
+  <h1>The Portfolio Gantt</h1>
+  <div class="subtitle">Timeline view · projects plotted as bars · grouped by domain · colored by stage</div>
+
+  <div class="media-grid" style="margin-top: 12px;">
+    <div class="screenshot">
+      <img src="./exco_user_guide_assets/05-gantt.png" alt="Portfolio Gantt"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"/>
+      <div class="placeholder" style="display:none;">
+        <strong>05-gantt.png</strong>
+        Gantt timeline with projects as bars,<br>
+        grouped by domain in swim lanes.<br>
+        Today column highlighted.
+      </div>
+    </div>
+    <div>
+      <h3>WHAT IT SHOWS</h3>
+      <ul>
+        <li><b>One bar = one project</b>, from its Planned Start to Planned End</li>
+        <li><b>Swim lanes by domain</b> — all Finance projects together, all IT projects together, etc.</li>
+        <li><b>Bar color = portfolio stage</b> (so you can see at a glance which are In Progress vs Done)</li>
+        <li><b>Today is highlighted</b> — easy to see what's late vs upcoming</li>
+      </ul>
+
+      <h3 style="margin-top: 14px;">WHEN TO USE IT</h3>
+      <ul>
+        <li>End-of-month portfolio review</li>
+        <li>Capacity check: "Is IT overloaded vs Finance?"</li>
+        <li>Planning: "What's my Q3 workload by domain?"</li>
+        <li>SteerCo prep — screenshot the Gantt straight into the deck</li>
+      </ul>
+
+      <div class="callout orange" style="margin-top: 10px;">
+        <b>Requires dates:</b> Projects without a Planned Start / End don't show on the Gantt. Make sure you fill those when creating.
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>EXCO Projects · CEO User Guide</span>
+    <span>7 / 7</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 8 — QUICK REFERENCE
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-label">Cheat sheet</div>
+  <h1>Quick reference</h1>
+  <div class="subtitle">Print this, stick it on your monitor · 30-second refresher</div>
+
+  <div class="two-col" style="margin-top: 14px;">
+    <div class="card">
+      <h3>DAILY ROUTINE (2 MINUTES)</h3>
+      <ol class="steps">
+        <li>Open <b>EXCO Projects → Dashboard</b></li>
+        <li>Check the <b>4 KPIs</b> — any new Overdue? Any unallocated in CEO Inbox?</li>
+        <li>Skim <b>Upcoming Deadlines</b> — anything hitting in the next 2 weeks?</li>
+        <li>If action needed: click the KPI tile → drill into the list → act (assign, call, etc.)</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>WEEKLY ROUTINE (10 MINUTES)</h3>
+      <ol class="steps">
+        <li>Open <b>Project Portfolio</b> — review every column</li>
+        <li><span class="tag orange">Non-Allocated</span> — assign owners</li>
+        <li><span class="tag grey">Allocated</span> — nudge owners that haven't started</li>
+        <li><span class="tag blue">In Progress</span> — check nothing's stuck</li>
+        <li>Open <b>Gantt</b> — confirm no capacity crunch in any domain</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="three-col" style="margin-top: 14px;">
+    <div class="card">
+      <h3>KEY TERMS</h3>
+      <p style="font-size: 11.5px;"><b>EXCO Project</b> — a strategic initiative tracked at C-level.<br><br>
+      <b>Domain</b> — the business area a project belongs to (Finance, IT, etc).<br><br>
+      <b>Owner</b> (Project Manager) — the person accountable for delivering the project.</p>
+    </div>
+    <div class="card">
+      <h3>WHAT YOU DO</h3>
+      <p style="font-size: 11.5px;">✅ Create projects<br>
+      ✅ Assign owners<br>
+      ✅ Set domain + priority + dates<br>
+      ✅ Check portfolio health<br>
+      ✅ Use Gantt for planning<br><br>
+      <span style="color: #999;">You do NOT manage individual tasks — that's the owner's job.</span></p>
+    </div>
+    <div class="card">
+      <h3>GETTING HELP</h3>
+      <p style="font-size: 11.5px;">🛠 Technical issues → IT team<br><br>
+      📊 Reporting / domain changes → PMO lead<br><br>
+      🎓 Training / re-walkthrough → Olivier Eberhard</p>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>EXCO Projects · CEO User Guide · v0.1 · 2026-04-17</span>
+    <span>Prepared by OEB / VVF</span>
+  </div>
+</div>
+
+</body>
+</html>

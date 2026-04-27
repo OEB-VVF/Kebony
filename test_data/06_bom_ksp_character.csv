@@ -1,0 +1,11 @@
+id,product_tmpl_id,product_qty,product_uom_id,type,company_id/.id,bom_line_ids/product_id,bom_line_ids/product_qty,bom_line_ids/product_uom_id
+BOM_1127_M_35,1127-M-3.5,1,m,normal,3,1003,1.062,m
+BOM_1127_M_35,,,,,,Kebony Ready-Mix,0.001039,kg
+BOM_1127_M_38,1127-M-3.8,1,m,normal,3,1003,1.062,m
+BOM_1127_M_38,,,,,,Kebony Ready-Mix,0.001039,kg
+BOM_1127_M_41,1127-M-4.1,1,m,normal,3,1003,1.062,m
+BOM_1127_M_41,,,,,,Kebony Ready-Mix,0.001039,kg
+BOM_1127_M_44,1127-M-4.4,1,m,normal,3,1003,1.062,m
+BOM_1127_M_44,,,,,,Kebony Ready-Mix,0.001039,kg
+BOM_1127_M_47,1127-M-4.7,1,m,normal,3,1003,1.062,m
+BOM_1127_M_47,,,,,,Kebony Ready-Mix,0.001039,kg

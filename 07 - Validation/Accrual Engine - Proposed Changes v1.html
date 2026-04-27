@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accrual Engine &mdash; Proposed Changes for Validation</title>
+    <style>
+        :root {
+            --kebony-dark: #2c3e50;
+            --kebony-green: #27ae60;
+            --kebony-light: #ecf0f1;
+            --change-bg: #fff9c4;
+            --change-border: #f9a825;
+            --new-bg: #e8f5e9;
+            --new-border: #43a047;
+            --removed-bg: #ffebee;
+            --removed-border: #e53935;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: #333; background: #fff;
+            max-width: 900px; margin: 0 auto; padding: 40px 32px;
+            line-height: 1.6;
+        }
+        h1 { color: var(--kebony-dark); font-size: 1.8em; margin-bottom: 4px; }
+        h2 { color: var(--kebony-dark); font-size: 1.35em; margin-top: 36px; border-bottom: 2px solid var(--kebony-green); padding-bottom: 6px; }
+        h3 { color: var(--kebony-dark); font-size: 1.1em; margin-top: 24px; }
+        p, li { margin-top: 8px; }
+        ul { padding-left: 24px; }
+
+        table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; font-size: 0.92em; }
+        th { background: var(--kebony-dark); color: #fff; font-weight: 600; }
+        tr:nth-child(even) { background: #f9f9f9; }
+
+        code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+        pre { background: #f4f4f4; padding: 16px; border-radius: 6px; overflow-x: auto; font-size: 0.88em; margin: 12px 0; }
+
+        .header-meta {
+            background: var(--kebony-light); padding: 16px 20px; border-radius: 8px;
+            margin-bottom: 32px; font-size: 0.9em;
+        }
+        .header-meta strong { color: var(--kebony-dark); }
+
+        /* Change markers */
+        .change-legend {
+            display: flex; gap: 24px; flex-wrap: wrap;
+            padding: 12px 16px; background: #fafafa; border: 1px solid #ddd;
+            border-radius: 6px; margin: 20px 0; font-size: 0.88em;
+        }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .legend-swatch {
+            width: 16px; height: 16px; border-radius: 3px; border: 1px solid #bbb;
+        }
+
+        .proposed-change {
+            background: var(--change-bg); border-left: 4px solid var(--change-border);
+            padding: 16px 20px; margin: 16px 0; border-radius: 0 6px 6px 0;
+        }
+        .proposed-change::before {
+            content: "PROPOSED CHANGE";
+            display: block; font-weight: 700; font-size: 0.78em;
+            color: var(--change-border); letter-spacing: 0.5px; margin-bottom: 8px;
+        }
+
+        .new-section {
+            background: var(--new-bg); border-left: 4px solid var(--new-border);
+            padding: 16px 20px; margin: 16px 0; border-radius: 0 6px 6px 0;
+        }
+        .new-section::before {
+            content: "NEW SECTION";
+            display: block; font-weight: 700; font-size: 0.78em;
+            color: var(--new-border); letter-spacing: 0.5px; margin-bottom: 8px;
+        }
+
+        .current {
+            background: #f8f8f8; border-left: 4px solid #999;
+            padding: 16px 20px; margin: 16px 0; border-radius: 0 6px 6px 0;
+        }
+        .current::before {
+            content: "CURRENT (NO CHANGE)";
+            display: block; font-weight: 700; font-size: 0.78em;
+            color: #999; letter-spacing: 0.5px; margin-bottom: 8px;
+        }
+
+        .signature-block {
+            margin-top: 48px; padding: 24px; border: 2px solid var(--kebony-dark);
+            border-radius: 8px; background: #fafafa;
+        }
+        .signature-block h3 { margin-top: 0; }
+        .sig-line {
+            display: flex; gap: 40px; margin-top: 24px;
+        }
+        .sig-field {
+            flex: 1; border-bottom: 1px solid #333; padding-bottom: 4px;
+            min-height: 40px;
+        }
+        .sig-label { font-size: 0.8em; color: #666; margin-top: 4px; }
+    </style>
+</head>
+<body>
+
+<h1>Accrual Engine &mdash; Proposed Changes</h1>
+
+<div class="header-meta">
+    <strong>Document:</strong> Accounting &amp; Margin Architecture &sect;8 &mdash; Accrual Engine<br>
+    <strong>Module:</strong> <code>kebony_bol_report</code><br>
+    <strong>Version:</strong> v1 &mdash; For Validation<br>
+    <strong>Date:</strong> 26 March 2026<br>
+    <strong>Author:</strong> Olivier (VVF Consulting)<br>
+    <strong>Audience:</strong> Kebony Inc. accounting team, Tom (CEO), Joris (CFO)
+</div>
+
+<div class="change-legend">
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--change-bg);border-color:var(--change-border)"></div> Proposed change to existing feature</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--new-bg);border-color:var(--new-border)"></div> New section / feature</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#f8f8f8;border-color:#999"></div> Current implementation (unchanged)</div>
+</div>
+
+<!-- ============================================================ -->
+<h2>1. Accrual Types &amp; Rates</h2>
+<!-- ============================================================ -->
+
+<div class="current">
+    <h3>Current Default Rates</h3>
+    <table>
+        <tr><th>Type</th><th>Wood</th><th>Accessory</th><th>Condition</th></tr>
+        <tr><td>Marketing</td><td>4%</td><td>1.5%</td><td>Distributors only</td></tr>
+        <tr><td>Royalties</td><td>5%</td><td>0%</td><td>Wood only &mdash; not consignment</td></tr>
+        <tr><td>Management Fees</td><td>14%</td><td>5%</td><td>Not consignment</td></tr>
+        <tr><td>Sales Rep</td><td colspan="2">Variable (from partner or invoice)</td><td>Per rep agreement</td></tr>
+    </table>
+    <p>These rates are currently <strong>hardcoded</strong> in the Python module. They apply identically to every invoice.</p>
+</div>
+
+<div class="proposed-change">
+    <h3>Rate Override at Invoice Level</h3>
+    <p>The default rates above remain as <strong>system defaults</strong>. However, users will be able to
+       <strong>change the rate on each invoice</strong> via new editable percentage fields on the invoice header:</p>
+
+    <table>
+        <tr><th>Field</th><th>Default Value</th><th>Editable?</th><th>Scope</th></tr>
+        <tr><td>Marketing Rate (%)</td><td>4% (wood) / 1.5% (accessory)</td><td><strong>Yes</strong> &mdash; user can type any value</td><td>Per invoice</td></tr>
+        <tr><td>Royalty Rate (%)</td><td>5% (wood) / 0% (accessory)</td><td><strong>Yes</strong></td><td>Per invoice</td></tr>
+        <tr><td>Mgmt Fees Rate (%)</td><td>14% (wood) / 5% (accessory)</td><td><strong>Yes</strong></td><td>Per invoice</td></tr>
+    </table>
+
+    <p><strong>How it works:</strong></p>
+    <ul>
+        <li>When a new invoice is created, the rate fields are <strong>pre-filled with the default rates</strong> based on product classification</li>
+        <li>The user can <strong>change the rate to any percentage</strong> before posting &mdash; for example, set marketing to 2% for a promotional deal, or 7% for a special agreement</li>
+        <li>Setting the rate to <strong>0%</strong> disables the accrual (same as the existing on/off toggle, but more granular)</li>
+        <li>The existing on/off checkboxes remain as a quick way to force 0%</li>
+        <li>Once the invoice is <strong>posted</strong>, the rate is locked (snapshot &mdash; cannot be changed retroactively)</li>
+    </ul>
+
+    <p><strong>Why this change:</strong> The hardcoded approach forces the same percentage on every invoice.
+       Business reality requires flexibility &mdash; promotional deals, renegotiated terms,
+       special customer agreements, one-off exceptions. The default rates cover 90%+ of invoices automatically;
+       the override handles the exceptions without requiring code changes.</p>
+
+    <p><strong>Example:</strong></p>
+    <table>
+        <tr><th>Scenario</th><th>Marketing Rate</th><th>Result</th></tr>
+        <tr><td>Normal distributor invoice (wood)</td><td>4% (default, untouched)</td><td>Computed as today</td></tr>
+        <tr><td>Special promotion &mdash; reduced co-op</td><td>User changes to 2%</td><td>Half the normal accrual</td></tr>
+        <tr><td>Direct sale &mdash; no marketing fund</td><td>User changes to 0%</td><td>No marketing accrual</td></tr>
+        <tr><td>Premium partner agreement</td><td>User changes to 6%</td><td>Higher accrual for premium terms</td></tr>
+    </table>
+</div>
+
+<!-- ============================================================ -->
+<h2>2. Credit Note Accruals</h2>
+<!-- ============================================================ -->
+
+<div class="current">
+    <h3>Current Behaviour</h3>
+    <p>Credit notes (<code>out_refund</code>) already generate accruals with a <strong>negative sign</strong>.
+       When a credit note is posted, accruals are computed using the same rates and rules as a regular invoice,
+       but the amounts are negative &mdash; reducing the liability balance.</p>
+    <p><em>Example:</em> A credit note of $10,000 on wood with 4% marketing &rarr; marketing accrual of <strong>&minus;$400</strong>.</p>
+</div>
+
+<div class="new-section">
+    <h3>Enhancement: Rate Override on Credit Notes</h3>
+    <p>With the new rate override fields (Change #1 above), credit notes become <strong>fully flexible</strong>:</p>
+    <ul>
+        <li>The rate fields are available on credit notes, just like on invoices</li>
+        <li>The user can set the rate on the credit note to <strong>match the original invoice's accrual rate</strong>
+            (e.g., if the original invoice had a special 2% marketing rate, the credit note can also use 2%)</li>
+        <li>Or set a <strong>different rate</strong> if the commercial terms for the reversal differ</li>
+        <li>This ensures the accrual reversal on the credit note is <strong>proportional and accurate</strong></li>
+    </ul>
+
+    <p><strong>Example:</strong></p>
+    <table>
+        <tr><th>Document</th><th>Amount</th><th>Marketing Rate</th><th>Accrual</th></tr>
+        <tr><td>Original invoice</td><td>$50,000</td><td>4% (default)</td><td>+$2,000</td></tr>
+        <tr><td>Credit note (partial return)</td><td>$10,000</td><td>4% (matched to original)</td><td>&minus;$400</td></tr>
+        <tr><td><strong>Net liability</strong></td><td></td><td></td><td><strong>$1,600</strong></td></tr>
+    </table>
+</div>
+
+<!-- ============================================================ -->
+<h2>3. Accrual Lifecycle &mdash; Permanent Liabilities</h2>
+<!-- ============================================================ -->
+
+<div class="new-section">
+    <h3>Principle: Accruals Live Forever</h3>
+    <p>Once posted, accrual liabilities in accounts <strong>2155xx remain on the balance sheet indefinitely</strong>
+       until explicitly reversed by a manual journal entry.</p>
+
+    <p><strong>There is no automatic expiry or auto-reversal:</strong></p>
+    <ul>
+        <li>&cross; No 90-day auto-reversal</li>
+        <li>&cross; No periodic cleanup job</li>
+        <li>&cross; No scheduled batch to clear old provisions</li>
+        <li>&check; Liabilities accumulate until the corresponding actual expense arrives (vendor invoice)
+            or the accounting team explicitly releases them</li>
+    </ul>
+
+    <h3>To Release / Reverse a Provision</h3>
+    <p>The accounting team must:</p>
+    <ol>
+        <li>Notify the external accounting firm (<strong>Analytix</strong>)</li>
+        <li>Analytix posts a reversal journal entry:</li>
+    </ol>
+    <pre>DR  2155xx   Accrual Liability
+    CR  780000   Provision Release (Income)</pre>
+    <ol start="3">
+        <li>The reversal is documented with a reference to the original accrual period/invoice</li>
+    </ol>
+
+    <h3>Why Permanent?</h3>
+    <p>Revenue-based provisions under <strong>ASC 606 / IFRS 15</strong> should remain until settlement.
+       Automatic expiry creates a risk of prematurely releasing liabilities that are still owed &mdash;
+       for example:</p>
+    <ul>
+        <li>A marketing fund that pays out <strong>annually</strong> (liability accumulates 12 months before settlement)</li>
+        <li>Royalties settled <strong>quarterly</strong> (liability sits 3 months)</li>
+        <li>Management fees invoiced with <strong>variable delays</strong></li>
+    </ul>
+    <p>The conservative approach: keep the liability until the business <strong>explicitly confirms</strong>
+       it is no longer owed. This is auditor-friendly and avoids the risk of understating liabilities.</p>
+</div>
+
+<!-- ============================================================ -->
+<h2>4. Summary of Changes</h2>
+<!-- ============================================================ -->
+
+<table>
+    <tr><th>#</th><th>Change</th><th>Type</th><th>Impact</th></tr>
+    <tr>
+        <td>1</td>
+        <td><strong>Rate override at invoice level</strong><br>
+            Default rates pre-filled, user can change to any % before posting</td>
+        <td>New feature</td>
+        <td>New fields on invoice form.<br>Accounting team gains per-invoice flexibility.</td>
+    </tr>
+    <tr>
+        <td>2</td>
+        <td><strong>Credit note rate override</strong><br>
+            Same rate fields available on credit notes for accurate reversal</td>
+        <td>Enhancement<br>(credit notes already computed)</td>
+        <td>Rate fields appear on credit notes.<br>More precise accrual reversals.</td>
+    </tr>
+    <tr>
+        <td>3</td>
+        <td><strong>Permanent accrual liabilities</strong><br>
+            No auto-reversal. Manual release via Analytix only.</td>
+        <td>Policy decision</td>
+        <td>No code change needed.<br>Documented as official policy.</td>
+    </tr>
+</table>
+
+<!-- ============================================================ -->
+<h2>5. What Stays the Same</h2>
+<!-- ============================================================ -->
+
+<ul>
+    <li>Default rates (4%, 1.5%, 5%, 14%, 5%) &mdash; unchanged, just overridable now</li>
+    <li>Product classification logic (wood vs accessory) &mdash; unchanged</li>
+    <li>Distributor-only condition for marketing &mdash; unchanged</li>
+    <li>Consignment exclusion (no royalties, no mgmt fees) &mdash; unchanged</li>
+    <li>Sales rep commission &mdash; unchanged (already has its own rate mechanism)</li>
+    <li>On/off toggles per invoice &mdash; unchanged (complement the rate fields)</li>
+    <li>EOM posting logic &mdash; unchanged</li>
+    <li>GL account mapping (2155xx / 58xxxx) &mdash; unchanged</li>
+    <li>ASC 606 / IFRS 15 justification &mdash; unchanged</li>
+</ul>
+
+<!-- ============================================================ -->
+<!-- SIGNATURE -->
+<!-- ============================================================ -->
+
+<div class="signature-block">
+    <h3>Validation</h3>
+    <p>Please review the proposed changes above. By signing below, you confirm that the changes
+       described in this document are approved for implementation in the Odoo ERP system.</p>
+
+    <div class="sig-line">
+        <div>
+            <div class="sig-field"></div>
+            <div class="sig-label">Name &amp; Signature</div>
+        </div>
+        <div>
+            <div class="sig-field"></div>
+            <div class="sig-label">Role</div>
+        </div>
+        <div>
+            <div class="sig-field"></div>
+            <div class="sig-label">Date</div>
+        </div>
+    </div>
+
+    <div class="sig-line" style="margin-top: 32px;">
+        <div>
+            <div class="sig-field"></div>
+            <div class="sig-label">Name &amp; Signature</div>
+        </div>
+        <div>
+            <div class="sig-field"></div>
+            <div class="sig-label">Role</div>
+        </div>
+        <div>
+            <div class="sig-field"></div>
+            <div class="sig-label">Date</div>
+        </div>
+    </div>
+</div>
+
+<p style="margin-top: 24px; font-size: 0.8em; color: #999; text-align: center;">
+    Generated by VVF Consulting &mdash; 26 March 2026 &mdash; Document ref: ACCRUAL-v1-VALIDATION
+</p>
+
+</body>
+</html>

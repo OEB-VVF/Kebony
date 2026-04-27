@@ -42,7 +42,7 @@ Kebony operates as a **multi-company** group. Features in the codebase are compa
 |---|---|
 | Physical metrics (linear m, boards, volume m3) | Wood is wood everywhere |
 | Pack reservation / Full-pack-first | Operational feature |
-| Manufacturing (DL, AC, PP) | BNV (Kallo production site) |
+| Manufacturing (Process Pack: SA → AA → DA → FA) | BNV (Kallo production site) |
 | Accounting Hub | Per-company — each gets its own Hub |
 
 ### Pending Actions
@@ -95,11 +95,17 @@ A **physical batch** of a single SKU. Created at reception (raw) or production (
 | Context | Meaning | Odoo |
 |---|---|---|
 | **Packaging UoM** | A unit of measure (e.g. "Pack of 48 boards x 10 lf") | `uom.uom` |
-| **Process Pack** | A stacking output — boards grouped for autoclave | `kebony.process.pack` |
-| **Finished Good Pack** | Sellable pack after exit stacking + packaging | `stock.lot` |
+| **White wood pack** | Supplier pack at reception — stays on supplier's license plate | `stock.lot` (supplier-provided) |
+| **Process Pack** | Generic WIP pack umbrella — any in-flight production pack carrying a stage label (SA / AA / DA) | `kebony.process.pack` |
+| **Finished Good Pack (FA)** | Sellable pack after destacking + packaging | `stock.lot` on the FG product |
 | **Pack selection** | The "pick this specific lot" feature on SO | `stock.lot.x_reserved_sale_order_id` |
 
 Always qualify which "pack" you mean.
+
+**Key clarification:**
+- **White wood** is *not* a Process Pack — it is the supplier's pack, received as-is with the supplier's license plate. There is no "RA" label in the internal chain.
+- **FA** is *not* a Process Pack either — once destacking produces a finished pack, it leaves the `kebony.process.pack` model and becomes a `stock.lot` on the finished good.
+- **SA / AA / DA** are stages of the *same* Process Pack record as it evolves through production.
 
 ### Planning Family
 
@@ -211,28 +217,97 @@ Products in category `"Product in Consignment"`:
 
 | Term | Definition |
 |---|---|
-| **Dryer Load (DL)** | The atomic planning unit. 1 DL = 2 Autoclave Batches. Blocks one dryer for full cycle (up to ~80h). |
-| **Autoclave Batch (AC)** | An intermediate feeder unit. Typically 5-8 Process Packs of the same family. |
-| **Process Pack (PP)** | Smallest physical unit through production. Created during entry stacking. Homogeneous by planning family. |
-| **Finished Good Pack (FG Pack)** | Sellable pack created during exit stacking. Gets a lot number. |
-| **Entry Stacking** | Board-by-board sorting into Process Packs. Primary QC gate (A / B / Scrap). |
-| **Exit Stacking (Destacking)** | Board-by-board restacking into FG Packs. Same QC gate. Packaging materials consumed. |
-| **Kebonisation** | The full treatment process: stacking + autoclave + dryer + destacking. |
+| **White wood** | Raw wood received from supplier, kept on supplier's license plate. Not a Process Pack. No internal "RA" label — the supplier's identifier is the reference. |
+| **Process Pack (PP)** | **Generic WIP pack** umbrella. One `kebony.process.pack` record carries a stable `pack_number` and a `stage` field (SA → AA → DA) that evolves through production. Packs stay 1:1 all the way through — no merge at the pack level. |
+| **Stacking Antwerp (SA)** | Stage label of a Process Pack right after stacking. N white-wood plates → 1 SA. |
+| **Autoclave Antwerp (AA)** | Stage label of the *same* Process Pack after autoclave. 1 SA → 1 AA (1:1 state change — same `pack_number`). |
+| **Dryer Antwerp (DA)** | Stage label of the *same* Process Pack after drying. 1 AA → 1 DA (1:1 state change — same `pack_number`). |
+| **Finished Good (FA)** | Sellable pack after destacking. Leaves the Process Pack model — becomes a `stock.lot` on the FG product. 1 DA → N FA (destacking splits per SKU). |
+| **Autoclave Load (Autoclave Batch)** | Physical autoclave charge grouping N packs processed together (SA → AA). Its own number. `kebony.autoclave.batch`. |
+| **Dryer Run (Dryer Load)** | Physical dryer run grouping ~2 autoclave loads of packs processed together (AA → DA). Its own number. `kebony.dryer.load`. |
+| **Entry Stacking** | Board-by-board sorting into Process Packs (SA stage). Primary QC gate (A / B / Scrap). |
+| **Exit Stacking (Destacking)** | Board-by-board restacking of DA output into FA (FG lots). Same QC gate. Packaging materials consumed. |
+| **Kebonisation** | The full treatment process: stacking + autoclave + dryer + destacking (SA → AA → DA → FA). |
 | **Ready-Mix** | Pre-mixed chemical used by autoclave. One recipe for all production. |
 | **RDK** | External machining subcontractor (profiling, planing, cut-to-length). |
 | **TabakNatie (TBK)** | External 3PL for reception and QC. |
 | **MES** | Manufacturing Execution System — captures physical reality (cycle times, QC, quantities). |
 
+### Display Name Convention
+
+A Process Pack has one stable internal `pack_number` and a `stage` field. Its display name is computed as `{stage}-{pack_number}` — e.g. the same pack appears as `SA-1234` at stacking, then `AA-1234` post-autoclave, then `DA-1234` post-dryer. The pack number is stable end-to-end; only the stage letter changes.
+
+### Process Pack Data Model
+
+| Model | Purpose |
+|---|---|
+| `kebony.process.pack` | One row per individual WIP pack. Fields: `pack_number` (stable across SA/AA/DA), `stage` (SA / AA / DA), `autoclave_batch_id` (M2o → autoclave load), `dryer_load_id` (M2o → dryer run), `mes_ref`. |
+| `kebony.autoclave.batch` | One row per physical autoclave load. Groups N packs that went through together. Its own sequence number. Fields: `name`, `packs` (O2m to process.pack), `dryer_load_id` (the dryer run it was routed to). |
+| `kebony.dryer.load` | One row per physical dryer run. Groups ~2 autoclave loads (so ~2N packs). Its own sequence number. Fields: `name`, `autoclave_batch_ids` (O2m), `packs` (through autoclave_batch_ids). |
+| `kebony.process.pack.event` | Child of process.pack — one row per stage transition. Fields: `pack_id`, `stage`, `event_type` (stacked / autoclave_in / autoclave_out / dryer_in / dryer_out / destacked), `timestamp`, `operator_id`, `equipment_id` (specific autoclave #, dryer #), `mes_ref`. Enables residence-time and equipment-utilisation reporting. |
+
+**No pack-level merge.** Packs are 1:1 from SA to DA. The "2 → 1" that happens at the dryer is a **container-level grouping**: 2 autoclave batches are assigned to 1 dryer run; the packs inside simply carry `dryer_load_id` pointing to that run.
+
+**Split (1 DA → N FA):** the DA pack closes (event `destacked`), N `stock.lot` records are created on the FG product. Traceability runs via MO consumption links.
+
+### Planning Direction — Backward from FA
+
+Planning is **backward from the finished pack** (FA), using scrap yield:
+
+1. Start with the FG demand (number of boards per SKU)
+2. Compute target SA board count: `SA = ceil(FA × scrap_yield_factor)` — always round **up**, never down
+3. Planner requests white-wood plates closest to but ≥ the target
+4. **Stacking machine stops at the exact board count**; excess boards return to the raw-material warehouse
+
+SA is therefore always equal to or higher than the strict yield-derived minimum — the physical constraint is the supplier plate granularity.
+
 ### MO Grouping Rule
 
-One Manufacturing Order per **product** per **Dryer Load**. Process Packs of the same product within a DL are clubbed into a single MO. An MO can consume multiple PPs.
+One Manufacturing Order per **product** per **Dryer Run** (`kebony.dryer.load`). Process Packs of the same product within a dryer run are clubbed into a single MO. An MO can consume multiple packs.
 
 ### MES Traceability References
 
-Each planning entity carries a reference number from MES:
-- Dryer Load → `kebony_mes_drier_ref`
-- Autoclave Batch → `kebony_mes_autoclave_ref`
-- Process Pack → `kebony_mes_process_pack_ref`
+Each pack carries a reference number from MES:
+- Process Pack (SA / AA / DA stages) → `kebony_mes_process_pack_ref` (renamed on MES side too to reflect the stage)
+- Historical legacy names: `kebony_mes_drier_ref`, `kebony_mes_autoclave_ref` — retained on the model for backward compatibility, deprecated in favour of the unified reference
+
+### MES Interface Contract (source: SIS_MES_Axapta_Summary v0.1)
+
+The shared `MES_ERP_Mailbox` database has two schemas: `ERP.*` (ERP → MES) and `MES.*` (MES → ERP).
+
+**Operation codes** emitted by MES on `MES_ProducedPackage`:
+
+| Code | Step | Odoo event_type |
+|---|---|---|
+| **10** | Stacking | `stacked` |
+| **23** | Charging (Autoclave) | `autoclave_in` / `autoclave_out` |
+| **26** | Drying | `dryer_in` / `dryer_out` |
+| **30** | De-stacking | `destacked` |
+
+**Quality codes** (produced packages only — NOT used on raw material consumption):
+- `Quality = 3` → scrap (explicit in spec)
+- `Quality = 1 / 2` → presumably prime / secondary (confirm with SIS)
+
+**Package identifiers:**
+- Raw material / white wood: `RawMaterialPackageIdent` (supplier plate, e.g. `TS749697`)
+- Per-step MES output: `ProducedPackageIdent` (MES-assigned, one per operation step)
+
+**Deactivation flags** (ERP-side, block the record in MES):
+- Article: `ClosedInAx = 1`
+- Raw package: `Blocked = 1`
+- Inventory: `InventStatus = 1` or `Amount = 0`
+
+**Mandatory product field for MES:**
+- `LengthUnit` in `ERP_Konf_DataDefinition` — required for running-meter computation from PLC board counters. Maps to `x_studio_length_m` on `product.template`. All other custom fields in `ERP_Konf_DataDefinition` are reporting-only.
+
+**Partial package mechanics:** MES can report "part loaded, part returned to raw storage" — validates the "stacking machine stops at exact count, excess to RM warehouse" rule.
+
+**NOT in the interface contract:**
+- Defect reason codes — live **inside MES only**. Aggregated to `Quality 1/2/3` when reported to ERP. The full reason catalogue (when shared by SIS) is seed data for the Odoo `quality.reason` table, not payload.
+
+### Post-Kebonisation Machining Facility
+
+- Kebony owns **1 autoclave** and **3 dryers** (Dryer 1 / 2 / 3) at Kallo. The 3 dryers must be planned separately (each has its own calendar / capacity) — see `kebony.dryer.load.dryer_id`.
 
 ---
 
@@ -277,3 +352,13 @@ Each planning entity carries a reference number from MES:
 ---
 
 *This document is a living reference. Update it when new terms are introduced or existing definitions need refinement.*
+
+---
+
+## Document History
+
+| Date | Change |
+|---|---|
+| 2026-04-23 | Pack chain terminology clarified: RA removed (white wood stays on supplier plate); PA → AA (Autoclave Antwerp); SA / AA / DA are stages of the *same* Process Pack record with stable `pack_number`; FA is a FG `stock.lot`, not a Process Pack. Added display-name convention, data-model spec (Process Pack + autoclave batch + dryer load + stage-event log), backward-from-FA planning rule with stacking-machine exact-count + RM-warehouse return. |
+| 2026-04-23 (same day, correction) | No pack-level merge between AA and DA — packs stay 1:1 from SA to DA. The 2-to-1 step is a container-level grouping on `kebony.dryer.load` (2 autoclave batches per dryer run), not a pack merge. |
+| 2026-04-23 (same day, MES add) | Added MES interface contract section based on SIS_MES_Axapta_Summary v0.1: operation codes (10/23/26/30), Quality codes (1/2/3), package-identifier conventions, deactivation flags, `LengthUnit` as the one MES-mandatory product field, partial-package mechanics (validates backward-from-FA rule), and clarification that defect reasons are MES-internal (seed data for `quality.reason`, not interface payload). Also noted 1 autoclave + 3 dryers at Kallo — capacity planning per dryer. |

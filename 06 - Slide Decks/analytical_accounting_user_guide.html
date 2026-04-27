@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Analytical Accounting — User Guide</title>
+<style>
+  @page { size: A4; margin: 20mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 11pt;
+    line-height: 1.55;
+    color: #1a1a1a;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 30px 40px;
+    background: #fafaf7;
+  }
+  h1, h2, h3, h4 {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: #0f2a4f;
+    font-weight: 600;
+  }
+  h1 { font-size: 24pt; margin: 0 0 4px 0; letter-spacing: -0.5px; }
+  .subtitle { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 11pt; color: #5a6b80; margin-bottom: 6px; }
+  .meta { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9pt; color: #7a8698; border-bottom: 1px solid #c8d1df; padding-bottom: 14px; margin-bottom: 26px; }
+  h2 { font-size: 16pt; margin: 36px 0 10px 0; border-bottom: 2px solid #0f2a4f; padding-bottom: 4px; }
+  h3 { font-size: 12.5pt; margin: 22px 0 8px 0; color: #2d4a73; }
+  h4 { font-size: 11pt; margin: 16px 0 6px 0; color: #2d4a73; font-style: italic; }
+  p { margin: 8px 0; }
+  ul, ol { margin: 6px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 9.5pt;
+  }
+  th {
+    background: #0f2a4f;
+    color: #fff;
+    text-align: left;
+    padding: 8px 10px;
+    font-weight: 600;
+  }
+  td {
+    border-bottom: 1px solid #dbe2ec;
+    padding: 7px 10px;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #f2f4f9; }
+  .callout {
+    background: #eaf2fb;
+    border-left: 4px solid #2563a8;
+    padding: 12px 16px;
+    margin: 14px 0;
+    font-style: italic;
+  }
+  .warn {
+    background: #fff4e5;
+    border-left: 4px solid #d97706;
+    padding: 12px 16px;
+    margin: 14px 0;
+  }
+  .decided {
+    background: #e7f3ec;
+    border-left: 4px solid #2f855a;
+    padding: 12px 16px;
+    margin: 14px 0;
+  }
+  code { font-family: "SF Mono", Menlo, monospace; font-size: 9pt; background: #eef1f7; padding: 1px 5px; border-radius: 2px; }
+  .plan-card {
+    background: #fff;
+    border: 1px solid #dbe2ec;
+    border-left: 5px solid #0f2a4f;
+    padding: 14px 18px;
+    margin: 14px 0;
+    border-radius: 2px;
+  }
+  .plan-card h3 { margin-top: 0; color: #0f2a4f; }
+  .plan-tag {
+    display: inline-block;
+    background: #0f2a4f;
+    color: #fff;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 8.5pt;
+    padding: 2px 9px;
+    border-radius: 3px;
+    letter-spacing: 0.5px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  .plan-tag.exists { background: #2f855a; }
+  .plan-tag.new { background: #b45309; }
+  .pill {
+    display: inline-block;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 8.5pt;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .pill-green { background: #d7efe5; color: #065f46; }
+  .pill-amber { background: #fef0d4; color: #b45309; }
+  .pill-gray  { background: #e5e9f0; color: #3b4657; }
+  .waterfall {
+    background: #0f2a4f;
+    color: #fff;
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 10pt;
+    padding: 16px 20px;
+    border-radius: 4px;
+    margin: 14px 0;
+    overflow-x: auto;
+  }
+  .waterfall .margin { color: #ffd17c; font-weight: 700; }
+  .waterfall .minus { color: #9dc6ff; }
+  .waterfall .rev { color: #8fe6b5; }
+  .waterfall .sep { color: #5a6b80; }
+  .example-je {
+    background: #fff;
+    border: 1px solid #dbe2ec;
+    padding: 12px 16px;
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 9.5pt;
+    margin: 12px 0;
+    border-radius: 3px;
+  }
+  .example-je .label { color: #2d4a73; font-weight: 600; }
+  .example-je .analytic { color: #b45309; }
+  .toc {
+    background: #fff;
+    border: 1px solid #dbe2ec;
+    padding: 14px 20px;
+    margin: 16px 0 28px 0;
+    border-radius: 3px;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10pt;
+  }
+  .toc ol { margin: 6px 0; padding-left: 20px; }
+  .toc li { margin: 2px 0; }
+  .toc a { color: #2d4a73; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .kv { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 10pt; }
+  .kv .k { color: #5a6b80; font-weight: 600; display: inline-block; min-width: 140px; }
+  .footer {
+    margin-top: 50px;
+    padding-top: 14px;
+    border-top: 1px solid #c8d1df;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 9pt;
+    color: #7a8698;
+  }
+  @media print { body { background: #fff; padding: 0; } .plan-card, .callout, .warn, .decided { break-inside: avoid; } table { break-inside: avoid; } }
+</style>
+</head>
+<body>
+
+<h1>Analytical Accounting</h1>
+<div class="subtitle">User guide — what the analytics do, what values to pick, what the system does for you</div>
+<div class="meta">
+  Version 1.0 · 2026-04-22 · Derived from <em>Analytical Accounting Architecture</em> (vault) · Audience: accounting, sales, ops, management users
+</div>
+
+<div class="toc">
+  <strong>Contents</strong>
+  <ol>
+    <li><a href="#why">Why analytical accounting exists</a></li>
+    <li><a href="#five">The five plans at a glance</a></li>
+    <li><a href="#waterfall">The Kebony P&amp;L waterfall</a></li>
+    <li><a href="#plans">The five plans in detail</a></li>
+    <li><a href="#assignment">How analytics get tagged — automatically and manually</a></li>
+    <li><a href="#entities">Which entity uses which plan</a></li>
+    <li><a href="#example">A worked example — one sale, all analytics</a></li>
+    <li><a href="#day">What users need to do, day to day</a></li>
+    <li><a href="#eom">End-of-month — what happens</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="#decisions">Decisions made / decisions pending</a></li>
+  </ol>
+</div>
+
+<h2 id="why">1. Why analytical accounting exists</h2>
+
+<p>The GL (chart of accounts) is deliberately <em>simple</em>. One revenue account, one COGS account, one payroll account. Without analytics, you can see <strong>what</strong> happened in financial terms but you cannot see <strong>where</strong>, <strong>for whom</strong>, <strong>which product</strong>, or <strong>at which margin level</strong>.</p>
+
+<p>Analytics add tags — multi-dimensional labels — on every journal entry line. Reporting then pivots on those tags. The GL stays clean; the reporting is rich.</p>
+
+<div class="callout">
+  Analogy: the GL is the <em>cash register tape</em>. Analytics are the <em>product category / store region / customer segment</em> stickers. The tape alone tells you revenue; the stickers tell you <em>why</em>.
+</div>
+
+<h3>The five questions analytics answer</h3>
+<ol>
+  <li><strong>What type of product</strong> did we sell or produce?  →  <em>Product Group</em></li>
+  <li><strong>Where in the P&amp;L waterfall</strong> does this line sit? (revenue, direct COGS, overhead, marketing…) →  <em>Cost Group / CM Level</em></li>
+  <li><strong>Which country / territory</strong> did we sell into?  →  <em>Country</em></li>
+  <li><strong>Which department / division</strong> owns the cost or revenue?  →  <em>Business Unit (BU)</em></li>
+  <li><strong>Which US sales area</strong> (for Kebony Inc. only)?  →  <em>Sales Area</em></li>
+</ol>
+
+<h2 id="five">2. The five plans at a glance</h2>
+
+<table>
+  <tr><th>#</th><th>Plan</th><th>Question it answers</th><th>Values (count)</th><th>Status</th></tr>
+  <tr><td>1</td><td>Product Group</td><td>What type of product?</td><td>5 (KSP, KRRS, KR, ACC, OTHER)</td><td><span class="pill pill-green">Exists today</span></td></tr>
+  <tr><td>2</td><td>Cost Group (CM Level)</td><td>Where in the P&amp;L waterfall?</td><td>11 (REV, COGS-D, COGS-I, SC, SALES, MKT, CORP, RD, ESOP, DA, FIN)</td><td><span class="pill pill-green">Exists today</span></td></tr>
+  <tr><td>3</td><td>Country</td><td>Which country / territory did we sell to?</td><td>75 countries + regions</td><td><span class="pill pill-green">Exists today</span> <span class="pill pill-gray">auto-prefill live (US + Holding)</span></td></tr>
+  <tr><td>4</td><td>Business Unit (BU)</td><td>Which department owns it?</td><td>9 (10, 15, 20, 21, 30, 50, 52, 60, 70)</td><td><span class="pill pill-green">Exists today</span> <span class="pill pill-gray">auto-prefill live (US + Holding)</span></td></tr>
+  <tr><td>5</td><td>Sales Area</td><td>Which sales territory?</td><td>US: 9 regions (live) · Europe: to define</td><td><span class="pill pill-green">Exists US</span> <span class="pill pill-amber">Europe to define</span></td></tr>
+</table>
+
+<div class="decided">
+  <strong>Decided (March 2026).</strong> Business Unit <em>and</em> Country tags are <strong>mandatory on every P&amp;L line</strong> (accounts starting with 6* or 7*) across all Kebony entities. Balance-sheet lines (1*–5*) do not require analytics.
+</div>
+
+<h2 id="waterfall">3. The Kebony P&amp;L waterfall</h2>
+
+<p>This is the core reporting axis. Every cost and revenue line is tagged with its position in the waterfall via the <strong>Cost Group (CM Level)</strong> plan.</p>
+
+<div class="waterfall">
+<pre>
+  <span class="rev">Net Sales (REV)</span>
+<span class="sep">  ─────────────────────────────────────────────────</span>
+  <span class="minus">- COGS Direct (COGS-D)</span>   raw wood FIFO, chemicals, packaging
+<span class="sep">  ═════════════════════════════════════════════════</span>
+  <span class="margin">= GM I</span>   Gross Margin I — material margin
+<span class="sep">  ─────────────────────────────────────────────────</span>
+  <span class="minus">- COGS Indirect (COGS-I)</span>   stacking, autoclave, dryer absorption, plant overhead
+<span class="sep">  ═════════════════════════════════════════════════</span>
+  <span class="margin">= GM II</span>   Gross Margin II — production margin
+<span class="sep">  ─────────────────────────────────────────────────</span>
+  <span class="minus">- Supply Chain (SC)</span>    freight, warehousing, 3PL
+  <span class="minus">- Sales (SALES)</span>         sales commissions, sales rep charges
+  <span class="minus">- Marketing (MKT)</span>       marketing accruals, campaigns, rebates
+  <span class="minus">- Corporate (CORP)</span>      leadership, finance, IT, legal
+  <span class="minus">- R&amp;D (RD)</span>              product development
+<span class="sep">  ═════════════════════════════════════════════════</span>
+  <span class="margin">= EBITDA pre-ESOP</span>
+<span class="sep">  ─────────────────────────────────────────────────</span>
+  <span class="minus">- ESOP</span>
+<span class="sep">  ═════════════════════════════════════════════════</span>
+  <span class="margin">= EBITDA</span>
+<span class="sep">  ─────────────────────────────────────────────────</span>
+  <span class="minus">- D&amp;A (DA)</span>              depreciation, amortisation, write-offs
+<span class="sep">  ═════════════════════════════════════════════════</span>
+  <span class="margin">= EBIT</span>
+<span class="sep">  ─────────────────────────────────────────────────</span>
+  <span class="minus">- Financial (FIN)</span>      interest, FX
+<span class="sep">  ═════════════════════════════════════════════════</span>
+  <span class="margin">= Net Income</span>
+</pre>
+</div>
+
+<h2 id="plans">4. The five plans in detail</h2>
+
+<div class="plan-card">
+  <h3><span class="plan-tag exists">Exists</span>Plan 1 — Product Group</h3>
+  <p><strong>What it tracks:</strong> revenue, COGS and production costs by product type.</p>
+
+  <table>
+    <tr><th>Code</th><th>Product Group</th><th>What it includes</th></tr>
+    <tr><td>KSP</td><td>Kebony Scots Pine</td><td>All Scots Pine products regardless of profile / thickness</td></tr>
+    <tr><td>KRRS</td><td>Kebony Radiata Rough Sawn</td><td>All Radiata rough sawn (KRRS 1", KRRS 2", NCC, etc.)</td></tr>
+    <tr><td>KR</td><td>Kebony Radiata Machined</td><td>All machined Radiata (KR 1", KR 2", etc.)</td></tr>
+    <tr><td>ACC</td><td>Accessories</td><td>Screws, clips, oil — non-wood items</td></tr>
+    <tr><td>OTHER</td><td>Other</td><td>Items that don't fit the above</td></tr>
+  </table>
+
+  <p><strong>How it gets set:</strong> automatically from the product on the line (field <code>x_studio_product_group</code>). For manual entries (stock corrections, EOM adjustments) the user picks it directly.</p>
+  <p><strong>Cross-axis:</strong> Product Group × CM Level = margin waterfall <em>per product type</em>. This is the primary management view.</p>
+</div>
+
+<div class="plan-card">
+  <h3><span class="plan-tag exists">Exists</span>Plan 2 — Cost Group (CM Level)</h3>
+  <p><strong>What it tracks:</strong> position in the P&amp;L waterfall (see §3).</p>
+
+  <table>
+    <tr><th>Code</th><th>CM Level</th><th>What goes here</th></tr>
+    <tr><td>REV</td><td>Net Sales</td><td>Customer invoice revenue lines</td></tr>
+    <tr><td>COGS-D</td><td>COGS Direct</td><td>Raw wood (FIFO), chemicals, packaging</td></tr>
+    <tr><td>COGS-I</td><td>COGS Indirect</td><td>Conversion absorption: stacking, autoclave, dryer, plant overhead</td></tr>
+    <tr><td>SC</td><td>Supply Chain</td><td>Freight, warehousing, 3PL, landed costs</td></tr>
+    <tr><td>SALES</td><td>Sales</td><td>Sales rep commissions, sales rep accruals</td></tr>
+    <tr><td>MKT</td><td>Marketing</td><td>Marketing accruals, campaigns, rebates, trade shows</td></tr>
+    <tr><td>CORP</td><td>Corporate</td><td>Leadership, finance, IT, legal, rent, insurance</td></tr>
+    <tr><td>RD</td><td>R&amp;D</td><td>Product development, quality, lab</td></tr>
+    <tr><td>ESOP</td><td>ESOP</td><td>Employee stock option plan charges</td></tr>
+    <tr><td>DA</td><td>D&amp;A</td><td>Depreciation, amortisation, write-offs</td></tr>
+    <tr><td>FIN</td><td>Financial</td><td>Interest, FX gains / losses</td></tr>
+  </table>
+
+  <p><strong>How it gets set:</strong> automatically from the GL account or transaction type (revenue → REV; stock valuation → COGS-D / COGS-I via BoM for BNV, 100% COGS-D for INC; accruals → MKT / SALES / CORP via the accrual engine). For payroll, set via the BU → CM default mapping.</p>
+</div>
+
+<div class="plan-card">
+  <h3><span class="plan-tag exists">Exists</span>Plan 3 — Country</h3>
+  <p><strong>What it tracks:</strong> revenue and cost by destination market.</p>
+  <p><strong>Values:</strong> 75 countries + regions — ISO-style 3-letter codes (USA, CAN, NOR, DEU, GBR, FRA…) plus groupings (BENELUX, ME for Middle East, REU for Rest of EU, ROW for Rest of World, COM for Common / unallocated).</p>
+
+  <table>
+    <tr><th>Transaction</th><th>Country source</th></tr>
+    <tr><td>Customer invoice</td><td>Shipping address country (fallback to partner country)</td></tr>
+    <tr><td>COGS on delivery</td><td>Inherited from the sales order / invoice</td></tr>
+    <tr><td>Production (MO)</td><td>Tagged COM — distributed at EOM proportional to m³ sold</td></tr>
+    <tr><td>Overhead</td><td>Tagged COM — distributed at EOM proportional to m³ sold</td></tr>
+  </table>
+
+  <div class="decided"><strong>Decided:</strong> country distribution of production costs and overhead uses <strong>m³ sold</strong> as the distribution key — always.</div>
+
+  <div class="decided"><strong>Decided:</strong> when BNV sells to INC (intercompany), Country = <strong>USA</strong>. Canada gap fine-tuned at EOM by reallocating BNV's IC margin proportional to INC's m³ sold by country.</div>
+</div>
+
+<div class="plan-card">
+  <h3><span class="plan-tag exists">Exists</span>Plan 4 — Business Unit (BU)</h3>
+  <p><strong>What it tracks:</strong> which department owns the cost or revenue. Hybrid of business unit (revenue-generating) and cost centre (support).</p>
+
+  <table>
+    <tr><th>Code</th><th>BU</th><th>Typical defaults to CM Level</th></tr>
+    <tr><td>10</td><td>Leadership</td><td>CORP</td></tr>
+    <tr><td>15</td><td>Finance / IT</td><td>CORP</td></tr>
+    <tr><td>20</td><td>Logistics / Warehouse</td><td>SC</td></tr>
+    <tr><td>21</td><td>Planning / Customer Service</td><td>SC</td></tr>
+    <tr><td>30</td><td>Operations</td><td>COGS-I (unabsorbed production overhead)</td></tr>
+    <tr><td>50</td><td>Sales Scandinavia</td><td>SALES</td></tr>
+    <tr><td>52</td><td>Sales International</td><td>SALES</td></tr>
+    <tr><td>60</td><td>Market (Marketing)</td><td>MKT</td></tr>
+    <tr><td>70</td><td>R&amp;D / Product Development / Quality</td><td>RD</td></tr>
+  </table>
+
+  <table>
+    <tr><th>Entity</th><th>Default BU (auto-prefilled on invoice)</th></tr>
+    <tr><td>Kebony Inc. (US)</td><td>52 — Sales International</td></tr>
+    <tr><td>Kebony Holding (BE)</td><td>10 — Leadership</td></tr>
+    <tr><td>Kebony BNV (Production)</td><td>To be configured (Phase 2)</td></tr>
+  </table>
+
+  <p>Users can override BU on any line (e.g. change to 60 for marketing-related items).</p>
+</div>
+
+<div class="plan-card">
+  <h3><span class="plan-tag exists">Exists</span>Plan 5 — Sales Area <span class="pill pill-gray">US live · Europe to define</span></h3>
+  <p><strong>What it tracks:</strong> US / Canada sales territory for managing the North American sales force.</p>
+
+  <table>
+    <tr><th>Code</th><th>Sales Area</th></tr>
+    <tr><td>NORTH-EAST</td><td>North East</td></tr>
+    <tr><td>SOUTH-EAST</td><td>South East</td></tr>
+    <tr><td>MIDWEST</td><td>Midwest</td></tr>
+    <tr><td>CENTRAL</td><td>Central</td></tr>
+    <tr><td>N-ROCKIES</td><td>N. Rockies</td></tr>
+    <tr><td>WEST</td><td>West</td></tr>
+    <tr><td>OEM</td><td>OEM</td></tr>
+    <tr><td>EAST-CAN</td><td>East Canada</td></tr>
+    <tr><td>WEST-CAN</td><td>West Canada</td></tr>
+  </table>
+
+  <p><strong>How it gets set:</strong> stored on the contact (<code>res.partner.x_kebony_sales_area</code>). Inherited automatically through: contact → sales order → SO line → invoice → invoice line → COGS journal entry.</p>
+
+  <div class="callout">
+    Sales Area is <em>orthogonal</em> to Country. A sale in "East Canada" has Country=CAN. A sale in "North East" has Country=USA. Both tags live together on the same line.
+  </div>
+
+  <div class="warn">
+    <strong>European territories — work in progress.</strong> The target design (hierarchical zones, manager assignment, flexible geography: region / country / country-group) is covered in the companion document <em>Sales Area Architecture</em>. European values — including whether areas are sub-country regions (e.g. "French Switzerland"), whole countries, or groups (e.g. "Benelux") — to be defined there.
+  </div>
+</div>
+
+<h2 id="assignment">5. How analytics get tagged</h2>
+
+<p>Two stages: at transaction time (automatic), and at month-end (for anything that couldn't be tagged earlier).</p>
+
+<h3>Stage 1 — at transaction time (automatic)</h3>
+<table>
+  <tr><th>Transaction</th><th>Product Group</th><th>Country</th><th>Sales Area (US)</th><th>BU</th><th>CM Level</th></tr>
+  <tr><td>Revenue (customer invoice)</td><td>From product</td><td>From shipping address</td><td>From contact</td><td>From sales team</td><td>REV</td></tr>
+  <tr><td>COGS (delivery → stock JE)</td><td>From product</td><td>Inherited from SO</td><td>Inherited from SO</td><td>30 Operations</td><td>COGS-D / COGS-I (BNV via BoM; INC 100% COGS-D)</td></tr>
+  <tr><td>Production (MO close)</td><td>From finished product</td><td>COM (temp)</td><td>—</td><td>30 Operations</td><td>COGS-D (materials) + COGS-I (conversion)</td></tr>
+  <tr><td>EOM accrual (US)</td><td>From invoice line</td><td>From invoice line</td><td>From invoice line</td><td>60/50/52/10</td><td>MKT / SALES / CORP</td></tr>
+  <tr><td>Freight / logistics</td><td>—</td><td>—</td><td>—</td><td>20 Logistics</td><td>SC</td></tr>
+  <tr><td>Payroll</td><td>—</td><td>—</td><td>—</td><td>Employee dept</td><td>BU → CM mapping</td></tr>
+  <tr><td>Stock correction / manual entry</td><td><strong>Manual</strong></td><td><strong>Manual</strong></td><td><strong>Manual</strong></td><td><strong>Manual</strong></td><td>Per GL account</td></tr>
+</table>
+
+<h3>Stage 2 — end of month (wizards + allocations)</h3>
+<ol>
+  <li><strong>Run EOM accruals</strong> (US only — marketing, royalties, mgmt fees, sales rep, freight)</li>
+  <li><strong>Compute unabsorbed production costs</strong> (BNV) = actual Operations cost − absorbed via work-centre rates</li>
+  <li><strong>Allocate to CM levels</strong> (unabsorbed production → COGS-I; overhead → CORP / SALES / MKT)</li>
+  <li><strong>Distribute country</strong> (BNV) — costs tagged COM are split across countries by m³ sold</li>
+  <li><strong>Validate and post</strong> the allocation journal entries</li>
+</ol>
+
+<h2 id="entities">6. Which entity uses which plan</h2>
+
+<table>
+  <tr><th>Feature</th><th>Europe (BNV / Holding)</th><th>US (Kebony Inc.)</th></tr>
+  <tr><td>Product Group</td><td>✅ Shared</td><td>✅ Shared</td></tr>
+  <tr><td>Cost Group (CM Level)</td><td>✅</td><td>✅</td></tr>
+  <tr><td>Country</td><td>✅ 75 values</td><td>✅ USA, CAN</td></tr>
+  <tr><td>BU</td><td>✅ Shared 9 BUs</td><td>✅ Shared 9 BUs</td></tr>
+  <tr><td>Sales Area</td><td>❌</td><td>✅ 9 regions</td></tr>
+  <tr><td>COGS split (direct vs indirect)</td><td>✅ BoM decomposition</td><td>❌ 100% COGS-D (no conversion at INC)</td></tr>
+  <tr><td>EOM accruals (MKT, royalties, mgmt fees, sales rep, freight)</td><td>❌</td><td>✅</td></tr>
+  <tr><td>Production cost absorption</td><td>✅ Kallo plant</td><td>❌</td></tr>
+  <tr><td>Country distribution of production costs</td><td>✅ COM → countries by m³</td><td>—</td></tr>
+</table>
+
+<div class="callout">
+  <strong>Why INC has no COGS-I.</strong> Kebony Inc. is a distribution entity — it buys finished goods from BNV at a transfer price and resells. All of INC's COGS is "direct" from its perspective. The direct-vs-indirect split for the consolidated group P&amp;L is reconstructed from BNV's analytics; no need to re-split at INC.
+</div>
+
+<h2 id="example">7. A worked example — one sale, all analytics</h2>
+
+<p>BNV sells a Scots Pine terrace pack to a customer in Germany. Here's how the journal entries get tagged.</p>
+
+<div class="example-je">
+<span class="label">Customer invoice (BNV) — revenue line</span><br>
+Account: 700000 (Revenue)<br>
+Debit:   0     Credit: 10 000 EUR<br>
+<span class="analytic">Analytic distribution:
+  Product Group = KSP (Scots Pine)
+  Country       = DEU (Germany)
+  BU            = 52 (Sales International)
+  CM Level      = REV</span>
+</div>
+
+<div class="example-je">
+<span class="label">COGS journal entry (BNV) — materials portion</span><br>
+Account: 600000 (COGS — materials)<br>
+Debit:   4 500 EUR     Credit: 0<br>
+<span class="analytic">Analytic distribution:
+  Product Group = KSP
+  Country       = DEU  (inherited from SO)
+  BU            = 30 (Operations)
+  CM Level      = COGS-D</span>
+</div>
+
+<div class="example-je">
+<span class="label">COGS journal entry (BNV) — conversion portion (via BoM decomposition)</span><br>
+Account: 600500 (WC absorption)<br>
+Debit:   1 800 EUR     Credit: 0<br>
+<span class="analytic">Analytic distribution:
+  Product Group = KSP
+  Country       = DEU
+  BU            = 30 (Operations)
+  CM Level      = COGS-I</span>
+</div>
+
+<p><strong>Resulting margin view for this sale:</strong></p>
+<ul>
+  <li>Revenue: 10 000 → tagged DEU, KSP, REV</li>
+  <li>COGS-D: 4 500 → GM I = 5 500</li>
+  <li>COGS-I: 1 800 → GM II = 3 700</li>
+  <li>Reports pivot instantly by Country (DEU), Product Group (KSP), BU (52/30) — no GL-account gymnastics required.</li>
+</ul>
+
+<h3>Intercompany example: BNV → INC → end customer in Canada</h3>
+<table>
+  <tr><th>Transaction</th><th>Country</th><th>Margin captured</th></tr>
+  <tr><td>BNV IC sale to INC (100 EUR/m³)</td><td>USA</td><td>BNV production margin tracked</td></tr>
+  <tr><td>INC resale to end customer in Canada (180 USD/m³)</td><td>CAN</td><td>INC distribution margin tracked</td></tr>
+  <tr><td>Group consolidated view</td><td>CAN (end customer)</td><td>Group margin = BNV production + INC distribution; Canada gap reallocated at EOM</td></tr>
+</table>
+
+<h2 id="day">8. What users need to do, day to day</h2>
+
+<table>
+  <tr><th>Role</th><th>What the system does for you</th><th>What you still need to do</th></tr>
+  <tr><td>Accountant — customer invoice</td><td>Auto-fills Country, BU, Sales Area from the customer; auto-fills Product Group from the product; CM Level = REV</td><td>Check the analytics before posting. Override on specific lines if needed (e.g. shift a line to BU 60 Marketing).</td></tr>
+  <tr><td>Accountant — vendor bill</td><td>Partial: BU may be journal default; CM from GL account</td><td>Check Country, BU, and CM level. For freight add SC; for marketing add 60 / MKT.</td></tr>
+  <tr><td>Accountant — manual JE</td><td>Nothing automatic</td><td>Pick Product Group, BU, and CM level yourself. Country if applicable.</td></tr>
+  <tr><td>Accountant — EOM accruals</td><td>Wizard posts accruals with analytics inherited from invoice lines</td><td>Run the wizard, review output, approve.</td></tr>
+  <tr><td>Sales ops — new customer</td><td>—</td><td>Set the customer's <em>Country</em> and (if US) <em>Sales Area</em> on the contact record. Everything downstream inherits.</td></tr>
+  <tr><td>Production (BNV)</td><td>MO close auto-posts WIP → FG with Product Group from the finished product, BU 30, CM split direct/indirect via BoM</td><td>Review BoM cost structure once per quarter to keep the direct/indirect ratio accurate.</td></tr>
+  <tr><td>Controller</td><td>Backfill wizard available to apply analytics retroactively</td><td>Run backfill once per year or after any rule change. Review output before confirming.</td></tr>
+</table>
+
+<div class="warn">
+  <strong>Key rule.</strong> Every P&amp;L line (6* and 7* accounts) <em>must</em> carry a Country tag and a BU tag. Odoo's applicability rules will block posting if either is missing. Balance-sheet accounts (1*–5*) do not require analytics.
+</div>
+
+<h2 id="eom">9. End-of-month — what happens</h2>
+
+<ol>
+  <li>All invoices posted, all MOs completed (BNV), all vendor bills posted.</li>
+  <li><strong>US:</strong> Accountant runs the EOM accrual wizard (marketing, royalties, mgmt fees, sales rep, freight). Accruals post with full analytic distribution.</li>
+  <li><strong>BNV:</strong> Accountant computes unabsorbed production costs (actual Operations cost − absorbed via WC rates). Difference allocated to COGS-I.</li>
+  <li><strong>BNV:</strong> Costs tagged Country=COM are distributed to real countries using <strong>m³ sold</strong> as the key.</li>
+  <li>A monthly COGS reclassification JE allocates unallocated COGS to sales areas (US), using the margin report's grouping.</li>
+  <li>Controller reviews the allocation journal entries and posts them.</li>
+  <li>Reports produce the full margin waterfall per Product Group × Country × BU.</li>
+</ol>
+
+<h2 id="faq">10. FAQ</h2>
+
+<h3>Q. I don't see an analytic field on my journal entry line. What do I do?</h3>
+<p>Enable <em>analytic distribution</em> on the line. In Odoo 19 it opens a dropdown where you can add tags across all five plans. If the field is greyed out, check that the GL account is a P&amp;L account (6* or 7*).</p>
+
+<h3>Q. Can one line have two tags on the same plan? (e.g. 50% USA, 50% CAN)</h3>
+<p>Yes. Analytic distribution is a percentage split across accounts within a plan. Use it sparingly — it's there for situations where a single transaction genuinely spans multiple buckets.</p>
+
+<h3>Q. What if the system auto-fills the wrong BU?</h3>
+<p>Override it on the specific line. Defaults are hints, not rules. A common override is lines that belong to Marketing (BU 60) on an invoice whose default is Sales International (BU 52).</p>
+
+<h3>Q. I posted a JE last month without analytics. Am I stuck?</h3>
+<p>No. The <em>Backfill Analytics</em> wizard (Accounting Hub menu) updates posted JEs retroactively. It merges new analytics into the existing distribution — it doesn't overwrite lines that already have a Product Group or BU. Run it by company and by date range.</p>
+
+<h3>Q. Why is the COGS split different for BNV and INC?</h3>
+<p>BNV converts raw wood into finished goods — there's real direct (materials) and indirect (conversion) cost. INC buys finished goods from BNV and resells — no conversion, so all of its COGS is "direct" from its own books. At group consolidation, the direct-vs-indirect split is pulled from BNV's analytics.</p>
+
+<h3>Q. Why tag countries on production costs only at EOM?</h3>
+<p>At the time of production, we don't yet know which country will buy the output. Instead of guessing, we tag the cost COM (common / unallocated) and distribute at EOM using m³ sold by country as the key.</p>
+
+<h3>Q. When BNV sells to INC (intercompany), which country wins?</h3>
+<p>USA — decided. The Canada gap (INC reselling some of those goods into Canada) is corrected at EOM by reallocating BNV's IC margin proportional to INC's m³ sold by country.</p>
+
+<h3>Q. A customer moves from North East to South East. Do I have to reload history?</h3>
+<p>No. Change the contact's Sales Area field going forward. Historical invoices stay tagged with the old area — that's the correct representation of what happened at the time.</p>
+
+<h2 id="decisions">11. Decisions made / decisions pending</h2>
+
+<h3>✅ Decided</h3>
+<ul>
+  <li>BU and Country are <strong>mandatory</strong> on every P&amp;L line (6* and 7*). Balance sheet lines (1*–5*) are optional.</li>
+  <li>Country of an intercompany sale BNV → INC is <strong>USA</strong>. Canada gap handled at EOM by reallocation.</li>
+  <li>Country distribution key for all allocations is <strong>m³ sold</strong>. Always.</li>
+  <li>INC has <strong>no COGS Indirect</strong>. All INC COGS is COGS-D. Group direct/indirect split comes from BNV.</li>
+  <li>Default BU per entity: Kebony Inc. → 52 (Sales International); Kebony Holding → 10 (Leadership).</li>
+  <li>Freight accrual included in the US EOM accrual engine alongside marketing, royalties, mgmt fees, sales rep.</li>
+</ul>
+
+<h3>⚠ Pending</h3>
+<ul>
+  <li>BoM-based COGS decomposition for BNV — confirm approach; fallback for products without a BoM (100% COGS-D for accessories / traded goods?)</li>
+  <li>BNV default BU — to be configured (Phase 2)</li>
+  <li>Mgmt fees &amp; royalties — keep under CORP or give their own CM codes?</li>
+  <li>Mgmt fees IC reallocation mechanism for consolidated P&amp;L — (a) elimination at consolidation, (b) EOM reclass, (c) multi-ledger adjustment in VVF</li>
+  <li>Vendor bill Country auto-assignment — on all vendor bills or only freight / services?</li>
+  <li>Payroll BU via HR department rules — yes or manual?</li>
+  <li>BNV chart of accounts validation — exact GL ranges from Belgium team</li>
+</ul>
+
+<div class="footer">
+  This guide is a user-facing summary. The complete architecture including code references, GL-account mappings and implementation priorities lives in the Obsidian vault at <code>02 - General Topics / Analytical Accounting Architecture.md</code>.
+  <br>
+  Olivier Eberhard · VVF Consulting · 2026-04-22
+</div>
+
+</body>
+</html>
