@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MES ↔ Odoo API — Implementation Guide</title>
+<style>
+  @page { size: A4; margin: 18mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 11pt;
+    line-height: 1.55;
+    color: #1a1a1a;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 30px 40px;
+    background: #fafaf7;
+  }
+  h1, h2, h3, h4 { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #0f2a4f; font-weight: 600; }
+  h1 { font-size: 24pt; margin: 0 0 4px 0; letter-spacing: -0.5px; }
+  .subtitle { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 11pt; color: #5a6b80; margin-bottom: 6px; }
+  .meta { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9pt; color: #7a8698; border-bottom: 1px solid #c8d1df; padding-bottom: 14px; margin-bottom: 26px; }
+  h2 { font-size: 16pt; margin: 36px 0 10px 0; border-bottom: 2px solid #0f2a4f; padding-bottom: 4px; }
+  h3 { font-size: 12.5pt; margin: 22px 0 8px 0; color: #2d4a73; }
+  h4 { font-size: 11pt; margin: 16px 0 6px 0; color: #2d4a73; }
+  p { margin: 8px 0; }
+  ul, ol { margin: 6px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9.5pt; }
+  th { background: #0f2a4f; color: #fff; text-align: left; padding: 8px 10px; font-weight: 600; }
+  td { border-bottom: 1px solid #dbe2ec; padding: 7px 10px; vertical-align: top; }
+  tr:nth-child(even) td { background: #f2f4f9; }
+  code { font-family: "SF Mono", Menlo, monospace; font-size: 9pt; background: #eef1f7; padding: 1px 5px; border-radius: 2px; }
+  pre { font-family: "SF Mono", Menlo, monospace; font-size: 9pt; background: #0f2a4f; color: #e8eef6; padding: 14px 16px; border-radius: 3px; overflow-x: auto; line-height: 1.45; }
+  pre code { background: transparent; color: inherit; padding: 0; }
+  .callout { background: #eaf2fb; border-left: 4px solid #2563a8; padding: 12px 16px; margin: 14px 0; font-style: italic; }
+  .decided { background: #e7f3ec; border-left: 4px solid #2f855a; padding: 12px 16px; margin: 14px 0; }
+  .open { background: #fff4e5; border-left: 4px solid #d97706; padding: 12px 16px; margin: 14px 0; }
+  .warn { background: #fde4e4; border-left: 4px solid #b00020; padding: 12px 16px; margin: 14px 0; }
+  .pill { display: inline-block; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 8.5pt; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+  .pill-green { background: #d7efe5; color: #065f46; }
+  .pill-amber { background: #fef0d4; color: #b45309; }
+  .pill-blue  { background: #e0ecf8; color: #1a4a86; }
+  .pill-gray  { background: #e5e9f0; color: #3b4657; }
+  .method-get  { background: #e0ecf8; color: #1a4a86; padding: 3px 10px; font-weight: 700; font-family: "SF Mono", Menlo, monospace; font-size: 9pt; border-radius: 3px; }
+  .method-post { background: #d7efe5; color: #065f46; padding: 3px 10px; font-weight: 700; font-family: "SF Mono", Menlo, monospace; font-size: 9pt; border-radius: 3px; }
+  .endpoint {
+    background: #fff; border: 1px solid #dbe2ec; border-left: 5px solid #0f2a4f;
+    padding: 16px 20px; margin: 18px 0; border-radius: 3px;
+  }
+  .endpoint h3 { margin-top: 0; color: #0f2a4f; font-family: "SF Mono", Menlo, monospace; font-size: 12pt; }
+  .toc { background: #fff; border: 1px solid #dbe2ec; padding: 14px 20px; margin: 16px 0 28px 0; border-radius: 3px; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 10pt; }
+  .toc ol { margin: 6px 0; padding-left: 20px; }
+  .toc li { margin: 2px 0; }
+  .toc a { color: #2d4a73; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .flow-section { margin: 20px 0; padding: 14px 18px; background: #fff; border: 1px solid #dbe2ec; border-left: 5px solid #0f2a4f; border-radius: 3px; font-family: "SF Mono", Menlo, monospace; font-size: 9.5pt; line-height: 1.5; white-space: pre; }
+  .footer { margin-top: 50px; padding-top: 14px; border-top: 1px solid #c8d1df; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9pt; color: #7a8698; }
+  @media print { body { background: #fff; padding: 0; } .endpoint, .callout, .decided, .open, .warn, pre { break-inside: avoid; } table { break-inside: avoid; } }
+</style>
+</head>
+<body>
+
+<h1>MES ↔ Odoo API — Implementation Guide</h1>
+<div class="subtitle">As-built REST API · Integration handover for SIS middleware team</div>
+<div class="meta">
+  Version 1.0 · 2026-04-29 · Olivier Eberhard / VVF Consulting · Companion to the contract at <code>mes_api_contract.html</code> · BNV-only scope · Live in test, ready for middleware integration
+</div>
+
+<div class="toc">
+  <strong>Contents</strong>
+  <ol>
+    <li><a href="#purpose">Purpose &amp; scope</a></li>
+    <li><a href="#environments">Environments &amp; base URLs</a></li>
+    <li><a href="#auth">Authentication &amp; key lifecycle</a></li>
+    <li><a href="#conventions">Conventions — datetimes, IDs, op codes, errors</a></li>
+    <li><a href="#endpoints">Endpoint reference</a></li>
+    <li><a href="#happy-path">End-to-end happy path</a></li>
+    <li><a href="#operations">Operational guidance</a></li>
+    <li><a href="#quickstart">Quick-start with curl</a></li>
+    <li><a href="#open">Open items for SIS &amp; VVF</a></li>
+    <li><a href="#data-tree">Data model tree</a></li>
+    <li><a href="#deliverable">Deliverable structure</a></li>
+    <li><a href="#mapping">SIS spec ↔ API mapping</a></li>
+  </ol>
+</div>
+
+<h2 id="purpose">1. Purpose &amp; scope</h2>
+
+<p>This guide describes the HTTP API exposed by Odoo 19 (module <code>kebony_manufacturing</code>) for the SIS MES at the BNV Antwerp plant. It implements the contract defined in <code>mes_api_contract.html</code> (v0.1) and is the operational reference for the team building the middleware between the MES and the ERP.</p>
+
+<p><strong>Two directions of exchange</strong>, all under <code>/api/v1/mes/</code>:</p>
+
+<table>
+  <tr><th>Direction</th><th>Transport</th><th>Endpoints</th><th>Purpose</th></tr>
+  <tr>
+    <td>ERP → MES</td>
+    <td><span class="method-get">GET</span></td>
+    <td><code>/articles</code> · <code>/raw-packages</code> · <code>/dryer-loads</code></td>
+    <td>Middleware pulls product master, raw stock, planned production</td>
+  </tr>
+  <tr>
+    <td>MES → ERP</td>
+    <td><span class="method-post">POST</span></td>
+    <td><code>/produced-package</code> · <code>/dryer-load/actuals</code></td>
+    <td>Middleware pushes operations, quality, actuals</td>
+  </tr>
+</table>
+
+<div class="warn">
+  <strong>BNV-only.</strong> All exchanges are scoped to the Kebony BNV company (Antwerp plant). US, Norway and Luxembourg entities are out of scope and explicitly filtered out by the controller (<code>allowed_company_ids = [BNV]</code>).
+</div>
+
+<h2 id="environments">2. Environments &amp; base URLs</h2>
+
+<table>
+  <tr><th>Environment</th><th>Base URL</th><th>Notes</th></tr>
+  <tr>
+    <td><span class="pill pill-blue">Test</span></td>
+    <td><code>https://kebonyprod-test-31051334.dev.odoo.com</code></td>
+    <td>Use for integration testing</td>
+  </tr>
+  <tr>
+    <td><span class="pill pill-amber">Staging</span></td>
+    <td><code>https://kebony-staging.odoo.com</code> <em>(TBC)</em></td>
+    <td>Pre-prod parity tests</td>
+  </tr>
+  <tr>
+    <td><span class="pill pill-green">Production</span></td>
+    <td><code>https://kebonyprod.odoo.com</code></td>
+    <td>Live BNV manufacturing</td>
+  </tr>
+</table>
+
+<p><strong>Network requirements:</strong></p>
+<ul>
+  <li>HTTPS only (TLS 1.2+)</li>
+  <li>Outbound from middleware → Odoo on port 443</li>
+  <li>No inbound from Odoo to middleware (pull-based for ERP→MES, push-based for MES→ERP)</li>
+</ul>
+
+<h2 id="auth">3. Authentication &amp; key lifecycle</h2>
+
+<h3>3.1 Mechanism</h3>
+<p>API key in either header (server accepts both):</p>
+<pre><code>X-API-Key: &lt;key&gt;
+Authorization: Bearer &lt;key&gt;</code></pre>
+<p>The key is opaque (40-char hex), tied to a single Odoo technical user <code>mes_middleware</code> (display name "MES Middleware"). All actions are audited under this user. The user has no interactive password by default and cannot log in to the Odoo web UI — keys are the only credential.</p>
+
+<h3>3.2 Key generation (middleware self-service)</h3>
+
+<p>The SIS middleware operator generates their own API key by logging in as the <code>mes_middleware</code> user. The user is pre-provisioned with an initial password — change it on first login.</p>
+
+<table>
+  <tr><th>Field</th><th>Value</th></tr>
+  <tr><td>Login</td><td><code>mes_middleware</code></td></tr>
+  <tr><td>Initial password</td><td><code>MES12345</code> <span class="pill pill-amber">Change on first login</span></td></tr>
+  <tr><td>Login URL</td><td><code>&lt;env-base-url&gt;/web/login</code></td></tr>
+</table>
+
+<ol>
+  <li>Open <code>&lt;base-url&gt;/web/login</code> in a browser.</li>
+  <li>Login: <code>mes_middleware</code> · Password: <code>MES12345</code>.</li>
+  <li>Top-right avatar → <strong>My Profile</strong> (or <strong>Preferences</strong>).</li>
+  <li>Tab <strong>Account Security</strong> → button <strong>New API Key</strong> (or <strong>Add API Key</strong>).</li>
+  <li>Description: <code>MES middleware – &lt;env&gt; – YYYY-MM-DD</code>. Duration: per security policy (recommended 1 year max).</li>
+  <li>Click <strong>Generate Key</strong> (Odoo will re-prompt for the current password as a confirmation step).</li>
+  <li><strong>Copy the key immediately</strong> — Odoo only stores a hash; the value is shown once.</li>
+  <li>Store the key in the middleware's secret store (vault / env var / 1Password). Never commit to source.</li>
+  <li>Click <strong>Change Password</strong> (same screen) to replace <code>MES12345</code> with a strong, randomly-generated password held by the middleware operator.</li>
+</ol>
+
+<div class="warn">
+  <strong>Change <code>MES12345</code> immediately after first login.</strong> The initial password is shared knowledge by design (so SIS can self-serve the first key generation), but must be replaced before production. The API key — not the password — is the long-term credential.
+</div>
+
+<h3>3.3 Rotation &amp; revocation</h3>
+<ul>
+  <li><strong>Rotate:</strong> generate new key → deploy to middleware → verify health → revoke old key. Keep ≥ 5 minutes overlap.</li>
+  <li><strong>Revoke:</strong> delete the line on the same screen. Stops working on the next request (no cache).</li>
+</ul>
+
+<h3>3.4 Health probe</h3>
+<p><code>/api/v1/mes/ping</code> is <strong>unauthenticated</strong> and verifies routing &amp; TLS without exposing any data:</p>
+<pre><code>curl https://kebonyprod-test-31051334.dev.odoo.com/api/v1/mes/ping
+# {"status": "ok", "service": "kebony-mes-api", "version": "1.0.0"}</code></pre>
+<p>Use for liveness checks. Do <em>not</em> use to verify key validity — call <code>/articles</code> and check 200 vs 401 instead.</p>
+
+<h2 id="conventions">4. Conventions</h2>
+
+<h3>4.1 Content types</h3>
+<ul>
+  <li><strong>Request bodies (POST):</strong> <code>application/json</code>, UTF-8.</li>
+  <li><strong>Responses:</strong> <code>application/json</code>, UTF-8.</li>
+  <li><strong>GET query params:</strong> standard URL-encoded.</li>
+</ul>
+
+<h3>4.2 Datetimes</h3>
+<p>All datetimes are <strong>ISO 8601</strong> with explicit timezone — <code>Z</code> (UTC) preferred:</p>
+<table>
+  <tr><th>Format</th><th>Status</th></tr>
+  <tr><td><code>2026-04-29T08:15:00Z</code></td><td><span class="pill pill-green">Accepted</span></td></tr>
+  <tr><td><code>2026-04-29T10:15:00+02:00</code></td><td><span class="pill pill-green">Accepted</span></td></tr>
+  <tr><td><code>2026-04-29 08:15:00</code></td><td><span class="pill pill-amber">Rejected — no timezone</span></td></tr>
+</table>
+
+<h3>4.3 Identifiers</h3>
+<table>
+  <tr><th>Field</th><th>Format</th><th>Owner</th><th>Example</th></tr>
+  <tr><td><code>ArticleNum</code></td><td>string</td><td>ERP (<code>product.template.default_code</code>)</td><td><code>RAD-95x32-3000</code></td></tr>
+  <tr><td><code>RawMaterialPackageIdent</code></td><td>string</td><td>Supplier plate / lot name</td><td><code>TS749697</code></td></tr>
+  <tr><td><code>ProducedPackageIdent</code></td><td>string</td><td>MES (one per pack per op step)</td><td><code>MES-SA-00123-1</code></td></tr>
+  <tr><td><code>PackRef</code></td><td><code>{STAGE}-{NNNNN}</code></td><td>ERP</td><td><code>SA-00123</code> → <code>AA-00123</code> → <code>DA-00123</code> → <code>FA-00123</code></td></tr>
+  <tr><td><code>DryerLoadRef</code></td><td><code>DL-YYYY-NNNN</code></td><td>ERP</td><td><code>DL-2026-0042</code></td></tr>
+</table>
+<p>A single physical pack keeps the same numeric portion of <code>PackRef</code> end-to-end; only the stage prefix evolves.</p>
+
+<h3>4.4 Operation codes (SIS spec, MES_ProducedPackage.OperationCode)</h3>
+<table>
+  <tr><th>Code</th><th>Meaning</th><th>ERP event_type</th><th>Quality reported?</th></tr>
+  <tr><td><code>10</code></td><td>Stacking</td><td><code>stacked</code></td><td>No</td></tr>
+  <tr><td><code>23</code></td><td>Charging (Autoclave)</td><td><code>autoclave_in</code></td><td>No</td></tr>
+  <tr><td><code>26</code></td><td>Drying</td><td><code>dryer_out</code></td><td>No</td></tr>
+  <tr><td><code>30</code></td><td>De-stacking</td><td><code>destacked</code></td><td><strong>Yes</strong></td></tr>
+</table>
+
+<h3>4.5 Quality codes</h3>
+<table>
+  <tr><th>Code</th><th>Meaning</th><th>Status</th></tr>
+  <tr><td><code>1</code></td><td>Prime</td><td><span class="pill pill-amber">Provisional — confirm with SIS</span></td></tr>
+  <tr><td><code>2</code></td><td>Secondary</td><td><span class="pill pill-amber">Provisional — confirm with SIS</span></td></tr>
+  <tr><td><code>3</code></td><td>Scrap</td><td><span class="pill pill-green">Spec-confirmed</span></td></tr>
+</table>
+<p>Defect reason codes live <strong>inside MES only</strong> and are aggregated to <code>Quality 1/2/3</code> before reaching ERP. The full reason catalogue (when shared) is loaded as ERP-side seed data, not interface payload.</p>
+
+<h3>4.6 Errors</h3>
+<p>All non-2xx responses share the same JSON shape:</p>
+<pre><code>{"error": "&lt;human-readable description&gt;"}</code></pre>
+<table>
+  <tr><th>Status</th><th>When</th><th>Middleware action</th></tr>
+  <tr><td>200</td><td>Success</td><td>—</td></tr>
+  <tr><td>400</td><td>Validation (missing required, bad enum, malformed datetime)</td><td>Do <strong>not</strong> retry · log + alert · manual triage</td></tr>
+  <tr><td>401</td><td>Missing or invalid API key</td><td>Check key rotation; do not retry blindly</td></tr>
+  <tr><td>404</td><td><code>PackRef</code> / <code>DryerLoadRef</code> not found</td><td>Possible race; retry once after 30 s, then alert</td></tr>
+  <tr><td>500</td><td>Server-side failure</td><td>Exponential backoff; alert on persistence</td></tr>
+</table>
+
+<h2 id="endpoints">5. Endpoint reference</h2>
+
+<div class="callout">Detailed JSON schemas (types, enums, required vs optional) live in the OpenAPI spec at <code>addons/kebony_manufacturing/static/openapi/mes_api.json</code>. The summaries below give the practical day-to-day picture.</div>
+
+<div class="endpoint">
+  <h3><span class="method-get">GET</span> /api/v1/mes/ping</h3>
+  <p>Health probe. <strong>No auth.</strong></p>
+  <p><strong>Response:</strong></p>
+  <pre><code>{"status": "ok", "service": "kebony-mes-api", "version": "1.0.0"}</code></pre>
+</div>
+
+<div class="endpoint">
+  <h3><span class="method-get">GET</span> /api/v1/mes/articles</h3>
+  <p>Article master + on-hand stock totals (BNV only).</p>
+  <p><strong>Query params (all optional):</strong></p>
+  <ul>
+    <li><code>updated_since</code> — ISO 8601; only return articles with <code>WriteDate &gt;= this</code></li>
+    <li><code>planning_family</code> — filter by planning family code (e.g. <code>KRRS1</code>)</li>
+  </ul>
+  <p><strong>Response (excerpt):</strong></p>
+  <pre><code>{
+  "count": 412,
+  "articles": [
+    {
+      "ArticleNum": "2468",
+      "ArticleName": "1931-I-10",
+      "LengthUnit": 3.05,
+      "BoardsPerPack": 95,
+      "VolumePerMeter_m3": 0.005,
+      "PlanningFamily": "KRRS1",
+      "UoM": "LF",
+      "QtyAvailable": 2850.0,
+      "ClosedInAx": false,
+      "WriteDate": "2026-04-28T06:55:19"
+    }
+  ]
+}</code></pre>
+  <p><strong>Field semantics:</strong></p>
+  <ul>
+    <li><code>LengthUnit</code> — board length in metres. <strong>Mandatory</strong> for MES running-meter computation. Maps from <code>x_studio_length_m</code>.</li>
+    <li><code>VolumePerMeter_m3</code> — m³ per linear metre. Kebony doctrine: <code>total_m3 = total_lm × VolumePerMeter_m3</code>.</li>
+    <li><code>ClosedInAx</code> — <code>true</code> when product is deactivated. MES drops these from working set.</li>
+    <li><code>QtyAvailable</code> — total internal-location on-hand for this article (BNV only).</li>
+  </ul>
+  <p><strong>Polling cadence:</strong> 5–15 min with <code>updated_since</code>. Full pulls on cold-start only.</p>
+</div>
+
+<div class="endpoint">
+  <h3><span class="method-get">GET</span> /api/v1/mes/raw-packages</h3>
+  <p>Per-lot inventory with location and SIS-spec flags.</p>
+  <p><strong>Query params:</strong></p>
+  <ul>
+    <li><code>article_num</code> — filter by <code>ArticleNum</code></li>
+    <li><code>location</code> — substring match on full location path</li>
+  </ul>
+  <p><strong>Response (excerpt):</strong></p>
+  <pre><code>{
+  "count": 47,
+  "packages": [
+    {
+      "RawMaterialPackageIdent": "TS749697",
+      "ArticleNum": "WW-RAD-95x32-3000",
+      "Amount": 1928.67,
+      "ReservedQty": 0.0,
+      "UoM": "LF",
+      "Location": "Kallo/Stock/RawMaterial",
+      "InventStatus": 1,
+      "Blocked": false,
+      "LotRef": 1158
+    }
+  ]
+}</code></pre>
+  <ul>
+    <li><code>RawMaterialPackageIdent</code> — supplier plate / lot name. Stable across the pack's lifetime.</li>
+    <li><code>InventStatus</code> — <code>1</code> while <code>Amount &gt; 0</code>, else <code>0</code> (deactivation flag).</li>
+    <li><code>Blocked</code> — currently always <code>false</code>; sourced from <code>stock.lot.x_kebony_blocked</code> once that field exists.</li>
+  </ul>
+  <p><strong>Polling cadence:</strong> 1–5 min depending on MES throughput sensitivity.</p>
+</div>
+
+<div class="endpoint">
+  <h3><span class="method-get">GET</span> /api/v1/mes/dryer-loads</h3>
+  <p>Dryer Loads with nested autoclave batches and process packs.</p>
+  <p><strong>Query params:</strong></p>
+  <ul>
+    <li><code>state</code> — <code>draft</code> / <code>planned</code> / <code>locked</code> / <code>done</code> (default = <code>planned</code> + <code>locked</code>)</li>
+    <li><code>dryer</code> — <code>DRY1</code> / <code>DRY2</code> / <code>DRY3</code></li>
+    <li><code>ref</code> — exact <code>DryerLoadRef</code> lookup</li>
+  </ul>
+  <p><strong>Response shape:</strong></p>
+  <pre><code>{
+  "count": 3,
+  "dryer_loads": [
+    {
+      "DryerLoadRef": "DL-2026-0042",
+      "Id": 12,
+      "Active": true,
+      "Company": "Kebony BNV",
+      "CreateDate": "2026-04-25T14:02:11",
+      "PlanningFamily": "KRRS1",
+      "Dryer": "DRY1",
+      "State": "planned",
+      "EstimatedStart": "2026-04-29T06:00:00",
+      "EstimatedFinish": "2026-05-01T18:00:00",
+      "EstimatedDurationHours": 60.0,
+      "TotalM3": 24.5,
+      "Packs": [
+        {
+          "PackNumber": 1, "PackRef": "SA-00123", "Stage": "sa",
+          "ArticleNum": "RAD-95x32-3000", "InputArticleNum": "WW-RAD-95x32-3000",
+          "AutoclaveBatch": 1, "PositionCol": 1, "PositionRow": 1,
+          "IsHalfPack": false, "IsDummy": false,
+          "PlannedLM": 567.0, "PlannedM3": 1.9051, "PlannedBoards": 162
+        }
+      ]
+    }
+  ]
+}</code></pre>
+  <ul>
+    <li><code>Packs</code> array is flat across both autoclave batches. Use <code>AutoclaveBatch</code> to regroup if needed.</li>
+    <li><code>Stage</code> evolves over time (<code>sa</code> → <code>aa</code> → <code>da</code> → <code>fa</code>); same physical pack stays in the same JSON node via <code>PackNumber</code>.</li>
+    <li><code>IsDummy = true</code> packs are filler — MES ignores for production but loads in autoclave.</li>
+  </ul>
+  <p><strong>Polling cadence:</strong> 1–3 min.</p>
+</div>
+
+<div class="endpoint">
+  <h3><span class="method-post">POST</span> /api/v1/mes/produced-package</h3>
+  <p>Called once per operation step per pack. Optional <code>Quality</code> + actuals fields update the parent process pack in the same request — typically only on Op 30.</p>
+
+  <p><strong>Request body (Op 10 example, just the event):</strong></p>
+  <pre><code>{
+  "OperationCode": 10,
+  "ProducedPackageIdent": "MES-SA-00123-1",
+  "PackRef": "SA-00123",
+  "Timestamp": "2026-04-29T08:15:00Z",
+  "MesRef": "WO-44912"
+}</code></pre>
+
+  <p><strong>Op 30 example with Quality + actuals:</strong></p>
+  <pre><code>{
+  "OperationCode": 30,
+  "ProducedPackageIdent": "MES-FA-00123-4",
+  "PackRef": "FA-00123",
+  "Quality": 1,
+  "ActualLM": 565.5,
+  "ActualM3": 1.90,
+  "ActualBoardCount": 161,
+  "OutputPackQtyActual": 0.99,
+  "Timestamp": "2026-05-01T18:42:00Z"
+}</code></pre>
+
+  <p><strong>Required:</strong> <code>OperationCode</code>, <code>ProducedPackageIdent</code>, <code>PackRef</code>. All others optional.</p>
+
+  <p><strong>Response:</strong></p>
+  <pre><code>{
+  "status": "ok",
+  "event_id": 17234,
+  "pack_ref": "FA-00123",
+  "event_type": "destacked",
+  "updated_pack_fields": ["mes_quality", "actual_lm", "actual_m3", "actual_board_count", "output_pack_qty_actual"]
+}</code></pre>
+
+  <div class="warn">
+    <strong>Idempotency:</strong> the API does <strong>not</strong> deduplicate. Retries create duplicate events. Middleware tracks delivery state by <code>ProducedPackageIdent</code> and only re-POSTs on confirmed failures (5xx / network).
+  </div>
+</div>
+
+<div class="endpoint">
+  <h3><span class="method-post">POST</span> /api/v1/mes/dryer-load/actuals</h3>
+  <p>Typically once per dryer load, after the cycle ends. Updates the <code>kebony.dryer.load</code> record's actual start / finish / m³.</p>
+
+  <p><strong>Request body:</strong></p>
+  <pre><code>{
+  "DryerLoadRef": "DL-2026-0042",
+  "ActualStart": "2026-04-29T06:00:00Z",
+  "ActualFinish": "2026-05-01T18:30:00Z",
+  "ActualM3": 27.85
+}</code></pre>
+
+  <p><strong>Required:</strong> <code>DryerLoadRef</code>. All others optional.</p>
+
+  <p><strong>Response:</strong></p>
+  <pre><code>{
+  "status": "ok",
+  "dryer_load": "DL-2026-0042",
+  "updated_fields": ["actual_start_date", "actual_finish_date", "actual_m3"]
+}</code></pre>
+
+  <p>This endpoint is <strong>idempotent</strong> on the ERP side (write, not append) — safe to retry.</p>
+</div>
+
+<h2 id="happy-path">6. End-to-end happy path</h2>
+
+<div class="flow-section">ERP creates DL-2026-0042 (state=planned, 5 packs in AC1, 5 in AC2)
+        │
+        ▼  middleware polls /dryer-loads
+MES picks up DL-2026-0042, drives the line
+        │
+        ▼  Op 10 — Stacking begins
+POST /produced-package {OperationCode: 10, PackRef: "SA-00123", ...}
+        │
+        ▼  Op 23 — Charged into autoclave
+POST /produced-package {OperationCode: 23, PackRef: "AA-00123", ...}
+        │
+        ▼  Op 26 — Drying complete
+POST /produced-package {OperationCode: 26, PackRef: "DA-00123", ...}
+        │
+        ▼  Op 30 — De-stacking with Quality + actuals
+POST /produced-package {OperationCode: 30, PackRef: "FA-00123",
+                        Quality: 1, ActualLM: 565.5, ActualM3: 1.9, ...}
+        │
+        ▼  Cycle ends
+POST /dryer-load/actuals {DryerLoadRef: "DL-2026-0042",
+                          ActualStart, ActualFinish, ActualM3}</div>
+
+<div class="open">
+  <strong>Stage prefix in <code>PackRef</code>.</strong> MES can either send the operation-appropriate prefix (<code>SA-</code> / <code>AA-</code> / <code>DA-</code> / <code>FA-</code>) or always send <code>SA-</code> and let ERP resolve. Both work since the numeric portion is stable. <strong>VVF recommends operation-appropriate</strong> for clarity in event audit. Confirm with VVF before implementation.
+</div>
+
+<h2 id="operations">7. Operational guidance</h2>
+
+<h3>7.1 Retry policy</h3>
+<table>
+  <tr><th>Status</th><th>Retry?</th><th>Strategy</th></tr>
+  <tr><td>5xx</td><td>Yes</td><td>Exponential backoff: 1s · 2s · 5s · 10s · 30s, then alert</td></tr>
+  <tr><td>4xx</td><td><strong>No</strong></td><td>Deterministic failure. Log, alert, manual triage</td></tr>
+  <tr><td>Network / timeout</td><td>Yes</td><td>Same backoff as 5xx</td></tr>
+</table>
+
+<h3>7.2 Logging requirements</h3>
+<p>For every call (in &amp; out), middleware logs:</p>
+<ul>
+  <li>Direction, endpoint, HTTP status, latency</li>
+  <li>Correlation ID (your own — e.g. <code>MesRef</code>)</li>
+  <li>For POSTs: payload (<strong>redact API key</strong>)</li>
+  <li>For GETs: count returned (not full body)</li>
+</ul>
+<p>Retain ≥ 90 days for production troubleshooting.</p>
+
+<h3>7.3 Idempotency strategy</h3>
+<ul>
+  <li><code>produced-package</code> is <strong>not</strong> deduplicated server-side. Persist <code>ProducedPackageIdent</code> + ERP <code>event_id</code> in middleware state on success. On retry, check first; only re-POST if not previously confirmed.</li>
+  <li><code>dryer-load/actuals</code> is idempotent (write, not append) — safe to retry.</li>
+</ul>
+
+<h3>7.4 Backpressure</h3>
+<p>ERP can absorb roughly N requests/sec/instance (TBD load-tested). For burst protection: cap concurrent in-flight requests (recommended 4–8). Queue and drain rather than parallelising aggressively.</p>
+
+<h3>7.5 Time skew</h3>
+<p>Both systems run NTP. Skew &gt; 60 s causes <code>Timestamp</code> ordering anomalies in event histories.</p>
+
+<h2 id="quickstart">8. Quick-start with curl</h2>
+
+<pre><code>export BASE="https://kebonyprod-test-31051334.dev.odoo.com"
+export KEY="&lt;your-api-key&gt;"
+
+# Health
+curl "$BASE/api/v1/mes/ping"
+
+# Articles (BNV only)
+curl -H "X-API-Key: $KEY" "$BASE/api/v1/mes/articles?planning_family=KRRS1" | jq .count
+
+# Raw packages
+curl -H "X-API-Key: $KEY" "$BASE/api/v1/mes/raw-packages" | jq '.packages | length'
+
+# Planned dryer loads
+curl -H "X-API-Key: $KEY" "$BASE/api/v1/mes/dryer-loads?state=planned"
+
+# Report stacking event
+curl -X POST -H "X-API-Key: $KEY" -H "Content-Type: application/json" \
+  -d '{"OperationCode":10,"ProducedPackageIdent":"MES-SA-00123-1","PackRef":"SA-00123","Timestamp":"2026-04-29T08:15:00Z"}' \
+  "$BASE/api/v1/mes/produced-package"
+
+# Report DL actuals
+curl -X POST -H "X-API-Key: $KEY" -H "Content-Type: application/json" \
+  -d '{"DryerLoadRef":"DL-2026-0042","ActualStart":"2026-04-29T06:00:00Z","ActualFinish":"2026-05-01T18:30:00Z","ActualM3":27.85}' \
+  "$BASE/api/v1/mes/dryer-load/actuals"</code></pre>
+
+<h2 id="open">9. Open items for SIS &amp; VVF</h2>
+
+<table>
+  <tr><th>#</th><th>Item</th><th>Status</th><th>Owner</th></tr>
+  <tr><td>1</td><td>Quality 1/2 semantics (<code>1 = Prime</code>, <code>2 = Secondary</code> are provisional)</td><td><span class="pill pill-amber">Open</span></td><td>SIS</td></tr>
+  <tr><td>2</td><td>Stage prefix in <code>PackRef</code>: operation-appropriate vs always <code>SA-</code></td><td><span class="pill pill-amber">Open</span></td><td>SIS / VVF</td></tr>
+  <tr><td>3</td><td>Defect reason catalogue (loaded as ERP seed data, not interface payload)</td><td><span class="pill pill-amber">Open</span></td><td>SIS</td></tr>
+  <tr><td>4</td><td><code>Blocked</code> flag on raw packages (<code>stock.lot.x_kebony_blocked</code> field to be added)</td><td><span class="pill pill-amber">Open</span></td><td>VVF</td></tr>
+  <tr><td>5</td><td>Staging URL (TBC once Kebony pre-prod branch is live)</td><td><span class="pill pill-amber">Open</span></td><td>Kebony IT</td></tr>
+  <tr><td>6</td><td>Rate-limit caps (load-test under expected MES throughput before go-live)</td><td><span class="pill pill-amber">Open</span></td><td>VVF / SIS</td></tr>
+</table>
+
+<h2 id="data-tree">10. Data model tree</h2>
+
+<div class="flow-section">Article
+├── ArticleNum          : string          (PK · product.template.default_code)
+├── ArticleName         : string
+├── LengthUnit          : float           (metres · MANDATORY for MES)
+├── BoardsPerPack       : integer
+├── VolumePerMeter_m3   : float
+├── PlanningFamily      : string?
+├── UoM                 : string
+├── QtyAvailable        : float           (BNV total on-hand)
+├── ClosedInAx          : boolean
+└── WriteDate           : datetime ISO8601
+
+RawPackage
+├── RawMaterialPackageIdent : string      (PK · supplier plate / lot name)
+├── ArticleNum          : string
+├── Amount              : float
+├── ReservedQty         : float
+├── UoM                 : string
+├── Location            : string          (full path · BNV only)
+├── InventStatus        : 0 | 1
+├── Blocked             : boolean
+└── LotRef              : integer?        (Odoo internal stock.lot id)
+
+DryerLoad
+├── DryerLoadRef        : string          (PK · DL-YYYY-NNNN)
+├── Id                  : integer
+├── Active              : boolean
+├── Company             : string          ("Kebony BNV")
+├── CreateDate          : datetime
+├── PlanningFamily      : string
+├── Dryer               : "DRY1"|"DRY2"|"DRY3"|null
+├── State               : "draft"|"planned"|"locked"|"done"
+├── EstimatedStart      : datetime?
+├── EstimatedFinish     : datetime?
+├── EstimatedDurationHours : float
+├── TotalM3             : float
+└── Packs[]             : ProcessPack    (flattened across AC1 + AC2)
+        │
+        ├── PackNumber       : integer    (stable end-to-end)
+        ├── PackRef          : string     ({STAGE}-{NNNNN})
+        ├── Stage            : "sa"|"aa"|"da"|"fa"
+        ├── ArticleNum       : string?    (output product)
+        ├── InputArticleNum  : string?    (raw input)
+        ├── AutoclaveBatch   : 1 | 2
+        ├── PositionCol      : integer
+        ├── PositionRow      : integer
+        ├── IsHalfPack       : boolean
+        ├── IsDummy          : boolean
+        ├── PlannedLM        : float
+        ├── PlannedM3        : float
+        └── PlannedBoards    : integer
+
+ProducedPackageEvent  (POST body)
+├── OperationCode       : 10 | 23 | 26 | 30        ← required
+├── ProducedPackageIdent: string                   ← required
+├── PackRef             : string                   ← required
+├── MesRef              : string?
+├── Timestamp           : datetime ISO8601?
+├── Quality             : 1 | 2 | 3 | null         (typically Op 30 only)
+├── ActualLM            : float?
+├── ActualM3            : float?
+├── ActualBoardCount    : integer?
+├── OutputPackQtyActual : float?
+└── Note                : string?
+
+DryerLoadActuals  (POST body)
+├── DryerLoadRef        : string                   ← required
+├── ActualStart         : datetime?
+├── ActualFinish        : datetime?
+└── ActualM3            : float?</div>
+
+<h2 id="deliverable">11. Deliverable structure</h2>
+
+<p>What the middleware team receives:</p>
+<div class="flow-section">mes_api_deliverable/
+├── mes_api_implementation_guide.html       ← this document (integration guide)
+├── mes_api.json                            ← OpenAPI 3.0 spec (canonical machine contract)
+└── mes_api_samples/                        ← live JSON captures from the test instance
+    ├── 00_ping_response.json               (unauth health probe)
+    ├── 01_articles_response.json           (KRRS1 family · 412+ KB · real BNV products)
+    ├── 02_raw_packages_response.json       (real Biewer / Kallo lots · 47 packages)
+    ├── 03_dryer_loads_response.json        (planned + locked DLs with nested packs)
+    ├── 04_produced_package_request.json    (synthetic POST body — Op 30 with Quality + actuals)
+    └── 05_dryer_load_actuals_request.json  (synthetic POST body — actuals on DL-2026-0042)</div>
+
+<div class="callout">Sample JSONs in <code>mes_api_samples/</code> are real captures from the test environment (<code>kebonyprod-test-31051334.dev.odoo.com</code>) on 2026-04-29. Use them to develop offline / build mocks / pre-validate parsing. The two POST samples are synthetic templates illustrating expected request shapes.</div>
+
+<p>In the Kebony Odoo repository, live source files sit at:</p>
+<div class="flow-section">addons/kebony_manufacturing/
+├── MES_API_GUIDE.md                       ← markdown source for this HTML
+├── controllers/
+│   ├── __init__.py
+│   └── mes_api.py                         ← REST controller (server source)
+├── data/
+│   └── mes_api_user_data.xml              ← creates "MES Middleware" user
+├── hooks.py                               ← post_init pins user to BNV
+└── static/
+    └── openapi/
+        └── mes_api.json                   ← OpenAPI spec</div>
+
+<h3>11.1 Tooling for the OpenAPI spec</h3>
+<ul>
+  <li><strong>Swagger UI:</strong> drag <code>mes_api.json</code> into <a href="https://editor.swagger.io/">https://editor.swagger.io/</a> for an interactive browser.</li>
+  <li><strong>Postman:</strong> Import → File → select the JSON. Auto-generates a collection with all endpoints.</li>
+  <li><strong>Code generation:</strong> <code>openapi-generator-cli generate -i mes_api.json -g &lt;lang&gt; -o ./client</code> (Python, Java, .NET, TypeScript, Go, …).</li>
+</ul>
+
+<h2 id="mapping">12. SIS spec ↔ API mapping</h2>
+
+<table>
+  <tr><th>SIS table / field (v0.1)</th><th>API equivalent</th></tr>
+  <tr><td><code>ERP.Articles</code></td><td><code>GET /articles</code></td></tr>
+  <tr><td><code>ERP.Articles.LengthUnit</code></td><td><code>Article.LengthUnit</code></td></tr>
+  <tr><td><code>ERP.Articles.ClosedInAx</code></td><td><code>Article.ClosedInAx</code></td></tr>
+  <tr><td><code>ERP.Inventory.Amount</code></td><td><code>RawPackage.Amount</code></td></tr>
+  <tr><td><code>ERP.Inventory.InventStatus</code></td><td><code>RawPackage.InventStatus</code></td></tr>
+  <tr><td><code>ERP.RawMaterialPackages.RawMaterialPackageIdent</code></td><td><code>RawPackage.RawMaterialPackageIdent</code></td></tr>
+  <tr><td><code>ERP.RawMaterialPackages.Blocked</code></td><td><code>RawPackage.Blocked</code></td></tr>
+  <tr><td><code>MES.ProducedPackage.OperationCode</code></td><td><code>ProducedPackageEvent.OperationCode</code></td></tr>
+  <tr><td><code>MES.ProducedPackage.ProducedPackageIdent</code></td><td><code>ProducedPackageEvent.ProducedPackageIdent</code></td></tr>
+  <tr><td><code>MES.ProducedPackage.Quality</code></td><td><code>ProducedPackageEvent.Quality</code></td></tr>
+</table>
+
+<div class="footer">
+  Implementation guide for the MES ↔ Odoo middleware integration.
+  Companion to the contract spec at <code>mes_api_contract.html</code> (v0.1, 2026-04-23).
+  Canonical machine-readable schema: <code>addons/kebony_manufacturing/static/openapi/mes_api.json</code>.
+  <br>
+  Distribute as <em>this HTML + the OpenAPI JSON</em> to the SIS middleware team.
+  <br>
+  Olivier Eberhard · VVF Consulting · 2026-04-29
+</div>
+
+<!--
+  CHANGELOG
+  v1.0 · 2026-04-29 · Initial implementation guide.
+                      As-built REST API: 6 endpoints (1 unauth ping + 3 GET + 2 POST).
+                      Auth via X-API-Key / Bearer token tied to mes_middleware user.
+                      BNV-only scope enforced via allowed_company_ids.
+                      Companion to mes_api_contract.html v0.1.
+-->
+
+</body>
+</html>

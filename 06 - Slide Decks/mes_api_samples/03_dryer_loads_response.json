@@ -1,0 +1,67 @@
+{
+    "dryer_loads": [
+        {
+            "DryerLoadRef": "DL-2026-0001",
+            "Id": 2,
+            "Active": true,
+            "Company": null,
+            "CreateDate": "2026-04-20T16:28:40.043723",
+            "PlanningFamily": "KSP1C",
+            "Dryer": null,
+            "State": "planned",
+            "EstimatedStart": null,
+            "EstimatedFinish": null,
+            "EstimatedDurationHours": 0.0,
+            "TotalM3": 0.0,
+            "Packs": [
+                {
+                    "PackNumber": 1,
+                    "PackRef": "SA-00001",
+                    "Stage": "sa",
+                    "ArticleNum": false,
+                    "InputArticleNum": null,
+                    "AutoclaveBatch": 1,
+                    "PositionCol": 1,
+                    "PositionRow": 1,
+                    "IsHalfPack": false,
+                    "IsDummy": false,
+                    "PlannedLM": 567.0,
+                    "PlannedM3": 1.9051,
+                    "PlannedBoards": 162
+                }
+            ]
+        },
+        {
+            "DryerLoadRef": "/",
+            "Id": 1,
+            "Active": true,
+            "Company": null,
+            "CreateDate": "2026-04-20T16:02:52.029106",
+            "PlanningFamily": "KRRS1",
+            "Dryer": null,
+            "State": "locked",
+            "EstimatedStart": null,
+            "EstimatedFinish": null,
+            "EstimatedDurationHours": 54.0,
+            "TotalM3": 0.0,
+            "Packs": [
+                {
+                    "PackNumber": 1,
+                    "PackRef": "SA-00001",
+                    "Stage": "sa",
+                    "ArticleNum": false,
+                    "InputArticleNum": null,
+                    "AutoclaveBatch": 1,
+                    "PositionCol": 0,
+                    "PositionRow": 0,
+                    "IsHalfPack": false,
+                    "IsDummy": false,
+                    "PlannedLM": 636.5,
+                    "PlannedM3": 3.1825,
+                    "PlannedBoards": 190
+                }
+            ]
+        }
+    ],
+    "count": 2
+}

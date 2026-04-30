@@ -1,0 +1,7 @@
+{
+  "_comment": "POST /api/v1/mes/dryer-load/actuals — typically once per DL after the cycle ends. All fields except DryerLoadRef are optional.",
+  "DryerLoadRef": "DL-2026-0042",
+  "ActualStart": "2026-04-29T06:00:00Z",
+  "ActualFinish": "2026-05-01T18:30:00Z",
+  "ActualM3": 27.85
+}

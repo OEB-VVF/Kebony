@@ -1,0 +1,14 @@
+{
+  "_comment": "POST /api/v1/mes/produced-package — Op 30 (De-stacking) with Quality + actuals. Send Content-Type: application/json and X-API-Key header.",
+  "OperationCode": 30,
+  "ProducedPackageIdent": "MES-FA-00123-4",
+  "PackRef": "FA-00123",
+  "Timestamp": "2026-05-01T18:42:00Z",
+  "MesRef": "WO-44912",
+  "Quality": 1,
+  "ActualLM": 565.5,
+  "ActualM3": 1.90,
+  "ActualBoardCount": 161,
+  "OutputPackQtyActual": 0.99,
+  "Note": "Standard de-stacking, no anomalies."
+}
