@@ -64,7 +64,18 @@
 <h1>MES ↔ Odoo API — Implementation Guide</h1>
 <div class="subtitle">As-built REST API · Integration handover for SIS middleware team</div>
 <div class="meta">
-  Version 1.0 · 2026-04-29 · Olivier Eberhard / VVF Consulting · Companion to the contract at <code>mes_api_contract.html</code> · BNV-only scope · Live in test, ready for middleware integration
+  Version 1.1 · 2026-04-30 · Olivier Eberhard / VVF Consulting · Companion to the contract at <code>mes_api_contract.html</code> · BNV-only scope · v1.1 SIS-aligned (production-order centric), live + tested on <code>kebonyprod-test-31051334.dev.odoo.com</code>
+</div>
+
+<div class="warn">
+  <strong>v1.1 — Breaking changes from v1.0</strong> (2026-04-30):
+  <ul>
+    <li><strong>REMOVED</strong>: <code>GET /api/v1/mes/dryer-loads</code> and <code>POST /api/v1/mes/dryer-load/actuals</code>. MES is MO-centric per <code>SIS_MES_Axapta_Summary v0.1</code>; internal Kebony dryer / autoclave / pack planning stays Kebony-side and is no longer leaked through the API.</li>
+    <li><strong>NEW</strong>: <code>GET /production-orders</code> (replaces dryer-loads) · <code>POST /production-order/actuals</code> (replaces dryer-load actuals) · <code>POST /raw-material-consumption</code> (was missing, covers <code>MES_UsedRawMaterialPackage</code>) · <code>GET /article-classes</code> (covers <code>ERP_ArticleClass</code>).</li>
+    <li><strong>CHANGED</strong>: <code>ArticleNum</code> is now in <strong>SIS canonical format</strong> <code>&lt;part&gt;:&lt;length_dm&gt;:::</code> (e.g. <code>1003-M-3.5</code> in Kebony → <code>1003:35:::</code> on the wire). The native Kebony code is preserved in a new <code>KebonyDefaultCode</code> field for cross-reference.</li>
+    <li><strong>CHANGED</strong>: <code>/articles</code> and <code>/raw-packages</code> are now scoped to <strong>white-wood SKUs only</strong> (<code>x_studio_product_classification = "wood"</code>); imperial codes (<code>-I-</code>) are excluded from the MES feed.</li>
+    <li><strong>CHANGED</strong>: <code>POST /produced-package</code> now accepts <code>ProductionOrderIdent</code> (preferred per SIS) in addition to legacy <code>PackRef</code>. The right pack on the MO is auto-resolved.</li>
+  </ul>
 </div>
 
 <div class="toc">
@@ -96,14 +107,14 @@
   <tr>
     <td>ERP → MES</td>
     <td><span class="method-get">GET</span></td>
-    <td><code>/articles</code> · <code>/raw-packages</code> · <code>/dryer-loads</code></td>
-    <td>Middleware pulls product master, raw stock, planned production</td>
+    <td><code>/articles</code> · <code>/article-classes</code> · <code>/raw-packages</code> · <code>/production-orders</code></td>
+    <td>Middleware pulls product master, classifications, raw stock, planned production</td>
   </tr>
   <tr>
     <td>MES → ERP</td>
     <td><span class="method-post">POST</span></td>
-    <td><code>/produced-package</code> · <code>/dryer-load/actuals</code></td>
-    <td>Middleware pushes operations, quality, actuals</td>
+    <td><code>/produced-package</code> · <code>/production-order/actuals</code> · <code>/raw-material-consumption</code></td>
+    <td>Middleware pushes operations, quality, MO actuals, raw consumption</td>
   </tr>
 </table>
 
@@ -207,13 +218,28 @@ Authorization: Bearer &lt;key&gt;</code></pre>
 <h3>4.3 Identifiers</h3>
 <table>
   <tr><th>Field</th><th>Format</th><th>Owner</th><th>Example</th></tr>
-  <tr><td><code>ArticleNum</code></td><td>string</td><td>ERP (<code>product.template.default_code</code>)</td><td><code>RAD-95x32-3000</code></td></tr>
-  <tr><td><code>RawMaterialPackageIdent</code></td><td>string</td><td>Supplier plate / lot name</td><td><code>TS749697</code></td></tr>
+  <tr><td><code>ArticleNum</code></td><td><code>&lt;part&gt;:&lt;length_dm&gt;:::</code> (SIS canonical)</td><td>ERP (transformed from <code>default_code</code> / <code>name</code>)</td><td><code>1003:35:::</code></td></tr>
+  <tr><td><code>KebonyDefaultCode</code></td><td><code>&lt;part&gt;-M-&lt;length_m&gt;</code></td><td>ERP (informational mirror of native Kebony SKU)</td><td><code>1003-M-3.5</code></td></tr>
+  <tr><td><code>ArticleClassID</code></td><td>string code</td><td>ERP (<code>kebony.planning.family.code</code>)</td><td><code>KSP1C</code></td></tr>
+  <tr><td><code>ProductionOrderIdent</code></td><td><code>{warehouse}/MO/NNNNN</code></td><td>ERP (<code>mrp.production.name</code>)</td><td><code>Kallo/MO/00005</code></td></tr>
+  <tr><td><code>RawMaterialPackageIdent</code></td><td>string (lot serial)</td><td>Supplier plate / lot name</td><td><code>TS749697</code> · <code>0000070</code></td></tr>
   <tr><td><code>ProducedPackageIdent</code></td><td>string</td><td>MES (one per pack per op step)</td><td><code>MES-SA-00123-1</code></td></tr>
-  <tr><td><code>PackRef</code></td><td><code>{STAGE}-{NNNNN}</code></td><td>ERP</td><td><code>SA-00123</code> → <code>AA-00123</code> → <code>DA-00123</code> → <code>FA-00123</code></td></tr>
-  <tr><td><code>DryerLoadRef</code></td><td><code>DL-YYYY-NNNN</code></td><td>ERP</td><td><code>DL-2026-0042</code></td></tr>
+  <tr><td><code>PackRef</code> <em>(legacy)</em></td><td><code>{STAGE}-{NNNNN}</code></td><td>ERP (<code>kebony.process.pack.name</code>)</td><td><code>SA-00123</code></td></tr>
 </table>
-<p>A single physical pack keeps the same numeric portion of <code>PackRef</code> end-to-end; only the stage prefix evolves.</p>
+
+<div class="warn">
+  <strong>Pack identity invariant — CRITICAL.</strong> One <code>RawMaterialPackageIdent</code> = one physical pack = boards all identical. A pack is <strong>never</strong> physically split while keeping the same identifier — if material is removed, the original pack KEEPS its number (with reduced quantity); the removed portion gets a NEW identifier. Duplicate <code>RawMaterialPackageIdent</code> in a <code>/raw-packages</code> response is a data integrity error, not a normal split.
+</div>
+
+<p><strong>Article number transformation:</strong> Kebony stores SKUs as <code>&lt;part&gt;-M-&lt;length_m&gt;</code> (metric only — imperial <code>-I-</code> codes are excluded from the MES feed). The wire format encodes length in <strong>decimeters</strong>:</p>
+<table>
+  <tr><th>Kebony native</th><th>SIS canonical (<code>ArticleNum</code>)</th><th>Notes</th></tr>
+  <tr><td><code>1003-M-3.5</code></td><td><code>1003:35:::</code></td><td>3.5 m × 10 = 35 dm</td></tr>
+  <tr><td><code>1127-M-3.5</code></td><td><code>1127:35:::</code></td><td>same length, different part</td></tr>
+  <tr><td><code>2489-M-4.8</code></td><td><code>2489:48:::</code></td><td>—</td></tr>
+  <tr><td><code>1003-I-12</code></td><td><span class="pill pill-gray">excluded</span></td><td>Imperial — not on MES feed</td></tr>
+</table>
+<p>Three trailing colons match the SIS layout (<code>&lt;code&gt;:&lt;length&gt;:&lt;empty&gt;:&lt;empty&gt;:</code>). The two empty trailing fields are reserved for SIS-side variant / grade attributes Kebony doesn't currently populate.</p>
 
 <h3>4.4 Operation codes (SIS spec, MES_ProducedPackage.OperationCode)</h3>
 <table>
@@ -241,7 +267,7 @@ Authorization: Bearer &lt;key&gt;</code></pre>
   <tr><td>200</td><td>Success</td><td>—</td></tr>
   <tr><td>400</td><td>Validation (missing required, bad enum, malformed datetime)</td><td>Do <strong>not</strong> retry · log + alert · manual triage</td></tr>
   <tr><td>401</td><td>Missing or invalid API key</td><td>Check key rotation; do not retry blindly</td></tr>
-  <tr><td>404</td><td><code>PackRef</code> / <code>DryerLoadRef</code> not found</td><td>Possible race; retry once after 30 s, then alert</td></tr>
+  <tr><td>404</td><td><code>ProductionOrderIdent</code> / <code>RawMaterialPackageIdent</code> / <code>PackRef</code> not found · or no process pack on MO at requested op stage</td><td>Possible race; retry once after 30 s, then alert</td></tr>
   <tr><td>500</td><td>Server-side failure</td><td>Exponential backoff; alert on persistence</td></tr>
 </table>
 
@@ -253,37 +279,42 @@ Authorization: Bearer &lt;key&gt;</code></pre>
   <h3><span class="method-get">GET</span> /api/v1/mes/ping</h3>
   <p>Health probe. <strong>No auth.</strong></p>
   <p><strong>Response:</strong></p>
-  <pre><code>{"status": "ok", "service": "kebony-mes-api", "version": "1.0.0"}</code></pre>
+  <pre><code>{"status": "ok", "service": "kebony-mes-api", "version": "1.1.0"}</code></pre>
 </div>
 
 <div class="endpoint">
   <h3><span class="method-get">GET</span> /api/v1/mes/articles</h3>
-  <p>Article master + on-hand stock totals (BNV only).</p>
+  <p>Article master + on-hand stock totals. <strong>Scope: white-wood SKUs only</strong> (<code>x_studio_product_classification = "wood"</code>, metric codes only). Imperial <code>-I-</code> codes are excluded. BNV only.</p>
   <p><strong>Query params (all optional):</strong></p>
   <ul>
     <li><code>updated_since</code> — ISO 8601; only return articles with <code>WriteDate &gt;= this</code></li>
-    <li><code>planning_family</code> — filter by planning family code (e.g. <code>KRRS1</code>)</li>
+    <li><code>planning_family</code> — filter by planning family code (e.g. <code>KSP1C</code>)</li>
   </ul>
-  <p><strong>Response (excerpt):</strong></p>
+  <p><strong>Response (live capture from <code>kebonyprod-test-31051334</code>):</strong></p>
   <pre><code>{
-  "count": 412,
+  "count": 1329,
   "articles": [
     {
-      "ArticleNum": "2468",
-      "ArticleName": "1931-I-10",
-      "LengthUnit": 3.05,
+      "ArticleNum": "1127:35:::",
+      "ArticleName": "1127-M-3.5",
+      "ArticleClassID": "KSP1C",
+      "LengthUnit": 3.5,
       "BoardsPerPack": 95,
-      "VolumePerMeter_m3": 0.005,
-      "PlanningFamily": "KRRS1",
-      "UoM": "LF",
-      "QtyAvailable": 2850.0,
+      "VolumePerMeter_m3": 0.00304,
+      "PlanningFamily": "KSP1C",
+      "UoM": "LM",
+      "QtyAvailable": 2735.0,
       "ClosedInAx": false,
-      "WriteDate": "2026-04-28T06:55:19"
+      "WriteDate": "2026-04-30T06:55:19",
+      "KebonyDefaultCode": "1127-M-3.5"
     }
   ]
 }</code></pre>
   <p><strong>Field semantics:</strong></p>
   <ul>
+    <li><code>ArticleNum</code> — <strong>SIS canonical format</strong> <code>&lt;part&gt;:&lt;length_dm&gt;:::</code>. Use as the primary key on the MES side.</li>
+    <li><code>KebonyDefaultCode</code> — Kebony's native code (mirror of <code>default_code</code> / <code>name</code>). Cross-reference / debugging only.</li>
+    <li><code>ArticleClassID</code> — joins to <code>/article-classes</code>; equals the article's planning family code.</li>
     <li><code>LengthUnit</code> — board length in metres. <strong>Mandatory</strong> for MES running-meter computation. Maps from <code>x_studio_length_m</code>.</li>
     <li><code>VolumePerMeter_m3</code> — m³ per linear metre. Kebony doctrine: <code>total_m3 = total_lm × VolumePerMeter_m3</code>.</li>
     <li><code>ClosedInAx</code> — <code>true</code> when product is deactivated. MES drops these from working set.</li>
@@ -293,32 +324,55 @@ Authorization: Bearer &lt;key&gt;</code></pre>
 </div>
 
 <div class="endpoint">
-  <h3><span class="method-get">GET</span> /api/v1/mes/raw-packages</h3>
-  <p>Per-lot inventory with location and SIS-spec flags.</p>
+  <h3><span class="method-get">GET</span> /api/v1/mes/article-classes</h3>
+  <p>Article classification master (= SIS <code>ERP_ArticleClass</code>). Returns the planning families used as the canonical class for each white-wood article.</p>
   <p><strong>Query params:</strong></p>
   <ul>
-    <li><code>article_num</code> — filter by <code>ArticleNum</code></li>
+    <li><code>code</code> — exact <code>ArticleClassID</code> match</li>
+  </ul>
+  <p><strong>Response (live capture):</strong></p>
+  <pre><code>{
+  "count": 17,
+  "article_classes": [
+    {"ArticleClassID": "KSP1C",   "ArticleClassName": "KSP 1\" Cladding"},
+    {"ArticleClassID": "KSP15T",  "ArticleClassName": "KSP 1.5\" Terrace"},
+    {"ArticleClassID": "KSP2PD",  "ArticleClassName": "KSP 2\" Pier Decking"},
+    {"ArticleClassID": "KSP2CON", "ArticleClassName": "KSP 2\" Construction"},
+    {"ArticleClassID": "KRRS1",   "ArticleClassName": "KRRS 1\""}
+  ]
+}</code></pre>
+  <p><strong>Polling cadence:</strong> cache aggressively — this list changes a few times per year. Refresh nightly.</p>
+</div>
+
+<div class="endpoint">
+  <h3><span class="method-get">GET</span> /api/v1/mes/raw-packages</h3>
+  <p>Per-lot inventory with location and SIS-spec flags. Same white-wood scope as <code>/articles</code>.</p>
+  <p><strong>Query params:</strong></p>
+  <ul>
+    <li><code>article_num</code> — accepts both Kebony native (<code>1127-M-3.5</code>) and SIS format (<code>1127:35:::</code>); SIS-format filters by part-prefix, pass Kebony format for an exact match</li>
     <li><code>location</code> — substring match on full location path</li>
   </ul>
-  <p><strong>Response (excerpt):</strong></p>
+  <p><strong>Response (live capture):</strong></p>
   <pre><code>{
-  "count": 47,
+  "count": 5,
   "packages": [
     {
-      "RawMaterialPackageIdent": "TS749697",
-      "ArticleNum": "WW-RAD-95x32-3000",
-      "Amount": 1928.67,
+      "RawMaterialPackageIdent": "0000070",
+      "ArticleNum": "1127:35:::",
+      "Amount": 467.0,
       "ReservedQty": 0.0,
-      "UoM": "LF",
-      "Location": "Kallo/Stock/RawMaterial",
+      "UoM": "LM",
+      "Location": "Kallo/Stock",
       "InventStatus": 1,
       "Blocked": false,
-      "LotRef": 1158
+      "LotRef": 2062,
+      "KebonyDefaultCode": "1127-M-3.5"
     }
   ]
 }</code></pre>
   <ul>
-    <li><code>RawMaterialPackageIdent</code> — supplier plate / lot name. Stable across the pack's lifetime.</li>
+    <li><code>RawMaterialPackageIdent</code> — supplier plate / lot name. <strong>Unique per response</strong> per the pack identity invariant (§4.3). Duplicates are anomalies.</li>
+    <li><code>ArticleNum</code> — SIS canonical (matches <code>/articles</code>).</li>
     <li><code>InventStatus</code> — <code>1</code> while <code>Amount &gt; 0</code>, else <code>0</code> (deactivation flag).</li>
     <li><code>Blocked</code> — currently always <code>false</code>; sourced from <code>stock.lot.x_kebony_blocked</code> once that field exists.</li>
   </ul>
@@ -326,47 +380,40 @@ Authorization: Bearer &lt;key&gt;</code></pre>
 </div>
 
 <div class="endpoint">
-  <h3><span class="method-get">GET</span> /api/v1/mes/dryer-loads</h3>
-  <p>Dryer Loads with nested autoclave batches and process packs.</p>
+  <h3><span class="method-get">GET</span> /api/v1/mes/production-orders</h3>
+  <p>Planned production (= SIS <code>ERP_ProductionOrder</code>). MO-centric — internal Kebony dryer / autoclave / pack planning is no longer exposed.</p>
   <p><strong>Query params:</strong></p>
   <ul>
-    <li><code>state</code> — <code>draft</code> / <code>planned</code> / <code>locked</code> / <code>done</code> (default = <code>planned</code> + <code>locked</code>)</li>
-    <li><code>dryer</code> — <code>DRY1</code> / <code>DRY2</code> / <code>DRY3</code></li>
-    <li><code>ref</code> — exact <code>DryerLoadRef</code> lookup</li>
+    <li><code>state</code> — <code>draft</code> / <code>confirmed</code> / <code>progress</code> (default = <code>draft</code> + <code>confirmed</code> + <code>progress</code>)</li>
+    <li><code>ref</code> — exact <code>ProductionOrderIdent</code> lookup</li>
+    <li><code>article_num</code> — accepts both Kebony native and SIS format</li>
   </ul>
-  <p><strong>Response shape:</strong></p>
+  <p><strong>Response shape (live capture):</strong></p>
   <pre><code>{
-  "count": 3,
-  "dryer_loads": [
+  "count": 1,
+  "production_orders": [
     {
-      "DryerLoadRef": "DL-2026-0042",
-      "Id": 12,
+      "ProductionOrderIdent": "Kallo/MO/00005",
+      "Id": 62,
       "Active": true,
-      "Company": "Kebony BNV",
-      "CreateDate": "2026-04-25T14:02:11",
-      "PlanningFamily": "KRRS1",
-      "Dryer": "DRY1",
-      "State": "planned",
-      "EstimatedStart": "2026-04-29T06:00:00",
-      "EstimatedFinish": "2026-05-01T18:00:00",
-      "EstimatedDurationHours": 60.0,
-      "TotalM3": 24.5,
-      "Packs": [
-        {
-          "PackNumber": 1, "PackRef": "SA-00123", "Stage": "sa",
-          "ArticleNum": "RAD-95x32-3000", "InputArticleNum": "WW-RAD-95x32-3000",
-          "AutoclaveBatch": 1, "PositionCol": 1, "PositionRow": 1,
-          "IsHalfPack": false, "IsDummy": false,
-          "PlannedLM": 567.0, "PlannedM3": 1.9051, "PlannedBoards": 162
-        }
-      ]
+      "ArticleNum": "1127:35:::",
+      "KebonyDefaultCode": "1127-M-3.5",
+      "PlannedQty": 567.0,
+      "UoM": "LM",
+      "PlannedStart": "2026-04-29T06:00:00",
+      "PlannedFinish": "2026-05-01T18:00:00",
+      "State": "confirmed",
+      "OperationCodes": [10, 23, 26, 30],
+      "OperationStatus": {"10": "planned", "23": "planned", "26": "planned", "30": "planned"},
+      "KebonyDryerLoadRef": "DL-2026-0042"
     }
   ]
 }</code></pre>
   <ul>
-    <li><code>Packs</code> array is flat across both autoclave batches. Use <code>AutoclaveBatch</code> to regroup if needed.</li>
-    <li><code>Stage</code> evolves over time (<code>sa</code> → <code>aa</code> → <code>da</code> → <code>fa</code>); same physical pack stays in the same JSON node via <code>PackNumber</code>.</li>
-    <li><code>IsDummy = true</code> packs are filler — MES ignores for production but loads in autoclave.</li>
+    <li><code>OperationCodes</code> — fixed <code>[10, 23, 26, 30]</code> for Kebony wood production (Stacking / Autoclave / Drying / De-stacking).</li>
+    <li><code>OperationStatus</code> — best-effort coarse mapping from MO state. Will be refined to per-operation granularity in v1.2.</li>
+    <li><code>KebonyDryerLoadRef</code> — pure cross-reference for support / debugging. MES should ignore it.</li>
+    <li><strong>White-wood scope only</strong>: chemical, accessory, and finished-goods MOs are excluded.</li>
   </ul>
   <p><strong>Polling cadence:</strong> 1–3 min.</p>
 </div>
@@ -375,11 +422,11 @@ Authorization: Bearer &lt;key&gt;</code></pre>
   <h3><span class="method-post">POST</span> /api/v1/mes/produced-package</h3>
   <p>Called once per operation step per pack. Optional <code>Quality</code> + actuals fields update the parent process pack in the same request — typically only on Op 30.</p>
 
-  <p><strong>Request body (Op 10 example, just the event):</strong></p>
+  <p><strong>Request body (preferred — by ProductionOrderIdent):</strong></p>
   <pre><code>{
   "OperationCode": 10,
   "ProducedPackageIdent": "MES-SA-00123-1",
-  "PackRef": "SA-00123",
+  "ProductionOrderIdent": "Kallo/MO/00005",
   "Timestamp": "2026-04-29T08:15:00Z",
   "MesRef": "WO-44912"
 }</code></pre>
@@ -388,7 +435,7 @@ Authorization: Bearer &lt;key&gt;</code></pre>
   <pre><code>{
   "OperationCode": 30,
   "ProducedPackageIdent": "MES-FA-00123-4",
-  "PackRef": "FA-00123",
+  "ProductionOrderIdent": "Kallo/MO/00005",
   "Quality": 1,
   "ActualLM": 565.5,
   "ActualM3": 1.90,
@@ -397,7 +444,9 @@ Authorization: Bearer &lt;key&gt;</code></pre>
   "Timestamp": "2026-05-01T18:42:00Z"
 }</code></pre>
 
-  <p><strong>Required:</strong> <code>OperationCode</code>, <code>ProducedPackageIdent</code>, <code>PackRef</code>. All others optional.</p>
+  <p><strong>Required:</strong> <code>OperationCode</code>, <code>ProducedPackageIdent</code>, AND <strong>either</strong> <code>ProductionOrderIdent</code> (preferred per SIS spec) <strong>or</strong> <code>PackRef</code> (legacy Kebony-side). All others optional.</p>
+
+  <div class="callout">When <code>ProductionOrderIdent</code> is supplied, the API auto-resolves the right <code>kebony.process.pack</code> on that MO that hasn't yet received an event of this type. Falling back to <code>PackRef</code> is supported for backward compatibility but <code>ProductionOrderIdent</code> is the SIS-canonical key.</div>
 
   <p><strong>Response:</strong></p>
   <pre><code>{
@@ -414,55 +463,116 @@ Authorization: Bearer &lt;key&gt;</code></pre>
 </div>
 
 <div class="endpoint">
-  <h3><span class="method-post">POST</span> /api/v1/mes/dryer-load/actuals</h3>
-  <p>Typically once per dryer load, after the cycle ends. Updates the <code>kebony.dryer.load</code> record's actual start / finish / m³.</p>
+  <h3><span class="method-post">POST</span> /api/v1/mes/production-order/actuals</h3>
+  <p>MES informs ERP that an MO has started (or finished). Maps to SIS <code>MES_ProductionOrder.ActualStartTime</code>.</p>
 
   <p><strong>Request body:</strong></p>
   <pre><code>{
-  "DryerLoadRef": "DL-2026-0042",
-  "ActualStart": "2026-04-29T06:00:00Z",
-  "ActualFinish": "2026-05-01T18:30:00Z",
-  "ActualM3": 27.85
+  "ProductionOrderIdent": "Kallo/MO/00005",
+  "ActualStartTime": "2026-04-29T06:00:00Z",
+  "ActualFinishTime": "2026-05-01T18:30:00Z"
 }</code></pre>
 
-  <p><strong>Required:</strong> <code>DryerLoadRef</code>. All others optional.</p>
+  <p><strong>Required:</strong> <code>ProductionOrderIdent</code>. Times optional — send only what you have. Per spec, <code>ActualStartTime</code> is the primary signal.</p>
 
   <p><strong>Response:</strong></p>
   <pre><code>{
   "status": "ok",
-  "dryer_load": "DL-2026-0042",
-  "updated_fields": ["actual_start_date", "actual_finish_date", "actual_m3"]
+  "production_order": "Kallo/MO/00005",
+  "updated_fields": ["date_start", "date_finished"]
 }</code></pre>
 
   <p>This endpoint is <strong>idempotent</strong> on the ERP side (write, not append) — safe to retry.</p>
 </div>
 
+<div class="endpoint">
+  <h3><span class="method-post">POST</span> /api/v1/mes/raw-material-consumption</h3>
+  <p>Audit log of MES loading raw packs into the stacking machine, plus partial returns to raw storage. Maps to SIS <code>MES_UsedRawMaterialPackage</code>. <strong><code>Quality</code> is NOT used here</strong> — raw consumption is uncategorised; quality only applies to produced packs.</p>
+
+  <p><strong>Request body:</strong></p>
+  <pre><code>{
+  "ProductionOrderIdent": "Kallo/MO/00005",
+  "RawMaterialPackageIdent": "0000070",
+  "OpKind": "load_partial",
+  "Amount": 320.5,
+  "Timestamp": "2026-04-29T08:15:00Z",
+  "MesRef": "WO-44912",
+  "Note": "Loaded 320.5 LM, returned 147 LM remainder."
+}</code></pre>
+
+  <p><strong>Required:</strong> <code>ProductionOrderIdent</code>, <code>RawMaterialPackageIdent</code>, <code>OpKind</code>, <code>Amount</code>.</p>
+
+  <p><strong><code>OpKind</code> values:</strong></p>
+  <table>
+    <tr><th>Value</th><th>Meaning</th></tr>
+    <tr><td><code>load_full</code></td><td>Whole raw pack loaded into machine</td></tr>
+    <tr><td><code>load_partial</code></td><td>Part of pack loaded; remainder still in storage</td></tr>
+    <tr><td><code>return_full</code></td><td>Whole pack returned to raw storage (e.g. cancelled)</td></tr>
+    <tr><td><code>return_partial</code></td><td>Partial remainder returned (the "spare boards" SIS doc references)</td></tr>
+  </table>
+
+  <p><strong>Response:</strong></p>
+  <pre><code>{
+  "status": "ok",
+  "event_id": 8421,
+  "production_order": "Kallo/MO/00005",
+  "raw_pack": "0000070",
+  "op_kind": "load_partial"
+}</code></pre>
+
+  <div class="callout">
+    <strong>Behaviour:</strong> v1.1 ships the <em>recording</em> surface only — the event lands in <code>kebony.mes.raw.consumption.event</code> for audit. It does <strong>not</strong> drive Odoo stock moves automatically. Reconciliation against <code>stock.quant</code> is a separate process.
+  </div>
+
+  <div class="warn">
+    <strong>Idempotency:</strong> the API does NOT deduplicate. Track delivery state middleware-side keyed by your own correlation ID.
+  </div>
+</div>
+
 <h2 id="happy-path">6. End-to-end happy path</h2>
 
-<div class="flow-section">ERP creates DL-2026-0042 (state=planned, 5 packs in AC1, 5 in AC2)
+<div class="flow-section">ERP creates Kallo/MO/00005 (state=confirmed, article 1127:35:::, 567 LM)
         │
-        ▼  middleware polls /dryer-loads
-MES picks up DL-2026-0042, drives the line
+        ▼  middleware polls /production-orders
+MES picks up Kallo/MO/00005, allocates raw packs, drives the line
         │
-        ▼  Op 10 — Stacking begins
-POST /produced-package {OperationCode: 10, PackRef: "SA-00123", ...}
+        ▼  Raw pack 0000070 loaded into stacker (partial)
+POST /raw-material-consumption {ProductionOrderIdent: "Kallo/MO/00005",
+                                RawMaterialPackageIdent: "0000070",
+                                OpKind: "load_partial", Amount: 320.5}
         │
-        ▼  Op 23 — Charged into autoclave
-POST /produced-package {OperationCode: 23, PackRef: "AA-00123", ...}
+        ▼  MO actually starts
+POST /production-order/actuals {ProductionOrderIdent: "Kallo/MO/00005",
+                                ActualStartTime: "2026-04-29T06:00:00Z"}
+        │
+        ▼  Op 10 — Stacking (per pack)
+POST /produced-package {OperationCode: 10, ProductionOrderIdent: "Kallo/MO/00005",
+                        ProducedPackageIdent: "MES-SA-00123-1", ...}
+        │
+        ▼  Op 23 — Autoclave charging
+POST /produced-package {OperationCode: 23, ProductionOrderIdent: "Kallo/MO/00005",
+                        ProducedPackageIdent: "MES-AA-00123-1", ...}
         │
         ▼  Op 26 — Drying complete
-POST /produced-package {OperationCode: 26, PackRef: "DA-00123", ...}
+POST /produced-package {OperationCode: 26, ProductionOrderIdent: "Kallo/MO/00005",
+                        ProducedPackageIdent: "MES-DA-00123-1", ...}
         │
         ▼  Op 30 — De-stacking with Quality + actuals
-POST /produced-package {OperationCode: 30, PackRef: "FA-00123",
+POST /produced-package {OperationCode: 30, ProductionOrderIdent: "Kallo/MO/00005",
+                        ProducedPackageIdent: "MES-FA-00123-1",
                         Quality: 1, ActualLM: 565.5, ActualM3: 1.9, ...}
         │
-        ▼  Cycle ends
-POST /dryer-load/actuals {DryerLoadRef: "DL-2026-0042",
-                          ActualStart, ActualFinish, ActualM3}</div>
+        ▼  Spare boards returned to raw storage (gets a NEW lot identifier)
+POST /raw-material-consumption {ProductionOrderIdent: "Kallo/MO/00005",
+                                RawMaterialPackageIdent: "0000070-spare",
+                                OpKind: "return_partial", Amount: 147.0}
+        │
+        ▼  MO finishes
+POST /production-order/actuals {ProductionOrderIdent: "Kallo/MO/00005",
+                                ActualFinishTime: "2026-05-01T18:30:00Z"}</div>
 
 <div class="open">
-  <strong>Stage prefix in <code>PackRef</code>.</strong> MES can either send the operation-appropriate prefix (<code>SA-</code> / <code>AA-</code> / <code>DA-</code> / <code>FA-</code>) or always send <code>SA-</code> and let ERP resolve. Both work since the numeric portion is stable. <strong>VVF recommends operation-appropriate</strong> for clarity in event audit. Confirm with VVF before implementation.
+  <strong>Stage prefix in <code>PackRef</code>.</strong> Legacy <code>PackRef</code> path only — when using <code>ProductionOrderIdent</code> (preferred) the API auto-resolves the right pack and prefix is moot. If MES still sends <code>PackRef</code>, it can either use the operation-appropriate prefix (<code>SA-</code> / <code>AA-</code> / <code>DA-</code> / <code>FA-</code>) or always send <code>SA-</code> and rely on ERP resolution. <strong>VVF recommends operation-appropriate</strong> for clarity in event audit. Confirm with VVF before implementation.
 </div>
 
 <h2 id="operations">7. Operational guidance</h2>
@@ -488,7 +598,8 @@ POST /dryer-load/actuals {DryerLoadRef: "DL-2026-0042",
 <h3>7.3 Idempotency strategy</h3>
 <ul>
   <li><code>produced-package</code> is <strong>not</strong> deduplicated server-side. Persist <code>ProducedPackageIdent</code> + ERP <code>event_id</code> in middleware state on success. On retry, check first; only re-POST if not previously confirmed.</li>
-  <li><code>dryer-load/actuals</code> is idempotent (write, not append) — safe to retry.</li>
+  <li><code>raw-material-consumption</code> is <strong>not</strong> deduplicated server-side either. Track delivery state by your own correlation ID (<code>MesRef</code>) and only re-POST on confirmed failures.</li>
+  <li><code>production-order/actuals</code> is idempotent (write, not append) — safe to retry.</li>
 </ul>
 
 <h3>7.4 Backpressure</h3>
@@ -504,124 +615,141 @@ export KEY="&lt;your-api-key&gt;"
 
 # Health
 curl "$BASE/api/v1/mes/ping"
+# → {"status":"ok","service":"kebony-mes-api","version":"1.1.0"}
 
-# Articles (BNV only)
-curl -H "X-API-Key: $KEY" "$BASE/api/v1/mes/articles?planning_family=KRRS1" | jq .count
+# Articles (white-wood, SIS code format)
+curl -H "X-API-Key: $KEY" "$BASE/api/v1/mes/articles?planning_family=KSP1C" | jq .count
+
+# Article classes (planning families = ERP_ArticleClass)
+curl -H "X-API-Key: $KEY" "$BASE/api/v1/mes/article-classes"
 
 # Raw packages
 curl -H "X-API-Key: $KEY" "$BASE/api/v1/mes/raw-packages" | jq '.packages | length'
 
-# Planned dryer loads
-curl -H "X-API-Key: $KEY" "$BASE/api/v1/mes/dryer-loads?state=planned"
+# Planned production orders (replaces dryer-loads)
+curl -H "X-API-Key: $KEY" "$BASE/api/v1/mes/production-orders?state=confirmed"
 
-# Report stacking event
+# Report stacking event (preferred — by ProductionOrderIdent)
 curl -X POST -H "X-API-Key: $KEY" -H "Content-Type: application/json" \
-  -d '{"OperationCode":10,"ProducedPackageIdent":"MES-SA-00123-1","PackRef":"SA-00123","Timestamp":"2026-04-29T08:15:00Z"}' \
+  -d '{"OperationCode":10,"ProducedPackageIdent":"MES-SA-00123-1","ProductionOrderIdent":"Kallo/MO/00005","Timestamp":"2026-04-29T08:15:00Z"}' \
   "$BASE/api/v1/mes/produced-package"
 
-# Report DL actuals
+# Report MO start time
 curl -X POST -H "X-API-Key: $KEY" -H "Content-Type: application/json" \
-  -d '{"DryerLoadRef":"DL-2026-0042","ActualStart":"2026-04-29T06:00:00Z","ActualFinish":"2026-05-01T18:30:00Z","ActualM3":27.85}' \
-  "$BASE/api/v1/mes/dryer-load/actuals"</code></pre>
+  -d '{"ProductionOrderIdent":"Kallo/MO/00005","ActualStartTime":"2026-04-29T06:00:00Z"}' \
+  "$BASE/api/v1/mes/production-order/actuals"
+
+# Report raw consumption (partial load)
+curl -X POST -H "X-API-Key: $KEY" -H "Content-Type: application/json" \
+  -d '{"ProductionOrderIdent":"Kallo/MO/00005","RawMaterialPackageIdent":"0000070","OpKind":"load_partial","Amount":320.5,"Timestamp":"2026-04-29T08:15:00Z"}' \
+  "$BASE/api/v1/mes/raw-material-consumption"</code></pre>
 
 <h2 id="open">9. Open items for SIS &amp; VVF</h2>
 
 <table>
   <tr><th>#</th><th>Item</th><th>Status</th><th>Owner</th></tr>
   <tr><td>1</td><td>Quality 1/2 semantics (<code>1 = Prime</code>, <code>2 = Secondary</code> are provisional)</td><td><span class="pill pill-amber">Open</span></td><td>SIS</td></tr>
-  <tr><td>2</td><td>Stage prefix in <code>PackRef</code>: operation-appropriate vs always <code>SA-</code></td><td><span class="pill pill-amber">Open</span></td><td>SIS / VVF</td></tr>
+  <tr><td>2</td><td>Stage prefix in <code>PackRef</code> (legacy path only): operation-appropriate vs always <code>SA-</code></td><td><span class="pill pill-amber">Open</span></td><td>SIS / VVF</td></tr>
   <tr><td>3</td><td>Defect reason catalogue (loaded as ERP seed data, not interface payload)</td><td><span class="pill pill-amber">Open</span></td><td>SIS</td></tr>
   <tr><td>4</td><td><code>Blocked</code> flag on raw packages (<code>stock.lot.x_kebony_blocked</code> field to be added)</td><td><span class="pill pill-amber">Open</span></td><td>VVF</td></tr>
   <tr><td>5</td><td>Staging URL (TBC once Kebony pre-prod branch is live)</td><td><span class="pill pill-amber">Open</span></td><td>Kebony IT</td></tr>
   <tr><td>6</td><td>Rate-limit caps (load-test under expected MES throughput before go-live)</td><td><span class="pill pill-amber">Open</span></td><td>VVF / SIS</td></tr>
+  <tr><td>7</td><td><strong>v1.2 — operation start time + duration</strong> per OP step (10/23/26/30) on <code>OperationStatus</code></td><td><span class="pill pill-gray">Deferred</span></td><td>VVF</td></tr>
+  <tr><td>8</td><td><strong>v1.2 — scrap time + reason</strong> on <code>Quality=3</code> events (defect reason catalog stays MES-internal per SIS spec)</td><td><span class="pill pill-gray">Deferred</span></td><td>SIS / VVF</td></tr>
+  <tr><td>9</td><td>Trailing colons in <code>ArticleNum</code> (<code>1003:35:::</code>) — confirm the two empty trailing fields with SIS reflect their canonical encoding for variant / grade</td><td><span class="pill pill-amber">Confirm</span></td><td>SIS</td></tr>
 </table>
 
 <h2 id="data-tree">10. Data model tree</h2>
 
 <div class="flow-section">Article
-├── ArticleNum          : string          (PK · product.template.default_code)
-├── ArticleName         : string
-├── LengthUnit          : float           (metres · MANDATORY for MES)
-├── BoardsPerPack       : integer
-├── VolumePerMeter_m3   : float
-├── PlanningFamily      : string?
-├── UoM                 : string
-├── QtyAvailable        : float           (BNV total on-hand)
-├── ClosedInAx          : boolean
-└── WriteDate           : datetime ISO8601
+├── ArticleNum            : string          (PK · SIS canonical "1003:35:::")
+├── KebonyDefaultCode     : string          (informational · "1003-M-3.5")
+├── ArticleName           : string
+├── ArticleClassID        : string?         (FK → ArticleClass.ArticleClassID)
+├── LengthUnit            : float           (metres · MANDATORY for MES)
+├── BoardsPerPack         : integer
+├── VolumePerMeter_m3     : float
+├── PlanningFamily        : string?         (= ArticleClassID, kept for back-compat)
+├── UoM                   : string          ("LM")
+├── QtyAvailable          : float           (BNV total on-hand)
+├── ClosedInAx            : boolean
+└── WriteDate             : datetime ISO8601
+
+ArticleClass
+├── ArticleClassID        : string          (PK · planning family code)
+└── ArticleClassName      : string
 
 RawPackage
-├── RawMaterialPackageIdent : string      (PK · supplier plate / lot name)
-├── ArticleNum          : string
-├── Amount              : float
-├── ReservedQty         : float
-├── UoM                 : string
-├── Location            : string          (full path · BNV only)
-├── InventStatus        : 0 | 1
-├── Blocked             : boolean
-└── LotRef              : integer?        (Odoo internal stock.lot id)
+├── RawMaterialPackageIdent : string        (PK · supplier plate / lot name · UNIQUE per response)
+├── ArticleNum              : string
+├── Amount                  : float
+├── ReservedQty             : float
+├── UoM                     : string
+├── Location                : string        (full path · BNV only)
+├── InventStatus            : 0 | 1
+├── Blocked                 : boolean
+├── LotRef                  : integer?      (Odoo internal stock.lot id)
+└── KebonyDefaultCode       : string
 
-DryerLoad
-├── DryerLoadRef        : string          (PK · DL-YYYY-NNNN)
-├── Id                  : integer
-├── Active              : boolean
-├── Company             : string          ("Kebony BNV")
-├── CreateDate          : datetime
-├── PlanningFamily      : string
-├── Dryer               : "DRY1"|"DRY2"|"DRY3"|null
-├── State               : "draft"|"planned"|"locked"|"done"
-├── EstimatedStart      : datetime?
-├── EstimatedFinish     : datetime?
-├── EstimatedDurationHours : float
-├── TotalM3             : float
-└── Packs[]             : ProcessPack    (flattened across AC1 + AC2)
-        │
-        ├── PackNumber       : integer    (stable end-to-end)
-        ├── PackRef          : string     ({STAGE}-{NNNNN})
-        ├── Stage            : "sa"|"aa"|"da"|"fa"
-        ├── ArticleNum       : string?    (output product)
-        ├── InputArticleNum  : string?    (raw input)
-        ├── AutoclaveBatch   : 1 | 2
-        ├── PositionCol      : integer
-        ├── PositionRow      : integer
-        ├── IsHalfPack       : boolean
-        ├── IsDummy          : boolean
-        ├── PlannedLM        : float
-        ├── PlannedM3        : float
-        └── PlannedBoards    : integer
+ProductionOrder
+├── ProductionOrderIdent    : string        (PK · "Kallo/MO/00005")
+├── Id                      : integer
+├── Active                  : boolean
+├── ArticleNum              : string        (SIS canonical)
+├── KebonyDefaultCode       : string
+├── PlannedQty              : float
+├── UoM                     : string
+├── PlannedStart            : datetime?
+├── PlannedFinish           : datetime?
+├── State                   : "draft"|"confirmed"|"progress"|"done"|"cancel"
+├── OperationCodes          : [10, 23, 26, 30]
+├── OperationStatus         : {"10":"...", "23":"...", "26":"...", "30":"..."}
+└── KebonyDryerLoadRef      : string?       (cross-ref · MES ignores)
 
 ProducedPackageEvent  (POST body)
-├── OperationCode       : 10 | 23 | 26 | 30        ← required
-├── ProducedPackageIdent: string                   ← required
-├── PackRef             : string                   ← required
-├── MesRef              : string?
-├── Timestamp           : datetime ISO8601?
-├── Quality             : 1 | 2 | 3 | null         (typically Op 30 only)
-├── ActualLM            : float?
-├── ActualM3            : float?
-├── ActualBoardCount    : integer?
-├── OutputPackQtyActual : float?
-└── Note                : string?
+├── OperationCode           : 10 | 23 | 26 | 30        ← required
+├── ProducedPackageIdent    : string                   ← required
+├── ProductionOrderIdent    : string                   ← required (preferred)
+│   OR
+├── PackRef                 : string                   ← required (legacy path)
+├── MesRef                  : string?
+├── Timestamp               : datetime ISO8601?
+├── Quality                 : 1 | 2 | 3 | null         (typically Op 30 only)
+├── ActualLM                : float?
+├── ActualM3                : float?
+├── ActualBoardCount        : integer?
+├── OutputPackQtyActual     : float?
+└── Note                    : string?
 
-DryerLoadActuals  (POST body)
-├── DryerLoadRef        : string                   ← required
-├── ActualStart         : datetime?
-├── ActualFinish        : datetime?
-└── ActualM3            : float?</div>
+ProductionOrderActuals  (POST body)
+├── ProductionOrderIdent    : string                   ← required
+├── ActualStartTime         : datetime?
+└── ActualFinishTime        : datetime?
+
+RawMaterialConsumption  (POST body)
+├── ProductionOrderIdent    : string                   ← required
+├── RawMaterialPackageIdent : string                   ← required
+├── OpKind                  : "load_full"|"load_partial"|"return_full"|"return_partial"  ← required
+├── Amount                  : float                    ← required
+├── Timestamp               : datetime ISO8601?
+├── MesRef                  : string?
+└── Note                    : string?</div>
 
 <h2 id="deliverable">11. Deliverable structure</h2>
 
 <p>What the middleware team receives:</p>
 <div class="flow-section">mes_api_deliverable/
-├── mes_api_implementation_guide.html       ← this document (integration guide)
-├── mes_api.json                            ← OpenAPI 3.0 spec (canonical machine contract)
-└── mes_api_samples/                        ← live JSON captures from the test instance
-    ├── 00_ping_response.json               (unauth health probe)
-    ├── 01_articles_response.json           (KRRS1 family · 412+ KB · real BNV products)
-    ├── 02_raw_packages_response.json       (real Biewer / Kallo lots · 47 packages)
-    ├── 03_dryer_loads_response.json        (planned + locked DLs with nested packs)
-    ├── 04_produced_package_request.json    (synthetic POST body — Op 30 with Quality + actuals)
-    └── 05_dryer_load_actuals_request.json  (synthetic POST body — actuals on DL-2026-0042)</div>
+├── mes_api_implementation_guide.html        ← this document (integration guide)
+├── mes_api.json                             ← OpenAPI 3.0 spec (canonical machine contract)
+└── mes_api_samples/                         ← live JSON captures from the test instance
+    ├── 00_ping_response.json                (unauth health probe)
+    ├── 01_articles_response.json            (white-wood · SIS code format)
+    ├── 02_article_classes_response.json     (planning families · 17 entries)
+    ├── 03_raw_packages_response.json        (real Kallo lots · SIS code format)
+    ├── 04_production_orders_response.json   (MO list · operation codes 10/23/26/30)
+    ├── 05_produced_package_request.json     (POST body — by ProductionOrderIdent)
+    ├── 06_production_order_actuals.json     (POST body — ActualStartTime)
+    └── 07_raw_material_consumption.json     (POST body — load_partial event)</div>
 
 <div class="callout">Sample JSONs in <code>mes_api_samples/</code> are real captures from the test environment (<code>kebonyprod-test-31051334.dev.odoo.com</code>) on 2026-04-29. Use them to develop offline / build mocks / pre-validate parsing. The two POST samples are synthetic templates illustrating expected request shapes.</div>
 
@@ -647,28 +775,132 @@ DryerLoadActuals  (POST body)
 
 <h2 id="mapping">12. SIS spec ↔ API mapping</h2>
 
+<p>Field-by-field map between the SIS schema (<code>SIS_MES_Axapta_Summary v0.1</code>) and the v1.1 REST API. Use this to populate <code>MES_ERP_Mailbox</code> tables on the middleware side. Three columns: <strong>SIS table.field</strong> (your target) → <strong>API endpoint + field</strong> (the source) → <strong>Odoo source</strong> (where the data physically lives, for support / auditing).</p>
+
+<h3 id="map-erp-mes">12.1 ERP → MES (pulled by middleware via GET)</h3>
+
+<h4>ERP_Article  ←  GET /articles</h4>
 <table>
-  <tr><th>SIS table / field (v0.1)</th><th>API equivalent</th></tr>
-  <tr><td><code>ERP.Articles</code></td><td><code>GET /articles</code></td></tr>
-  <tr><td><code>ERP.Articles.LengthUnit</code></td><td><code>Article.LengthUnit</code></td></tr>
-  <tr><td><code>ERP.Articles.ClosedInAx</code></td><td><code>Article.ClosedInAx</code></td></tr>
-  <tr><td><code>ERP.Inventory.Amount</code></td><td><code>RawPackage.Amount</code></td></tr>
-  <tr><td><code>ERP.Inventory.InventStatus</code></td><td><code>RawPackage.InventStatus</code></td></tr>
-  <tr><td><code>ERP.RawMaterialPackages.RawMaterialPackageIdent</code></td><td><code>RawPackage.RawMaterialPackageIdent</code></td></tr>
-  <tr><td><code>ERP.RawMaterialPackages.Blocked</code></td><td><code>RawPackage.Blocked</code></td></tr>
-  <tr><td><code>MES.ProducedPackage.OperationCode</code></td><td><code>ProducedPackageEvent.OperationCode</code></td></tr>
-  <tr><td><code>MES.ProducedPackage.ProducedPackageIdent</code></td><td><code>ProducedPackageEvent.ProducedPackageIdent</code></td></tr>
-  <tr><td><code>MES.ProducedPackage.Quality</code></td><td><code>ProducedPackageEvent.Quality</code></td></tr>
+  <tr><th>SIS field</th><th>API field (path)</th><th>Odoo source</th><th>Notes</th></tr>
+  <tr><td><code>ArticleNumber</code> <em>(PK)</em></td><td><code>articles[].ArticleNum</code></td><td>derived from <code>product.template.default_code</code> or <code>name</code></td><td>SIS canonical <code>&lt;part&gt;:&lt;length_dm&gt;:::</code> · imperial codes excluded</td></tr>
+  <tr><td><code>ArticleName</code></td><td><code>articles[].ArticleName</code></td><td><code>product.template.name</code></td><td>—</td></tr>
+  <tr><td><code>ArticleClassID</code> <em>(FK)</em></td><td><code>articles[].ArticleClassID</code></td><td><code>product.template.kebony_planning_family_id.code</code></td><td>joins to ERP_ArticleClass</td></tr>
+  <tr><td><code>ClosedInAx</code></td><td><code>articles[].ClosedInAx</code></td><td><code>NOT product.template.active</code></td><td>MES drops these from working set</td></tr>
+  <tr><td><code>DBTimeStamp</code></td><td><code>articles[].WriteDate</code></td><td><code>product.template.write_date</code></td><td>ISO 8601 · use with <code>?updated_since=</code> for incremental pull</td></tr>
+  <tr><td>—</td><td><code>articles[].UoM</code></td><td><code>product.template.uom_id.name</code></td><td>"LM" for white wood</td></tr>
+  <tr><td>—</td><td><code>articles[].QtyAvailable</code></td><td><code>product.template.qty_available</code></td><td>BNV total on-hand · convenience field</td></tr>
+  <tr><td>—</td><td><code>articles[].KebonyDefaultCode</code></td><td><code>product.template.default_code</code> ?? <code>name</code></td><td>Native Kebony SKU · cross-reference only</td></tr>
 </table>
+
+<h4>ERP_ArticleClass  ←  GET /article-classes</h4>
+<table>
+  <tr><th>SIS field</th><th>API field (path)</th><th>Odoo source</th><th>Notes</th></tr>
+  <tr><td><code>ArticleClassID</code> <em>(PK)</em></td><td><code>article_classes[].ArticleClassID</code></td><td><code>kebony.planning.family.code</code></td><td>joined from ERP_Article.ArticleClassID</td></tr>
+  <tr><td><code>ArticleClassName</code></td><td><code>article_classes[].ArticleClassName</code></td><td><code>kebony.planning.family.name</code></td><td>—</td></tr>
+  <tr><td><code>DBTimeStamp</code></td><td><span class="pill pill-gray">not exposed</span></td><td>—</td><td>Per SIS doc: "DBTimeStamp not used by Axapta and MES" — refresh nightly instead</td></tr>
+</table>
+
+<h4>ERP_Konf_DataDefinition  ←  embedded in /articles fields</h4>
+<table>
+  <tr><th>SIS DataName</th><th>API field (path)</th><th>Odoo source</th><th>Notes</th></tr>
+  <tr><td><code>LengthUnit</code> <em>(MANDATORY)</em></td><td><code>articles[].LengthUnit</code></td><td><code>product.template.x_studio_length_m</code></td><td>Metres · MES uses this to convert PLC board count → running metres</td></tr>
+  <tr><td><code>BoardsPerPack</code></td><td><code>articles[].BoardsPerPack</code></td><td><code>product.template.x_studio_boards_per_pack</code></td><td>—</td></tr>
+  <tr><td><code>VolumePerMeter</code></td><td><code>articles[].VolumePerMeter_m3</code></td><td><code>product.template.x_studio_volume_m3</code></td><td>m³ per linear metre</td></tr>
+  <tr><td>(other custom fields)</td><td><span class="pill pill-gray">not exposed</span></td><td>—</td><td>Per SIS doc: "Most of these data are for reporting purposes in MES only" — only LengthUnit is mandatory</td></tr>
+</table>
+
+<h4>ERP_RawMaterialPackage  ←  GET /raw-packages</h4>
+<table>
+  <tr><th>SIS field</th><th>API field (path)</th><th>Odoo source</th><th>Notes</th></tr>
+  <tr><td><code>RawMaterialPackageIdent</code> <em>(PK)</em></td><td><code>packages[].RawMaterialPackageIdent</code></td><td><code>stock.lot.name</code></td><td><strong>Unique per response</strong> per pack identity invariant</td></tr>
+  <tr><td><code>ArticleID</code> <em>(FK → ERP_Article)</em></td><td><code>packages[].ArticleNum</code></td><td>derived from <code>stock.quant.product_id</code></td><td>Use ArticleNum as the join key (consistent with ERP_Article.ArticleNumber)</td></tr>
+  <tr><td><code>StartAmount</code></td><td><span class="pill pill-gray">not exposed</span></td><td>—</td><td>Initial pack receipt amount — not currently tracked in Odoo. Use <code>Amount</code> for current quantity.</td></tr>
+  <tr><td><code>CurrentAmount</code></td><td><code>packages[].Amount</code></td><td><code>stock.quant.quantity</code></td><td>—</td></tr>
+  <tr><td><code>SerialNo</code></td><td><span class="pill pill-gray">not exposed</span></td><td>—</td><td>Per SIS doc: "MES do not use SerialNo"</td></tr>
+  <tr><td><code>Blocked</code></td><td><code>packages[].Blocked</code></td><td>(future <code>stock.lot.x_kebony_blocked</code>)</td><td>Currently always <code>false</code> — open item #4</td></tr>
+  <tr><td><code>Site</code></td><td><span class="pill pill-gray">not exposed</span></td><td>—</td><td>Per SIS doc: "Site is no longer needed due to only one site"</td></tr>
+  <tr><td><code>ContainerId</code></td><td><span class="pill pill-gray">not exposed</span></td><td>—</td><td>Per SIS doc: "ContainerId is only used for MES reporting purposes"</td></tr>
+  <tr><td>—</td><td><code>packages[].ReservedQty</code></td><td><code>stock.quant.reserved_quantity</code></td><td>Reserved against in-progress moves</td></tr>
+  <tr><td>—</td><td><code>packages[].UoM</code></td><td><code>stock.quant.product_uom_id.name</code></td><td>—</td></tr>
+  <tr><td>—</td><td><code>packages[].Location</code></td><td><code>stock.quant.location_id.complete_name</code></td><td><strong>Trust the API value</strong> — UI's "None" location is a stale denormalized field</td></tr>
+  <tr><td>—</td><td><code>packages[].InventStatus</code></td><td>derived (<code>1</code> if <code>quantity &gt; 0</code> else <code>0</code>)</td><td>Per SIS doc: "InventStatus = 1 means wood package should be disabled in MES"</td></tr>
+  <tr><td>—</td><td><code>packages[].LotRef</code></td><td><code>stock.lot.id</code></td><td>Odoo internal id · for support only</td></tr>
+</table>
+
+<h4>ERP_Inventory  ←  covered by /raw-packages (current state)</h4>
+<table>
+  <tr><th>SIS field</th><th>API field (path)</th><th>Notes</th></tr>
+  <tr><td><code>TransactionType</code> (Sold / TransferFrom / TransferTo / Counting)</td><td><span class="pill pill-gray">not exposed</span></td><td>Per SIS doc: "MES is not using TransactionNumber and JournalNumber" · derive from current state via <code>/raw-packages</code></td></tr>
+  <tr><td><code>Amount=0</code> deactivation</td><td><code>packages[].InventStatus = 0</code></td><td>Same flag, computed from <code>quantity</code></td></tr>
+  <tr><td><code>WMSLocation</code></td><td><span class="pill pill-gray">not exposed</span></td><td>Per SIS doc: "The WMSLocation is not used by MES"</td></tr>
+</table>
+
+<h4>ERP_ProductionOrder  ←  GET /production-orders</h4>
+<table>
+  <tr><th>SIS field</th><th>API field (path)</th><th>Odoo source</th><th>Notes</th></tr>
+  <tr><td><code>ProductionOrderIdent</code> <em>(PK)</em></td><td><code>production_orders[].ProductionOrderIdent</code></td><td><code>mrp.production.name</code></td><td>e.g. <code>Kallo/MO/00005</code></td></tr>
+  <tr><td><code>ArticleID</code> <em>(FK)</em></td><td><code>production_orders[].ArticleNum</code></td><td>derived from <code>mrp.production.product_id</code></td><td>Use ArticleNum as join key</td></tr>
+  <tr><td><code>OPCode1..N</code></td><td><code>production_orders[].OperationCodes[]</code></td><td>fixed <code>[10, 23, 26, 30]</code></td><td>Kebony wood production: Stacking · Autoclave · Drying · De-stacking</td></tr>
+  <tr><td><code>OPStatus1..N</code></td><td><code>production_orders[].OperationStatus{}</code></td><td>derived from <code>mrp.production.state</code></td><td>Coarse in v1.1 · per-op granularity in v1.2 (open item #7)</td></tr>
+  <tr><td><code>BItem1..N</code> (scrap material refs)</td><td><span class="pill pill-gray">not exposed</span></td><td>—</td><td>Deferred to v1.2 — Kebony scrap workflow needs SIS clarification first</td></tr>
+  <tr><td><code>ParentOrderIdent</code></td><td><span class="pill pill-gray">not exposed</span></td><td>—</td><td>Per SIS doc: "ParentOrderIdent ... not used by MES"</td></tr>
+  <tr><td><code>InventLocationDest</code> / <code>InventLocationSource</code></td><td><span class="pill pill-gray">not exposed</span></td><td>—</td><td>Per SIS doc: "not used by MES"</td></tr>
+  <tr><td>—</td><td><code>production_orders[].PlannedQty</code></td><td><code>mrp.production.product_qty</code></td><td>—</td></tr>
+  <tr><td>—</td><td><code>production_orders[].PlannedStart</code> / <code>PlannedFinish</code></td><td><code>mrp.production.date_start</code> / <code>date_finished</code></td><td>—</td></tr>
+  <tr><td>—</td><td><code>production_orders[].State</code></td><td><code>mrp.production.state</code></td><td><code>draft</code> / <code>confirmed</code> / <code>progress</code> / <code>done</code></td></tr>
+  <tr><td>—</td><td><code>production_orders[].KebonyDryerLoadRef</code></td><td><code>mrp.production.kebony_dryer_load_id.name</code></td><td>Cross-reference only · MES ignores</td></tr>
+</table>
+
+<h3 id="map-mes-erp">12.2 MES → ERP (pushed by middleware via POST)</h3>
+
+<h4>MES_ProductionOrder  →  POST /production-order/actuals</h4>
+<table>
+  <tr><th>SIS field</th><th>API field (request body)</th><th>Odoo target</th><th>Notes</th></tr>
+  <tr><td><code>ERP_ProductionOrderID</code> (FK to ERP_ProductionOrder)</td><td><code>ProductionOrderIdent</code></td><td>resolves <code>mrp.production</code> by <code>name</code></td><td>Required</td></tr>
+  <tr><td><code>ActualStartTime</code></td><td><code>ActualStartTime</code></td><td><code>mrp.production.date_start</code></td><td>Primary signal — MES tells ERP the MO has started</td></tr>
+  <tr><td>—</td><td><code>ActualFinishTime</code></td><td><code>mrp.production.date_finished</code></td><td>Optional · ERP-side convenience extension</td></tr>
+</table>
+
+<h4>MES_UsedRawMaterialPackage  →  POST /raw-material-consumption</h4>
+<table>
+  <tr><th>SIS field</th><th>API field (request body)</th><th>Odoo target</th><th>Notes</th></tr>
+  <tr><td><code>RawMaterialPackageIdent</code></td><td><code>RawMaterialPackageIdent</code></td><td>resolves <code>stock.lot</code> by <code>name</code></td><td>Required</td></tr>
+  <tr><td><code>ProductionOrderID</code> (FK)</td><td><code>ProductionOrderIdent</code></td><td>resolves <code>mrp.production</code> by <code>name</code></td><td>Required</td></tr>
+  <tr><td><code>ArticleIDIn</code></td><td><span class="pill pill-gray">implicit (from RawMaterialPackageIdent)</span></td><td>—</td><td>Derive from the lot's product on read-back</td></tr>
+  <tr><td><code>Amount</code></td><td><code>Amount</code></td><td><code>kebony.mes.raw.consumption.event.amount</code></td><td>Required · sign implicit in OpKind</td></tr>
+  <tr><td><code>OperationCode</code> (load/return)</td><td><code>OpKind</code></td><td><code>...event.op_kind</code></td><td><code>load_full</code> / <code>load_partial</code> / <code>return_full</code> / <code>return_partial</code></td></tr>
+  <tr><td><code>Createtime</code> / <code>LastChangedTime</code></td><td><code>Timestamp</code></td><td><code>...event.timestamp</code></td><td>Optional · defaults to server now</td></tr>
+  <tr><td><code>Quality</code></td><td><span class="pill pill-gray">not used here</span></td><td>—</td><td>Per SIS doc: "The Quality Column is not in use for raw material consumption"</td></tr>
+  <tr><td><code>CorrectionType</code></td><td><span class="pill pill-gray">not used</span></td><td>—</td><td>Per SIS doc: "CorrectionType ... is not in use by MES"</td></tr>
+</table>
+
+<h4>MES_ProducedPackage  →  POST /produced-package</h4>
+<table>
+  <tr><th>SIS field</th><th>API field (request body)</th><th>Odoo target</th><th>Notes</th></tr>
+  <tr><td><code>ProducedPackageIdent</code> <em>(PK)</em></td><td><code>ProducedPackageIdent</code></td><td><code>kebony.process.pack.event.mes_produced_package_ident</code></td><td>Required · MES-assigned, one per pack per op step</td></tr>
+  <tr><td><code>OperationCode</code></td><td><code>OperationCode</code></td><td><code>...event.mes_op_code</code></td><td>Required · 10/23/26/30 · maps to <code>event_type</code> stacked / autoclave_in / dryer_out / destacked</td></tr>
+  <tr><td><code>ERP_ProductionOrderID</code> (FK)</td><td><code>ProductionOrderIdent</code> <strong>(preferred)</strong></td><td>resolves <code>mrp.production</code> by <code>name</code> · auto-finds the right pack on the MO</td><td>Required (or <code>PackRef</code> as legacy fallback)</td></tr>
+  <tr><td><code>ArticleID</code> <em>(FK)</em></td><td><span class="pill pill-gray">implicit (from MO/pack)</span></td><td>—</td><td>Derived on resolve · returned as <code>pack_ref</code> in response</td></tr>
+  <tr><td><code>Amount</code></td><td><code>ActualLM</code></td><td><code>kebony.process.pack.actual_lm</code></td><td>Linear metres · typically Op 30</td></tr>
+  <tr><td>—</td><td><code>ActualM3</code></td><td><code>kebony.process.pack.actual_m3</code></td><td>Volume · typically Op 30</td></tr>
+  <tr><td>—</td><td><code>ActualBoardCount</code></td><td><code>kebony.process.pack.actual_board_count</code></td><td>Board count · typically Op 30</td></tr>
+  <tr><td>—</td><td><code>OutputPackQtyActual</code></td><td><code>kebony.process.pack.output_pack_qty_actual</code></td><td>Yield ratio · typically Op 30</td></tr>
+  <tr><td><code>Quality</code></td><td><code>Quality</code></td><td><code>kebony.process.pack.mes_quality</code></td><td><code>1</code>/<code>2</code>/<code>3</code> · typically Op 30 only · <code>3 = Scrap</code> spec-confirmed</td></tr>
+  <tr><td><code>Createtime</code></td><td><code>Timestamp</code></td><td><code>...event.timestamp</code></td><td>Optional · defaults to server now</td></tr>
+</table>
+
+<div class="callout">
+  <strong>Reading this table.</strong> SIS columns marked <span class="pill pill-gray">not exposed</span> are intentional — per the SIS doc the field is either unused by MES, deprecated, or covered indirectly via current-state pulls. Three rows are <strong>open</strong>: <code>StartAmount</code>, <code>Blocked</code> (Odoo field pending), and <code>BItem*</code> (deferred to v1.2). Everything else has a 1:1 mapping. The middleware can populate <code>MES_ERP_Mailbox</code> tables completely from this v1.1 surface.
+</div>
 
 <div class="footer">
   Implementation guide for the MES ↔ Odoo middleware integration.
   Companion to the contract spec at <code>mes_api_contract.html</code> (v0.1, 2026-04-23).
-  Canonical machine-readable schema: <code>addons/kebony_manufacturing/static/openapi/mes_api.json</code>.
+  Canonical machine-readable schema: <code>addons/kebony_manufacturing/static/openapi/mes_api.json</code> (regenerated for v1.1 in a follow-up).
   <br>
   Distribute as <em>this HTML + the OpenAPI JSON</em> to the SIS middleware team.
   <br>
-  Olivier Eberhard · VVF Consulting · 2026-04-29
+  Olivier Eberhard · VVF Consulting · 2026-04-30
 </div>
 
 <!--
@@ -678,6 +910,36 @@ DryerLoadActuals  (POST body)
                       Auth via X-API-Key / Bearer token tied to mes_middleware user.
                       BNV-only scope enforced via allowed_company_ids.
                       Companion to mes_api_contract.html v0.1.
+  v1.1 · 2026-04-30 · BREAKING — re-aligned with SIS_MES_Axapta_Summary v0.1.
+                      REMOVED: /dryer-loads + /dryer-load/actuals (Kebony-internal,
+                      MES is MO-centric).
+                      ADDED: /production-orders, /production-order/actuals,
+                      /raw-material-consumption (= MES_UsedRawMaterialPackage),
+                      /article-classes (= ERP_ArticleClass).
+                      ArticleNum switched to SIS canonical format <part>:<length_dm>:::
+                      (e.g. 1003-M-3.5 → 1003:35:::).  Native code preserved in
+                      KebonyDefaultCode field for cross-reference.
+                      White-wood scope on /articles + /raw-packages
+                      (x_studio_product_classification = "wood"). Imperial -I- codes
+                      excluded.
+                      /produced-package now accepts ProductionOrderIdent (preferred per
+                      SIS) in addition to legacy PackRef.
+                      Live + tested on kebonyprod-test-31051334; smoke-tested all 8
+                      endpoints incl. POST round-trips.
+                      §12 SIS↔API mapping rewritten field-by-field across all 7 SIS
+                      tables.
+                      Deferred to v1.2: per-operation start time + duration; scrap
+                      time + reason on Quality=3 events; BItem (scrap material refs);
+                      Odoo Blocked flag on stock.lot.
+-->
+<!--
+  KEBONY MAINTAINER NOTES
+  - Source markdown: addons/kebony_manufacturing/MES_API_GUIDE.md (kept in sync with
+    this HTML — markdown is engineer-facing, this HTML is SIS-facing).
+  - To regenerate v1.1 OpenAPI JSON: run the spec generator against
+    addons/kebony_manufacturing/controllers/mes_api.py after each surface change.
+  - All examples in this guide are LIVE captures from kebonyprod-test-31051334
+    (api/v1/mes/*) on 2026-04-30. Refresh on schema bumps.
 -->
 
 </body>
